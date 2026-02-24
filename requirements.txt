@@ -1,0 +1,6 @@
+polars
+censtats
+matplotlib
+plotly
+dash
+pysam
