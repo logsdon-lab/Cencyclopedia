@@ -4,7 +4,8 @@ from cenplot.lib.io.bed_hor import read_bed_hor
 
 (
     read_bed_hor(sys.argv[1])
-    .with_columns(grp=pl.col("name").rle_id().over(["chrom", "grp"]))
+    .sort(by=["chrom", "chrom_st"])
+    .with_columns(grp=pl.col("name").rle_id().over(["chrom"]))
     .group_by(["chrom", "grp"])
     .agg(
         pl.col("chrom_st").min(),

@@ -5,19 +5,19 @@ data:
     path: data/all_cdrs.bed.gz
     position: relative
     type: bed
-    prop: 0.1
+    prop: 0.05
   methyl:
     path: data/all_CpG_methyl.bedgraph.gz
     position: relative
     type: bedgraph
     prop: 0.5
-  as_hor_stv:
-    path: data/all_AS-HOR_stv_row.bed.gz
+  sat_annot:
+    path: data/all_RM_satellite_annotation.bed.gz
     position: relative
     type: bed
     prop: 0.34
-  sat_annot:
-    path: data/all_RM_satellite_annotation.bed.gz
+  as_hor_stv:
+    path: data/all_AS-HOR_stv_row.bed.gz
     position: overlap
     type: bed
   as_hor_strand:
@@ -29,7 +29,7 @@ data:
   #   path: data/all_ModDotPlot.bed.gz
   #   position: relative
   #   type: bedpe_selfident
-  #   prop: 2.0
+  #   prop: 5.0
 regions: data/all_array.bed.gz
 clades: data/clades.tsv.gz
 sample_metadata: data/sample_metadata.tsv.gz
