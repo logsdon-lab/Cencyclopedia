@@ -6,30 +6,55 @@ data:
     position: relative
     type: bed
     prop: 0.05
+    options:
+      hide_x: true
+      hide_y: true
   methyl:
     path: data/all_CpG_methyl.bedgraph.gz
     position: relative
     type: bedgraph
     prop: 0.5
+    options:
+      hide_x: true
+      hide_y: false
   sat_annot:
     path: data/all_RM_satellite_annotation.bed.gz
     position: relative
     type: bed
     prop: 0.34
+    options:
+      hide_x: true
+      hide_y: true
   as_hor_stv:
     path: data/all_AS-HOR_stv_row.bed.gz
     position: overlap
     type: bed
+    options:
+      hide_x: true
+      hide_y: true
   as_hor_strand:
     path: data/all_AS-HOR_stv_row_strand.bed.gz
     position: relative
     type: bedstrand
     prop: 0.1
+    options:
+      hide_x: true
+      hide_y: true
   # moddotplot:
   #   path: data/all_ModDotPlot.bed.gz
   #   position: relative
   #   type: bedpe_selfident
-  #   prop: 5.0
+  #   prop: 4.0
+  #   options:
+  #     static: true
+  #     hide_y: true
 regions: data/all_array.bed.gz
 clades: data/clades.tsv.gz
 sample_metadata: data/sample_metadata.tsv.gz
+trees:
+  chr2_p: assets/chr2_PhylogeneticTree.png
+  chr18_p: assets/chr18_PhylogeneticTree.png
+  chrY_p: assets/chrY_PhylogeneticTree.png
+  legend: assets/VerticalLegend.png
+tree_ystart: 620
+tree_yoffset: 75

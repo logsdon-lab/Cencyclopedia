@@ -1,6 +1,5 @@
 from dash import html, dcc
-
-MARK_ALL = 101
+from cencyclopedia.io.read_cfg_data import Data
 
 
 def layout(chrom_names: list[str]):
@@ -16,20 +15,6 @@ def layout(chrom_names: list[str]):
                                 "chrY",
                                 id="filter-chrom",
                             ),
-                            html.Div("Render:"),
-                            dcc.Slider(
-                                step=None,
-                                marks={
-                                    1: "1",
-                                    25: "25",
-                                    50: "50",
-                                    75: "75",
-                                    100: "100",
-                                    MARK_ALL: "All",
-                                },
-                                value=25,
-                                id="filter-render-n",
-                            ),
                         ],
                     )
                 ],
@@ -40,21 +25,21 @@ def layout(chrom_names: list[str]):
                         [
                             dcc.Graph(
                                 id="fig-cens-clade-ordered",
-                                # config={"staticPlot": True}
+                                responsive=True,
                             )
                         ],
                         style={
                             "width": "49%",
                             "float": "left",
                             "display": "inline-block",
+                            # This took way too long to figure out.
+                            "height": "300vh",
                         },
                     ),
                     html.Div(
                         [
                             dcc.Dropdown([], searchable=True, id="lbl-selected-cen"),
-                            dcc.Graph(
-                                id="fig-selected-cen",
-                            ),
+                            dcc.Graph(id="fig-selected-cen"),
                         ],
                         style={
                             "width": "49%",

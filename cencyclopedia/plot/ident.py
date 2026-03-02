@@ -2,12 +2,7 @@ import polars as pl
 import plotly.graph_objs as go
 
 
-def add_ident_track(
-    df_ident: pl.DataFrame,
-    fig: go._figure.Figure,
-    row_n: int,
-    col_n: int,
-) -> None:
+def add_ident_track(df_ident: pl.DataFrame, fig: go._figure.Figure, **kwargs) -> None:
     for row in df_ident.iter_rows(named=True):
         """
         ref_end  *        *
@@ -41,7 +36,6 @@ def add_ident_track(
             mode="lines",
             fillcolor=row["color"],
             name=f"{row['percent_identity_by_events']}, ({row['desc']})",
-            row=row_n,
-            col=col_n,
             showlegend=False,
+            **kwargs,
         )

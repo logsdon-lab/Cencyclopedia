@@ -2,9 +2,7 @@ import polars as pl
 import plotly.graph_objs as go
 
 
-def add_bedgraph_track(
-    df_bg: pl.DataFrame, fig: go._figure.Figure, row_n: int, col_n: int
-):
+def add_bedgraph_track(df_bg: pl.DataFrame, fig: go._figure.Figure, **kwargs):
     for row in df_bg.iter_rows(named=True):
         fig.add_scatter(
             fill="toself",
@@ -19,13 +17,12 @@ def add_bedgraph_track(
             line=dict(color="#000000", width=2),
             mode="text",
             fillcolor="#000000",
-            row=row_n,
-            col=col_n,
             showlegend=False,
+            **kwargs,
         )
 
 
-def add_bed_track(df_bed: pl.DataFrame, fig: go._figure.Figure, row_n: int, col_n: int):
+def add_bed_track(df_bed: pl.DataFrame, fig: go._figure.Figure, **kwargs):
     for grp, df in df_bed.group_by(["name", "color"]):
         x, y = [], []
         name, color = grp
@@ -53,15 +50,12 @@ def add_bed_track(df_bed: pl.DataFrame, fig: go._figure.Figure, row_n: int, col_
             name=name,
             mode="text",
             fillcolor=color,
-            row=row_n,
-            col=col_n,
             showlegend=False,
+            **kwargs,
         )
 
 
-def add_bedstrand_track(
-    df_bedstrand: pl.DataFrame, fig: go._figure.Figure, row_n: int, col_n: int
-):
+def add_bedstrand_track(df_bedstrand: pl.DataFrame, fig: go._figure.Figure, **kwargs):
     for row in df_bedstrand.iter_rows(named=True):
         length = row["chrom_end"] - row["chrom_st"]
         if row["name"] == "-":
@@ -77,6 +71,5 @@ def add_bedstrand_track(
                 size=15, symbol="arrow-bar-up", angleref="previous", color=row["color"]
             ),
             showlegend=False,
-            row=row_n,
-            col=col_n,
+            **kwargs,
         )
