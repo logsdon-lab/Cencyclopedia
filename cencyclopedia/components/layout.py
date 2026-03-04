@@ -34,14 +34,14 @@ def create_content_layout(
                     ),
                     dbc.Col(
                         [
-                            # There's probably a better way to organize this.
+                            # TODO: There's probably a better way to organize this.
                             dropdown,
                             html.Hr(),
                             dcc.Store(id="selected-cen", data=selected_cen),
-                            dcc.Graph(id="fig-selected-cen", responsive=False),
+                            dcc.Graph(id="fig-selected-cen", responsive=True),
                             # dcc.Graph(id="fig-selected-cen-mdp"),
                         ],
-                        style={"width": "50%"},
+                        style={"height": "50vh", "width": "50%"},
                     ),
                 ],
             )
