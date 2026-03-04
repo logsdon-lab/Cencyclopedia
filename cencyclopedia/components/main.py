@@ -20,7 +20,7 @@ CONTENT_STYLE = {
 }
 
 
-def create_content_layout(
+def main_content(
     fig_clade: dcc.Graph, dropdown: dcc.Dropdown, selected_cen: str | None
 ):
     return html.Div(
@@ -48,7 +48,7 @@ def create_content_layout(
     )
 
 
-def layout(regions: str, chrom_names: list[str], cfg: dict[str, Any]):
+def main_page(regions: str, chrom_names: list[str], cfg: dict[str, Any]):
     sidebar = html.Div(
         [
             html.H2("Cencyclopedia", className="display-7"),
@@ -68,7 +68,7 @@ def layout(regions: str, chrom_names: list[str], cfg: dict[str, Any]):
         ],
         style=SIDEBAR_STYLE,
     )
-    content = create_content_layout(
+    content = main_content(
         fig_clade=dcc.Graph(id="fig-cens-clade-ordered", responsive=True),
         dropdown=dcc.Dropdown(
             [],
