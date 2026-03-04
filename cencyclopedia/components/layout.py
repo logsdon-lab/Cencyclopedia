@@ -1,6 +1,8 @@
-from dash import html, dcc
+import polars as pl
 import dash_bootstrap_components as dbc
 
+from dash import html, dcc
+from typing import Any
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -37,7 +39,7 @@ def create_content_layout(
                             html.Hr(),
                             dcc.Store(id="selected-cen", data=selected_cen),
                             dcc.Graph(id="fig-selected-cen", responsive=False),
-                            html.Img(id="fig-selected-cen-mdp"),
+                            # dcc.Graph(id="fig-selected-cen-mdp"),
                         ],
                         style={"width": "50%"},
                     ),
@@ -47,7 +49,7 @@ def create_content_layout(
     )
 
 
-def layout(chrom_names: list[str]):
+def layout(regions: str, chrom_names: list[str], cfg: dict[str, Any]):
     sidebar = html.Div(
         [
             html.H2("Cencyclopedia", className="display-7"),
@@ -79,6 +81,8 @@ def layout(chrom_names: list[str]):
     )
     return html.Div(
         [
+            dcc.Store(id="regions", data=regions),
+            dcc.Store(id="cfg", data=cfg),
             dcc.Location(id="url", refresh=False),
             dbc.Row(
                 [

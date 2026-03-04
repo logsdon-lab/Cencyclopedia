@@ -44,9 +44,6 @@ data:
   #   position: relative
   #   type: bedpe_selfident
   #   prop: 4.0
-  #   options:
-  #     static: true
-  #     hide_y: true
 regions: data/all_array.bed.gz
 clades: data/clades.tsv.gz
 sample_metadata: data/sample_metadata.tsv.gz

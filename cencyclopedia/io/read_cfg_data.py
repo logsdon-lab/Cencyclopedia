@@ -1,6 +1,8 @@
+import os
+import gzip
 import pysam
-import polars as pl
 import bisect
+import polars as pl
 
 from typing import Self, Any, Literal, Iterator, NamedTuple
 
@@ -48,8 +50,8 @@ def read_bedpe_selfident_row(
     if ident == 0.0:
         color = colors[0]
         desc = str(ident_end)
-        return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
-        # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
+        # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
+        return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
     try:
         idx_end = bisect.bisect(breakpoints, ident)
         ident_end = breakpoints[idx_end]
@@ -65,8 +67,8 @@ def read_bedpe_selfident_row(
         color = colors[-1]
         desc = str(ident_end)
 
-    return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
-    # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
+    # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
+    return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
 
 
 def to_relative_coords_bed(df: pl.DataFrame):
@@ -159,8 +161,8 @@ class Data(NamedTuple):
                 "ref_st",
                 "ref_end",
                 "percent_identity_by_events",
-                # "color",
-                # "desc",
+                "color",
+                "desc",
             ]
         else:
             read_fn = read_bed9_row
@@ -178,11 +180,31 @@ class Data(NamedTuple):
         else:
             return to_relative_fn(df)
 
+def read_or_write_regions(
+    cfg: dict[str, Any],
+    regions: str = "assets/regions.csv.gz"
+) -> pl.DataFrame:
+    if not os.path.exists(regions):
+        df_regions = read_regions_from_data(
+            cfg["regions"],
+            cfg["clades"],
+            cfg["sample_metadata"]
+        )
+        with gzip.open(regions, 'wb') as fh:
+            df_regions.write_csv(fh)
+    else:
+        df_regions = pl.read_csv(regions)
+    
+    return df_regions.cast({"chrom_name": pl.Enum(CHROM_NAMES)})
 
-def read_regions(cfg: dict[str, Any]) -> pl.DataFrame:
+def read_regions_from_data(
+    regions: str,
+    clades: str,
+    sample_metadata: str
+) -> pl.DataFrame:
     df_regions = (
         pl.read_csv(
-            cfg["regions"],
+            regions,
             separator="\t",
             has_header=False,
             columns=[0, 1, 2],
@@ -193,7 +215,7 @@ def read_regions(cfg: dict[str, Any]) -> pl.DataFrame:
     )
     df_clades = (
         pl.read_csv(
-            cfg["clades"],
+            clades,
             separator="\t",
             has_header=False,
             new_columns=["chrom", "clade", "arm"],
@@ -202,7 +224,7 @@ def read_regions(cfg: dict[str, Any]) -> pl.DataFrame:
         .unnest("mtch")
     )
     df_metadata = pl.read_csv(
-        cfg["sample_metadata"],
+        sample_metadata,
         separator="\t",
         has_header=False,
         new_columns=["sample", "population", "gender"],

@@ -5,3 +5,5 @@ plotly
 dash
 pysam
 pyyaml
+loguru
+pillow

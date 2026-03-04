@@ -1,5 +1,7 @@
 # Cencyclopedia
 
+![](docs/ui.png)
+
 ## Getting Started
 Download data:
 ```bash
