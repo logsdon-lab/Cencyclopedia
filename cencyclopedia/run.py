@@ -3,7 +3,7 @@ import polars as pl
 import dash_bootstrap_components as dbc
 
 from dash import Dash
-from cencyclopedia.io.read_cfg_data import read_or_write_regions
+from cencyclopedia.io.regions import read_or_write_regions
 from cencyclopedia.components.main import main_page
 from cencyclopedia.callbacks.main_page import *
 from cencyclopedia.callbacks.selected_cen import *

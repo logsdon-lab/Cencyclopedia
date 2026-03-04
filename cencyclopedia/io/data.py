@@ -1,0 +1,107 @@
+import pysam
+import polars as pl
+
+from typing import Self, Any, Literal, Iterator, NamedTuple
+
+from .bed import (
+    to_relative_coords_bed,
+    read_bed9_row,
+    read_bedgraph_row,
+    read_bedstrand_row,
+)
+from .bedpe import (
+    read_bedpe_selfident_row,
+    read_identity_breakpoints,
+    to_relative_coords_bedpe_selfident,
+)
+
+
+class Data(NamedTuple):
+    fhs: dict[str, pysam.TabixFile]
+    cfg: dict[str, Any]
+
+    def new(cfg: dict[str, Any]) -> Self:
+        fhs = {}
+        cfgs = {}
+        for label, trk_info in cfg.items():
+            fhs[label] = pysam.TabixFile(trk_info["path"])
+            cfgs[label] = trk_info
+
+        return Data(fhs=fhs, cfg=cfgs)
+
+    def options(self, label: str) -> dict[str, Any]:
+        return self.cfg[label].get("options", {})
+
+    def datatype(
+        self, label: str
+    ) -> Literal["bed", "bedgraph", "bedstrand", "bedpe_selfident"]:
+        return self.cfg[label]["type"]
+
+    @property
+    def labels(self) -> Iterator[str]:
+        return self.fhs.keys()
+
+    @property
+    def track_params(self) -> Iterator[tuple[str, int, float | None]]:
+        idx = 0
+        for label, cfg in self.cfg.items():
+            if cfg["position"] == "relative":
+                idx += 1
+            yield label, idx, cfg.get("prop")
+
+    def query(
+        self, label: str, chrom: str, st: int, end: int, *, to_relative: bool = True
+    ) -> pl.DataFrame:
+        """
+        # Arguments
+        * `label`
+        * `chrom`
+        * `st`
+        * `end`
+        """
+        parser: pysam.asBed | pysam.asTuple = pysam.asBed()
+        to_relative_fn = to_relative_coords_bed
+        if self.cfg[label]["type"] == "bed9":
+            read_fn = read_bed9_row
+            cols = ["chrom", "chrom_st", "chrom_end", "name", "color"]
+        elif self.cfg[label]["type"] == "bedstrand":
+            read_fn = read_bedstrand_row
+            cols = ["chrom", "chrom_st", "chrom_end", "name", "color"]
+        elif self.cfg[label]["type"] == "bedgraph":
+            read_fn = read_bedgraph_row
+            cols = ["chrom", "chrom_st", "chrom_end", "name"]
+        elif self.cfg[label]["type"] == "bedpe_selfident":
+            parser = pysam.asTuple()
+            breakpoints, colors = read_identity_breakpoints(
+                self.cfg[label].get("ident_breakpoints")
+            )
+            read_fn = lambda rec: read_bedpe_selfident_row(
+                rec, breakpoints=breakpoints, colors=colors
+            )
+            to_relative_fn = to_relative_coords_bedpe_selfident
+            cols = [
+                "qry",
+                "qry_st",
+                "qry_end",
+                "ref",
+                "ref_st",
+                "ref_end",
+                "percent_identity_by_events",
+                "color",
+                "desc",
+            ]
+        else:
+            read_fn = read_bed9_row
+            cols = ["chrom", "chrom_st", "chrom_end", "name", "color"]
+
+        qry = self.fhs[label].fetch(chrom, st, end, parser=parser)
+        df = pl.DataFrame(
+            data=[read_fn(rec) for rec in qry],
+            orient="row",
+            schema=cols,
+        )
+
+        if not to_relative:
+            return df
+        else:
+            return to_relative_fn(df)

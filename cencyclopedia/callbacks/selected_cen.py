@@ -7,7 +7,7 @@ from plotly.subplots import make_subplots
 from dash import Input, Output, callback
 from dash.exceptions import PreventUpdate
 
-from cencyclopedia.io.read_cfg_data import Data
+from cencyclopedia.io.data import Data
 from cencyclopedia.plot.ident import add_ident_track
 from cencyclopedia.plot.bed import (
     add_bed_track,
