@@ -23,7 +23,11 @@ def add_bedgraph_track(df_bg: pl.DataFrame, fig: go._figure.Figure, **kwargs):
 
 
 def add_bed_track(df_bed: pl.DataFrame, fig: go._figure.Figure, **kwargs):
-    for grp, df in df_bed.group_by(["name", "color"]):
+    for grp, df in (
+        df_bed.with_columns(length=pl.col("chrom_end") - pl.col("chrom_st"))
+        .sort(by="length", descending=True)
+        .group_by(["name", "color"], maintain_order=True)
+    ):
         x, y = [], []
         name, color = grp
         for row in df.iter_rows(named=True):

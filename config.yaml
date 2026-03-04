@@ -1,5 +1,4 @@
-app:
-  stylesheets: ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app: []
 data:
   cdr:
     path: data/all_cdrs.bed.gz
@@ -21,7 +20,7 @@ data:
     path: data/all_RM_satellite_annotation.bed.gz
     position: relative
     type: bed
-    prop: 0.34
+    prop: 0.25
     options:
       hide_x: true
       hide_y: true
@@ -56,5 +55,5 @@ trees:
   chr18_p: assets/chr18_PhylogeneticTree.png
   chrY_p: assets/chrY_PhylogeneticTree.png
   legend: assets/VerticalLegend.png
-tree_ystart: 620
-tree_yoffset: 75
+tree_ystart: 624
+tree_yoffset: 78

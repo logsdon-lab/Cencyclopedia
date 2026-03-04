@@ -48,7 +48,8 @@ def read_bedpe_selfident_row(
     if ident == 0.0:
         color = colors[0]
         desc = str(ident_end)
-        return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
+        return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
+        # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
     try:
         idx_end = bisect.bisect(breakpoints, ident)
         ident_end = breakpoints[idx_end]
@@ -64,7 +65,8 @@ def read_bedpe_selfident_row(
         color = colors[-1]
         desc = str(ident_end)
 
-    return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
+    return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
+    # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
 
 
 def to_relative_coords_bed(df: pl.DataFrame):
@@ -157,8 +159,8 @@ class Data(NamedTuple):
                 "ref_st",
                 "ref_end",
                 "percent_identity_by_events",
-                "color",
-                "desc",
+                # "color",
+                # "desc",
             ]
         else:
             read_fn = read_bed9_row
@@ -178,7 +180,7 @@ class Data(NamedTuple):
 
 
 def read_regions(cfg: dict[str, Any]) -> pl.DataFrame:
-    DF_REGIONS = (
+    df_regions = (
         pl.read_csv(
             cfg["regions"],
             separator="\t",
@@ -189,7 +191,7 @@ def read_regions(cfg: dict[str, Any]) -> pl.DataFrame:
         .with_columns(mtch=pl.col("chrom").str.extract_groups(RGX_SM_CHROM))
         .unnest("mtch")
     )
-    DF_CLADES = (
+    df_clades = (
         pl.read_csv(
             cfg["clades"],
             separator="\t",
@@ -199,16 +201,16 @@ def read_regions(cfg: dict[str, Any]) -> pl.DataFrame:
         .with_columns(mtch=pl.col("chrom").str.extract_groups(RGX_SM_CHROM))
         .unnest("mtch")
     )
-    DF_METADATA = pl.read_csv(
+    df_metadata = pl.read_csv(
         cfg["sample_metadata"],
         separator="\t",
         has_header=False,
         new_columns=["sample", "population", "gender"],
     )
-    DF_REGIONS = (
-        DF_REGIONS.join(DF_CLADES, on=["chrom", "sample", "chrom_name"])
-        .join(DF_METADATA, on=["sample"])
+    df_final_regions = (
+        df_regions.join(df_clades, on=["chrom", "sample", "chrom_name"])
+        .join(df_metadata, on=["sample"])
         .cast({"chrom_name": pl.Enum(CHROM_NAMES)})
     )
 
-    return DF_REGIONS
+    return df_final_regions
