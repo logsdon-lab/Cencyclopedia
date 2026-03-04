@@ -34,9 +34,12 @@ def draw_main_content_page(pathname: str, regions: str, cfg: dict[str, Any]):
         if not chrom_name:
             return []
 
-        df_regions_chrom = pl.scan_csv(regions).filter(
-            pl.col("chrom_name").eq(chrom_name) & pl.col("arm").eq(pl.lit("p"))
-        ).sort(by=["clade"]).collect()
+        df_regions_chrom = (
+            pl.scan_csv(regions)
+            .filter(pl.col("chrom_name").eq(chrom_name) & pl.col("arm").eq(pl.lit("p")))
+            .sort(by=["clade"])
+            .collect()
+        )
 
         chroms = df_regions_chrom["chrom"]
         try:

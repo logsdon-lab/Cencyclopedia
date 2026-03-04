@@ -22,13 +22,17 @@ from cencyclopedia.plot.bed import (
     Input("cfg", "data"),
     Input("selected-cen", "data"),
 )
-def draw_selected_cen_figure(regions: str, cfg: dict[str, Any], selected_cen: str | None):
+def draw_selected_cen_figure(
+    regions: str, cfg: dict[str, Any], selected_cen: str | None
+):
     if not selected_cen:
         raise PreventUpdate
 
-    df_region = pl.scan_csv(regions).filter(
-        pl.col("chrom").eq(selected_cen) & pl.col("arm").eq(pl.lit("q"))
-    ).collect()
+    df_region = (
+        pl.scan_csv(regions)
+        .filter(pl.col("chrom").eq(selected_cen) & pl.col("arm").eq(pl.lit("q")))
+        .collect()
+    )
     if df_region.is_empty():
         raise ValueError(f"Invalid selected_cen: {selected_cen}")
 
@@ -87,22 +91,25 @@ def draw_selected_cen_figure(regions: str, cfg: dict[str, Any], selected_cen: st
 
 
 @callback(
-    Output("dropdown-selected-cen", "value"),
-    Input("selected-cen", "data"),
+    Output("selected-cen", "data", allow_duplicate=True),
+    Input("dropdown-selected-cen", "value"),
+    prevent_initial_call=True,
 )
-def update_dropdown_selected_cen(selected_cen: str) -> str:
+def update_selected_cen_dropdown(selected_cen: str) -> str:
     return selected_cen
 
 
 @callback(
-    Output("selected-cen", "data"),
+    Output("selected-cen", "data", allow_duplicate=True),
     Input("url", "pathname"),
     Input("regions", "data"),
     Input("cfg", "data"),
     Input("fig-cens-clade-ordered", "clickData", allow_optional=True),
     prevent_initial_call=True,
 )
-def update_selected_cen_by_click(pathname: str, regions: str, cfg: dict[str, Any], data: dict[str, Any] | None):
+def update_selected_cen_by_click(
+    pathname: str, regions: str, cfg: dict[str, Any], data: dict[str, Any] | None
+):
     if not data:
         raise PreventUpdate
 
@@ -110,16 +117,19 @@ def update_selected_cen_by_click(pathname: str, regions: str, cfg: dict[str, Any
     click_data = data["points"][0]
     y = click_data["y"]
 
-    df_regions_chrom = pl.scan_csv(regions).filter(
-        pl.col("chrom_name").eq(chrom) & pl.col("arm").eq(pl.lit("p"))
-    ).sort(by=["clade"]).collect()
+    df_regions_chrom = (
+        pl.scan_csv(regions)
+        .filter(pl.col("chrom_name").eq(chrom) & pl.col("arm").eq(pl.lit("p")))
+        .sort(by=["clade"])
+        .collect()
+    )
     chroms = df_regions_chrom["chrom"]
     y = abs(y)
     yst = cfg["tree_ystart"]
     yoffset = cfg["tree_yoffset"]
 
     idx = round((y - yst) / yoffset)
-    logger.debug(f"Clicked y-pos, {y}, corresponding to {idx}")
+    logger.debug(f"Clicked y-pos, {y}, corresponding to index {idx}")
     try:
         chrom = chroms[idx]
     except IndexError:

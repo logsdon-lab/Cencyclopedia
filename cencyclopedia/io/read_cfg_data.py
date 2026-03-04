@@ -180,27 +180,24 @@ class Data(NamedTuple):
         else:
             return to_relative_fn(df)
 
+
 def read_or_write_regions(
-    cfg: dict[str, Any],
-    regions: str = "assets/regions.csv.gz"
+    cfg: dict[str, Any], regions: str = "assets/regions.csv.gz"
 ) -> pl.DataFrame:
     if not os.path.exists(regions):
         df_regions = read_regions_from_data(
-            cfg["regions"],
-            cfg["clades"],
-            cfg["sample_metadata"]
+            cfg["regions"], cfg["clades"], cfg["sample_metadata"]
         )
-        with gzip.open(regions, 'wb') as fh:
+        with gzip.open(regions, "wb") as fh:
             df_regions.write_csv(fh)
     else:
         df_regions = pl.read_csv(regions)
-    
+
     return df_regions.cast({"chrom_name": pl.Enum(CHROM_NAMES)})
 
+
 def read_regions_from_data(
-    regions: str,
-    clades: str,
-    sample_metadata: str
+    regions: str, clades: str, sample_metadata: str
 ) -> pl.DataFrame:
     df_regions = (
         pl.read_csv(

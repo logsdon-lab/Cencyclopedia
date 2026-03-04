@@ -6,10 +6,9 @@ from typing import Any, Iterable
 
 from .image import add_image_to_figure
 
+
 def create_tree_figure(
-    img: PIL.Image,
-    chroms: Iterable[str],
-    cfg: dict[str, Any]
+    img: PIL.Image, chroms: Iterable[str], cfg: dict[str, Any]
 ) -> go._figure.Figure:
     fig = go._figure.Figure()
     fig = add_image_to_figure(img, fig)

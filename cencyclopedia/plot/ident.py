@@ -31,7 +31,7 @@ def add_ident_image_track(df_ident: pl.DataFrame) -> PIL.ImageFile:
     mpl_fig.savefig(img, bbox_inches="tight", dpi=600)
 
     pil_image = PIL.Image.open(img)
-    return add_image_to_figure(pil_image, fig)   
+    return add_image_to_figure(pil_image, fig)
 
 
 def add_ident_track(df_ident: pl.DataFrame, fig: go._figure.Figure, **kwargs):

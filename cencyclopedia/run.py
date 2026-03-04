@@ -23,7 +23,7 @@ app = Dash(
 app.layout = layout(
     regions=regions,
     chrom_names=df_regions["chrom_name"].unique().sort().to_list(),
-    cfg=cfg
+    cfg=cfg,
 )
 
 if __name__ == "__main__":

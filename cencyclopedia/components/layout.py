@@ -1,8 +1,7 @@
-import polars as pl
-import dash_bootstrap_components as dbc
-
 from dash import html, dcc
 from typing import Any
+import dash_bootstrap_components as dbc
+
 
 SIDEBAR_STYLE = {
     "position": "fixed",
