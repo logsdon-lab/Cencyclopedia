@@ -1,3 +1,4 @@
+from dash import State
 import polars as pl
 import plotly.graph_objs as go
 
@@ -8,6 +9,7 @@ from dash import Input, Output, callback
 from dash.exceptions import PreventUpdate
 
 from cencyclopedia.io.data import Data
+from cencyclopedia.plot.common import ExpandTracksSettings
 from cencyclopedia.plot.ident import add_ident_track
 from cencyclopedia.plot.bed import (
     add_bed_track,
@@ -18,12 +20,18 @@ from cencyclopedia.plot.bed import (
 
 @callback(
     Output("fig-selected-cen", "figure"),
-    Input("regions", "data"),
-    Input("cfg", "data"),
+    State("regions", "data"),
+    State("cfg", "data"),
     Input("selected-cen", "data"),
+    # Input("btn-expand-tracks", "n_clicks", allow_optional=True),
+    # State("expand-tracks", "data"),
 )
 def draw_selected_cen_figure(
-    regions: str, cfg: dict[str, Any], selected_cen: str | None
+    regions: str,
+    cfg: dict[str, Any],
+    selected_cen: str | None,
+    # _btn_expand_click_n: int | None,
+    # expand_tracks: dict[str, ExpandTracksSettings],
 ):
     if not selected_cen:
         raise PreventUpdate
@@ -43,6 +51,7 @@ def draw_selected_cen_figure(
     props = []
     nrows = 0
     indices = {}
+    # TODO: Add additional rows if expand. If overlap, must ignore.
     for dtype, idx, prop in data_fhs.track_params:
         indices[dtype] = idx
         if not prop:
@@ -62,6 +71,7 @@ def draw_selected_cen_figure(
             region["chrom_end"],
             to_relative=False,
         )
+        # TODO: Split if expand
         dtype = data_fhs.datatype(label)
         if dtype == "bed":
             add_bed_track(df, fig, row=idx, col=1)
@@ -95,15 +105,15 @@ def draw_selected_cen_figure(
     Input("dropdown-selected-cen", "value"),
     prevent_initial_call=True,
 )
-def update_selected_cen_dropdown(selected_cen: str) -> str:
+def update_selected_cen_by_dropdown(selected_cen: str) -> str:
     return selected_cen
 
 
 @callback(
-    Output("selected-cen", "data", allow_duplicate=True),
+    Output("dropdown-selected-cen", "value"),
     Input("url", "pathname"),
-    Input("regions", "data"),
-    Input("cfg", "data"),
+    State("regions", "data"),
+    State("cfg", "data"),
     Input("fig-cens-clade-ordered", "clickData", allow_optional=True),
     prevent_initial_call=True,
 )

@@ -1,9 +1,9 @@
-import PIL
+from PIL import Image
 import plotly.graph_objs as go
 
 
 def add_image_to_figure(
-    img: PIL.Image, fig: go._figure.Figure, **kwargs
+    img: Image, fig: go._figure.Figure, **kwargs
 ) -> go._figure.Figure:
     # Constants
     img_width = img.width

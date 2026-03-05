@@ -1,4 +1,5 @@
 __pycache__
 *.html
 .ruff_cache
+.mypy_cache
 venv

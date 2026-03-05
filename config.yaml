@@ -1,14 +1,14 @@
 app: []
 data:
-  cdr:
+  "CDR":
     path: data/all_cdrs.bed.gz
     position: relative
     type: bed
-    prop: 0.05
+    prop: 0.01
     options:
       hide_x: true
       hide_y: true
-  methyl:
+  "CpG Methylation":
     path: data/all_CpG_methyl.bedgraph.gz
     position: relative
     type: bedgraph
@@ -16,22 +16,22 @@ data:
     options:
       hide_x: true
       hide_y: false
-  sat_annot:
+  "Satellite Structure":
     path: data/all_RM_satellite_annotation.bed.gz
     position: relative
     type: bed
-    prop: 0.25
+    prop: 0.15
     options:
       hide_x: true
       hide_y: true
-  as_hor_stv:
+  "Alpha-satellite HORs":
     path: data/all_AS-HOR_stv_row.bed.gz
     position: overlap
     type: bed
     options:
       hide_x: true
       hide_y: true
-  as_hor_strand:
+  "Alpha-satellite HOR array orientation":
     path: data/all_AS-HOR_stv_row_strand.bed.gz
     position: relative
     type: bedstrand
@@ -39,7 +39,7 @@ data:
     options:
       hide_x: true
       hide_y: true
-  # moddotplot:
+  # "Self-Identity":
   #   path: data/all_ModDotPlot.bed.gz
   #   position: relative
   #   type: bedpe_selfident

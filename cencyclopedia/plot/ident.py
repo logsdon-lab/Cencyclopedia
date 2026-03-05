@@ -1,15 +1,15 @@
-import PIL
 import polars as pl
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 
+from PIL import Image, ImageFile
 from cenplot import Track, TrackType, TrackPosition, draw_self_ident, read_bed_identity
 from tempfile import NamedTemporaryFile
 
 from .image import add_image_to_figure
 
 
-def add_ident_image_track(df_ident: pl.DataFrame) -> PIL.ImageFile:
+def add_ident_image_track(df_ident: pl.DataFrame) -> ImageFile:
     fig = go._figure.Figure()
     with NamedTemporaryFile("wt") as fh:
         df_ident.write_csv(fh.name, separator="\t", include_header=False)
@@ -30,7 +30,7 @@ def add_ident_image_track(df_ident: pl.DataFrame) -> PIL.ImageFile:
     img = "/tmp/mdp.png"
     mpl_fig.savefig(img, bbox_inches="tight", dpi=600)
 
-    pil_image = PIL.Image.open(img)
+    pil_image = Image.open(img)
     return add_image_to_figure(pil_image, fig)
 
 

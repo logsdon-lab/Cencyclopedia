@@ -50,7 +50,13 @@ class Data(NamedTuple):
             yield label, idx, cfg.get("prop")
 
     def query(
-        self, label: str, chrom: str, st: int, end: int, *, to_relative: bool = True
+        self,
+        label: str,
+        chrom: str,
+        st: int | None = None,
+        end: int | None = None,
+        *,
+        to_relative: bool = True,
     ) -> pl.DataFrame:
         """
         # Arguments
