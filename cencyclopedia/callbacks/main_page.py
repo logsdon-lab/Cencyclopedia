@@ -1,19 +1,17 @@
-from copy import deepcopy
+import dash
 import polars as pl
 
 from PIL import Image
 from typing import Any
 from loguru import logger
-from dash import Input, Output, callback, dcc, dash_table, State
+from dash import Input, Output, callback, dcc, dash_table, State, get_asset_url
 from dash.exceptions import PreventUpdate
 
 from cencyclopedia.io.data import Data
-from cencyclopedia.plot.common import (
-    ExpandTracksSettings,
-    default_expand_track_settings,
-)
+from cencyclopedia.plot.common import BedTrackSettings
 from cencyclopedia.plot.tree import create_tree_figure, create_tree_legend_figure
 from cencyclopedia.components.main import main_content, data_summary
+from cencyclopedia.components.cite import cite_page
 from cencyclopedia.components.home import home_page
 from cencyclopedia.components.dataview import dataview_tab
 
@@ -33,10 +31,13 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
 def draw_main_content_page(
     pathname: str, regions: str, cfg: dict[str, Any], dtypes: list[str]
 ):
-    chrom_name = pathname.strip("/")
-    if not chrom_name:
+    page = pathname.strip("/")
+    if not page:
         return home_page(), None
+    elif page == "cite":
+        return cite_page(), None
     else:
+        chrom_name = page
         logger.debug(f"On {chrom_name}")
         if not chrom_name:
             return []
@@ -50,8 +51,8 @@ def draw_main_content_page(
 
         chroms = df_regions_chrom["chrom"]
         try:
-            image_tree = cfg.get("trees", {})[f"{chrom_name}_p"]
-            img = Image.open(image_tree)
+            path = get_asset_url(f"{chrom_name}_PhylogeneticTree.png")
+            img = Image.open(path)
         except (OSError, KeyError) as err:
             logger.error(f"Cannot open image for {chrom_name} p tree")
             raise PreventUpdate
@@ -83,14 +84,14 @@ def draw_main_content_page(
     State("regions", "data"),
     State("selected-cen", "data"),
     State("cfg", "data"),
-    State("expand-tracks", "data"),
+    State("bed-track-settings", "data"),
 )
 def draw_dataview_tab(
     data_label: str,
     regions: str,
     selected_cen: str | None,
     cfg: dict[str, Any],
-    expand_tracks: dict[str, ExpandTracksSettings],
+    expand_tracks: dict[str, BedTrackSettings],
 ):
     if not selected_cen:
         raise PreventUpdate
@@ -118,48 +119,36 @@ def draw_dataview_tab(
         filter_action="native",
     )
     # Use defaults.
-    expand_tracks_dtype = expand_tracks.get(data_label, default_expand_track_settings())
+    track_settings = expand_tracks[data_label]
     disabled = data_fhs.datatype(data_label) not in EXPANDABLE_DTYPES
     return dataview_tab(
-        data_table=data_table, expand_tracks=expand_tracks_dtype, disabled=disabled
+        data_table=data_table, track_settings=track_settings, disabled=disabled
     )
 
 
 @callback(
-    Output("expand-tracks", "data"),
-    Output("btn-expand-tracks", "children"),
-    Input("btn-expand-tracks", "n_clicks"),
+    Output("bed-track-settings", "data"),
+    Output("selected-cen-stale", "data", allow_duplicate=True),
+    Input("btn-bed-update-tracks", "n_clicks", allow_optional=True),
     State("data-label-tabs", "active_tab"),
-    State("rd-expand-tracks-mode", "value"),
-    State("input-expand-tracks-limit", "value"),
-    State("expand-tracks", "data"),
+    State("rd-bed-expand-tracks-mode", "value"),
+    State("input-bed-expand-tracks-limit", "value"),
+    State("bed-track-settings", "data"),
+    State("selected-cen-stale", "data"),
     prevent_initial_call=True,
 )
-def update_expand_tracks_data(
+def update_bed_tracks_settings(
     n_clicks: int | None,
     data_label: str,
     mode: str,
     limit: int,
-    expand_tracks: dict[str, ExpandTracksSettings],
+    bed_tracks_settings: dict[str, BedTrackSettings],
+    stale: bool,
 ):
-    default_settings = default_expand_track_settings()
-    settings = expand_tracks.get(data_label, default_settings)
+    # Don't update tracks to avoid rerender if not stale.
+    if not stale and not n_clicks:
+        return dash.no_update, False
 
-    # Settings change from default.
-    different_settings = settings != default_settings
-    # Same tab but clicked
-    if n_clicks:
-        expand = not settings["expand"]
-    # Switched tabs causing n_clicks to reset to None
-    elif not n_clicks and different_settings:
-        expand = settings["expand"]
-        n_clicks = settings["n_clicks"]
-    # Just loaded
-    elif not n_clicks:
-        expand = settings["expand"]
-        n_clicks = 1
-
-    expand_tracks[data_label] = {"mode": mode, "expand": expand, "limit": limit, "n_clicks": n_clicks}
-    button_label = "Expand" if expand else "Compress"
-    logger.debug(f"New expand tracks: {expand_tracks}")
-    return expand_tracks, button_label
+    bed_tracks_settings[data_label] = {"mode": mode, "limit": limit}
+    logger.debug(f"New expand tracks: {bed_tracks_settings}")
+    return bed_tracks_settings, True

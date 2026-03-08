@@ -1,15 +1,15 @@
-from dash import State
+import dash
 import polars as pl
 import plotly.graph_objs as go
 
 from typing import Any
 from loguru import logger
 from plotly.subplots import make_subplots
-from dash import Input, Output, callback
+from dash import Input, Output, callback, ctx, State
 from dash.exceptions import PreventUpdate
 
 from cencyclopedia.io.data import Data
-from cencyclopedia.plot.common import ExpandTracksSettings
+from cencyclopedia.plot.common import BedTrackSettings
 from cencyclopedia.plot.ident import add_ident_track
 from cencyclopedia.plot.bed import (
     add_bed_track,
@@ -20,20 +20,24 @@ from cencyclopedia.plot.bed import (
 
 @callback(
     Output("fig-selected-cen", "figure"),
+    Output("dropdown-selected-cen", "value"),
+    Output("selected-cen-stale", "data", allow_duplicate=True),
+    Input("selected-cen", "data"),
+    Input("selected-cen-stale", "data"),
     State("regions", "data"),
     State("cfg", "data"),
-    Input("selected-cen", "data"),
-    # Input("btn-expand-tracks", "n_clicks", allow_optional=True),
-    # State("expand-tracks", "data"),
+    State("bed-track-settings", "data"),
+    prevent_initial_call="initial_duplicate",
 )
 def draw_selected_cen_figure(
+    selected_cen: str | None,
+    stale: bool,
     regions: str,
     cfg: dict[str, Any],
-    selected_cen: str | None,
-    # _btn_expand_click_n: int | None,
-    # expand_tracks: dict[str, ExpandTracksSettings],
+    bed_track_settings: dict[str, BedTrackSettings],
 ):
-    if not selected_cen:
+    logger.debug(f"{ctx.triggered}, {stale}")
+    if not selected_cen or not stale:
         raise PreventUpdate
 
     df_region = (
@@ -73,7 +77,7 @@ def draw_selected_cen_figure(
         )
         # TODO: Split if expand
         dtype = data_fhs.datatype(label)
-        if dtype == "bed":
+        if dtype == "bed" or dtype == "bed_localselfident":
             add_bed_track(df, fig, row=idx, col=1)
         elif dtype == "bedgraph":
             add_bedgraph_track(df, fig, row=idx, col=1)
@@ -97,30 +101,34 @@ def draw_selected_cen_figure(
     # https://plotly.com/python/reference/layout/xaxis/
     fig.update_xaxes(showline=False)
     fig.update_yaxes(showticklabels=False, ticks="", showline=False)
-    return fig
+    # No longer stale.
+    return fig, selected_cen, False
 
 
 @callback(
     Output("selected-cen", "data", allow_duplicate=True),
-    Input("dropdown-selected-cen", "value"),
-    prevent_initial_call=True,
-)
-def update_selected_cen_by_dropdown(selected_cen: str) -> str:
-    return selected_cen
-
-
-@callback(
-    Output("dropdown-selected-cen", "value"),
+    Output("selected-cen-stale", "data", allow_duplicate=True),
     Input("url", "pathname"),
+    Input("fig-cens-clade-ordered", "clickData", allow_optional=True),
+    Input("dropdown-selected-cen", "value"),
+    State("selected-cen", "data"),
     State("regions", "data"),
     State("cfg", "data"),
-    Input("fig-cens-clade-ordered", "clickData", allow_optional=True),
     prevent_initial_call=True,
 )
 def update_selected_cen_by_click(
-    pathname: str, regions: str, cfg: dict[str, Any], data: dict[str, Any] | None
+    pathname: str,
+    data: dict[str, Any] | None,
+    dropdown_selected_cen: str,
+    selected_cen: str,
+    regions: str,
+    cfg: dict[str, Any],
 ):
-    if not data:
+    selected_cen_different = dropdown_selected_cen != selected_cen
+    # Select via dropdown
+    if selected_cen_different:
+        return dropdown_selected_cen, True
+    if not data and not selected_cen_different:
         raise PreventUpdate
 
     chrom = pathname.strip("/")
@@ -145,4 +153,4 @@ def update_selected_cen_by_click(
     except IndexError:
         logger.debug(f"Invalid chrom index {idx}/{len(chroms)}")
         raise PreventUpdate
-    return chrom
+    return chrom, True

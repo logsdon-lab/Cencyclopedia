@@ -8,7 +8,7 @@ from .constants import RGX_SM_CHROM, CHROM_NAMES
 
 
 def read_or_write_regions(
-    cfg: dict[str, Any], regions: str = "assets/regions.csv.gz"
+    cfg: dict[str, Any], regions: str = "data/samples.csv.gz"
 ) -> pl.DataFrame:
     if not os.path.exists(regions):
         df_regions = read_regions_from_data(

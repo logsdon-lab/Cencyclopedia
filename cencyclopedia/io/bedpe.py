@@ -1,3 +1,4 @@
+import bisect
 import polars as pl
 
 from .constants import IDENT_BREAKPOINTS, IDENT_COLORS

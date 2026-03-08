@@ -1,3 +1,4 @@
+from cencyclopedia.plot.common import default_bed_track_settings
 import dash_bootstrap_components as dbc
 
 from typing import Any
@@ -87,6 +88,7 @@ def main_page(regions: str, chrom_names: list[str], cfg: dict[str, Any]):
             dbc.Nav(
                 [
                     dbc.NavLink("Home", href="/", active="exact"),
+                    dbc.NavLink("Cite", href="/cite", active="exact"),
                     html.Hr(),
                     *[
                         dbc.NavLink(chrom, href=f"/{chrom}", active="exact")
@@ -114,11 +116,22 @@ def main_page(regions: str, chrom_names: list[str], cfg: dict[str, Any]):
     )
     return html.Div(
         [
+            # Regions
             dcc.Store(id="regions", data=regions),
+            # Configuration dictionary (yaml file)
             dcc.Store(id="cfg", data=cfg),
+            # Datatypes provided
             dcc.Store(id="datatypes", data=datatypes),
+            # Selected centromere
             dcc.Store(id="selected-cen", data=None),
-            dcc.Store(id="expand-tracks", data={}),
+            # Need to rerender selected centromere.
+            # Stale at start.
+            dcc.Store(id="selected-cen-stale", data=True),
+            # Individual track settings
+            dcc.Store(
+                id="bed-track-settings",
+                data={dtype: default_bed_track_settings() for dtype in datatypes},
+            ),
             dcc.Location(id="url", refresh=False),
             dbc.Row(
                 [

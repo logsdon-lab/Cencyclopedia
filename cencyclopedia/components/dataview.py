@@ -1,12 +1,12 @@
 import dash_bootstrap_components as dbc
 
 from dash import html, dash_table
-from cencyclopedia.plot.common import ExpandTracksSettings
+from cencyclopedia.plot.common import BedTrackSettings
 
 
 def dataview_tab(
     data_table: dash_table.DataTable,
-    expand_tracks: ExpandTracksSettings,
+    track_settings: BedTrackSettings,
     *,
     disabled: bool = False,
 ):
@@ -20,8 +20,8 @@ def dataview_tab(
                 [
                     dbc.Col(
                         dbc.Button(
-                            "Expand" if expand_tracks["expand"] else "Compress",
-                            id="btn-expand-tracks",
+                            "Update",
+                            id="btn-bed-update-tracks",
                             disabled=disabled,
                         ),
                         width=2,
@@ -31,9 +31,9 @@ def dataview_tab(
                             dbc.Label("Mode"),
                             dbc.RadioItems(
                                 ["Name", "Length", "Frequency"],
-                                value=expand_tracks["mode"],
+                                value=track_settings["mode"],
                                 inline=True,
-                                id="rd-expand-tracks-mode",
+                                id="rd-bed-expand-tracks-mode",
                             ),
                         ],
                         width=2,
@@ -45,9 +45,9 @@ def dataview_tab(
                                 type="number",
                                 min=1,
                                 max=10,
-                                value=expand_tracks["limit"],
+                                value=track_settings["limit"],
                                 step=1,
-                                id="input-expand-tracks-limit",
+                                id="input-bed-expand-tracks-limit",
                                 placeholder="Enter a limit to the number of tracks",
                                 disabled=disabled,
                             ),

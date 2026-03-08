@@ -3,7 +3,7 @@ import plotly.graph_objs as go
 
 from PIL import Image
 from typing import Any, Iterable
-from dash import dcc
+from dash import dcc, get_asset_url
 
 from .image import add_image_to_figure
 
@@ -40,7 +40,7 @@ def create_tree_figure(
 
 def create_tree_legend_figure(cfg: dict[str, Any]):
     fig = add_image_to_figure(
-        Image.open(cfg.get("trees", {})["legend"]), go._figure.Figure()
+        Image.open(get_asset_url("VerticalLegend.png")), go._figure.Figure()
     )
     fig.update_layout(
         showlegend=False,

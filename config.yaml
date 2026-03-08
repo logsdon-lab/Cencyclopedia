@@ -1,44 +1,33 @@
-app: []
 data:
   "CDR":
     path: data/all_cdrs.bed.gz
     position: relative
     type: bed
     prop: 0.01
-    options:
-      hide_x: true
-      hide_y: true
   "CpG Methylation":
     path: data/all_CpG_methyl.bedgraph.gz
     position: relative
     type: bedgraph
-    prop: 0.5
-    options:
-      hide_x: true
-      hide_y: false
+    prop: 0.25
   "Satellite Structure":
     path: data/all_RM_satellite_annotation.bed.gz
     position: relative
     type: bed
     prop: 0.15
-    options:
-      hide_x: true
-      hide_y: true
   "Alpha-satellite HORs":
     path: data/all_AS-HOR_stv_row.bed.gz
     position: overlap
     type: bed
-    options:
-      hide_x: true
-      hide_y: true
+  "Local Self-Identity":
+    path: data/all_local_self_identity.bed.gz
+    position: relative
+    type: bed_localselfident
+    prop: 0.01
   "Alpha-satellite HOR array orientation":
     path: data/all_AS-HOR_stv_row_strand.bed.gz
     position: relative
     type: bedstrand
-    prop: 0.1
-    options:
-      hide_x: true
-      hide_y: true
+    prop: 0.05
   # "Self-Identity":
   #   path: data/all_ModDotPlot.bed.gz
   #   position: relative
@@ -47,10 +36,5 @@ data:
 regions: data/all_array.bed.gz
 clades: data/clades.tsv.gz
 sample_metadata: data/sample_metadata.tsv.gz
-trees:
-  chr2_p: assets/chr2_PhylogeneticTree.png
-  chr18_p: assets/chr18_PhylogeneticTree.png
-  chrY_p: assets/chrY_PhylogeneticTree.png
-  legend: assets/VerticalLegend.png
 tree_ystart: 624
 tree_yoffset: 78

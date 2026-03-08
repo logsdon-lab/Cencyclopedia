@@ -8,6 +8,7 @@ from .bed import (
     read_bed9_row,
     read_bedgraph_row,
     read_bedstrand_row,
+    read_bed_local_selfident_row,
 )
 from .bedpe import (
     read_bedpe_selfident_row,
@@ -34,7 +35,9 @@ class Data(NamedTuple):
 
     def datatype(
         self, label: str
-    ) -> Literal["bed", "bedgraph", "bedstrand", "bedpe_selfident"]:
+    ) -> Literal[
+        "bed", "bedgraph", "bedstrand", "bedpe_selfident", "bed_localselfident"
+    ]:
         return self.cfg[label]["type"]
 
     @property
@@ -76,6 +79,14 @@ class Data(NamedTuple):
         elif self.cfg[label]["type"] == "bedgraph":
             read_fn = read_bedgraph_row
             cols = ["chrom", "chrom_st", "chrom_end", "name"]
+        elif self.cfg[label]["type"] == "bed_localselfident":
+            breakpoints, colors = read_identity_breakpoints(
+                self.cfg[label].get("ident_breakpoints")
+            )
+            read_fn = lambda rec: read_bed_local_selfident_row(
+                rec, breakpoints=breakpoints, colors=colors
+            )
+            cols = ["chrom", "chrom_st", "chrom_end", "name", "color"]
         elif self.cfg[label]["type"] == "bedpe_selfident":
             parser = pysam.asTuple()
             breakpoints, colors = read_identity_breakpoints(
