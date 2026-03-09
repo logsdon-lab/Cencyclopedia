@@ -14,6 +14,7 @@ Live Array length: /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_anno
 * `/project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/README.md`
 
 ## CDRs
+* TODO: Rename to dip_# 
 ```bash
 awk -v OFS="\t"  '{match($1, "^(.+):", chrom); print chrom[1], $2, $3}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/all_cdrs_revised.0908.working.bed | \
 sort -k1,1 -k2,2n | \
@@ -67,6 +68,8 @@ sort -k1,1 -k2,2n | \
 bgzip > data/all_ModDotPlot.bed.gz
 tabix -p bed data/all_ModDotPlot.bed.gz
 ```
+
+## MEI
 
 # Sample metadata:
 * `/project/logsdon_shared/project_archive/HGSVC3/non-redundant_centromeres/sample_populations_sex.tsv`

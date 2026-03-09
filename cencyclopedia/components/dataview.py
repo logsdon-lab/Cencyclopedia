@@ -41,7 +41,7 @@ def dataview_tab(
                         [
                             dbc.Label("Expand Tracks"),
                             dbc.RadioItems(
-                                ["Original", "Length", "Frequency"],
+                                ["Original", "Length", "Frequency", "Coverage"],
                                 value=track_settings["mode"],
                                 inline=True,
                                 id="rd-bed-expand-tracks-mode",

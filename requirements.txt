@@ -7,3 +7,5 @@ pysam
 pyyaml
 loguru
 pillow
+dash_bootstrap_components
+cenplot
