@@ -12,25 +12,36 @@ def dataview_tab(
 ):
     div_expand = html.Div(
         [
-            html.H5("Expand or compress track"),
-            dbc.Alert("Only applicable to BED tracks.", color="primary"),
+            html.H3("Modify track"),
             # We don't store by data label
             # The callback looks at the active tab to determine where to store the state.
             dbc.Row(
                 [
                     dbc.Col(
-                        dbc.Button(
-                            "Update",
-                            id="btn-bed-update-tracks",
-                            disabled=disabled,
-                        ),
+                        [
+                            dbc.Row(
+                                dbc.Button(
+                                    "Update",
+                                    id="btn-bed-update-tracks",
+                                    disabled=disabled,
+                                )
+                            ),
+                            # TODO
+                            dbc.Row(
+                                dbc.Button(
+                                    "Reset",
+                                    id="btn-bed-reset-tracks",
+                                    color="danger",
+                                )
+                            ),
+                        ],
                         width=2,
                     ),
                     dbc.Col(
                         [
-                            dbc.Label("Mode"),
+                            dbc.Label("Expand Tracks"),
                             dbc.RadioItems(
-                                ["Name", "Length", "Frequency"],
+                                ["Original", "Length", "Frequency"],
                                 value=track_settings["mode"],
                                 inline=True,
                                 id="rd-bed-expand-tracks-mode",

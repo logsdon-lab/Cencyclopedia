@@ -8,6 +8,21 @@ from cencyclopedia.components.main import main_page
 from cencyclopedia.callbacks.main_page import *
 from cencyclopedia.callbacks.selected_cen import *
 
+# import yaml
+
+# with open("config.yaml", "rb") as fh:
+#     cfg = yaml.safe_load(fh)
+# data = Data.new(cfg["data"])
+# data.split(
+#     "Alpha-satellite HORs",
+#     "chm1_chr1",
+#     chrom_st=None,
+#     chrom_end=None,
+#     by="Length",
+#     to_relative=False,
+# )
+# breakpoint()
+
 
 with open("config.yaml", "rb") as fh:
     cfg = yaml.safe_load(fh)
@@ -20,6 +35,7 @@ app = Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP],
     title="Cencyclopedia",
     assets_external_path=".",
+    suppress_callback_exceptions=True,
 )
 app.layout = main_page(
     regions=regions,

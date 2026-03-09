@@ -31,6 +31,7 @@ tabix -p bed data/all_CpG_methyl.bedgraph.gz
 
 ## AS-HOR
 ```bash
+# Requires cenplot
 python data/update_as_hor.py /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/HOR/all_AS-HOR_stv_row.bed | \
 bgzip > data/all_AS-HOR_stv_row.bed.gz
 tabix -p bed data/all_AS-HOR_stv_row.bed.gz

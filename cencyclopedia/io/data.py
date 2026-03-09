@@ -122,3 +122,41 @@ class Data(NamedTuple):
             return df
         else:
             return to_relative_fn(df)
+
+    def split(
+        self,
+        label: str,
+        chrom: str,
+        chrom_st: int | None,
+        chrom_end: int | None,
+        *,
+        by: Literal["Original", "Length", "Frequency"],
+        to_relative: bool = True,
+    ):
+        df = self.query(
+            label,
+            chrom,
+            chrom_st,
+            chrom_end,
+            to_relative=to_relative,
+        )
+        if by == "Length":
+            df_name_order = (
+                df.group_by(["name"])
+                # In case that BED is run-length encoded to reduce number of rows.
+                .agg(length=(pl.col("chrom_end") - pl.col("chrom_st")).min())
+                .sort("length", descending=True)
+                .with_columns(group=pl.col("name").rle_id())
+                .drop("length")
+            )
+            return df.join(df_name_order, on="name", how="left")
+        elif by == "Frequency":
+            df_name_order = (
+                df["name"]
+                .value_counts(sort=True)
+                .with_columns(group=pl.col("name").rle_id())
+                .drop("count")
+            )
+            return df.join(df_name_order, on="name", how="left")
+        else:
+            return df.with_columns(group=pl.lit(None))

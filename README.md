@@ -17,7 +17,7 @@ python -m pip install -r requirements.txt
 
 To run locally.
 ```bash
-python -m cencyclopedia.run
+python -m cencyclopedia.app
 ```
 
 ## TODO

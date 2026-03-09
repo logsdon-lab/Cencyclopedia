@@ -3,7 +3,7 @@ import polars as pl
 from cenplot.lib.io.bed_hor import read_bed_hor
 
 (
-    read_bed_hor(sys.argv[1])
+    read_bed_hor(sys.argv[1], live_only=False)
     .sort(by=["chrom", "chrom_st"])
     .with_columns(grp=pl.col("name").rle_id().over(["chrom"]))
     .group_by(["chrom", "grp"])
