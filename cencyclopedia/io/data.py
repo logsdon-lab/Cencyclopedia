@@ -131,6 +131,7 @@ class Data(NamedTuple):
         chrom_end: int | None,
         *,
         by: Literal["Original", "Length", "Frequency", "Coverage"],
+        rle: bool = True,
         to_relative: bool = True,
     ):
         df = self.query(
@@ -149,7 +150,7 @@ class Data(NamedTuple):
                 .with_columns(group=pl.col("name").rle_id())
                 .drop("length")
             )
-            return df.join(df_name_order, on="name", how="left")
+            df_final = df.join(df_name_order, on="name", how="left")
         elif by == "Frequency":
             df_name_order = (
                 df["name"]
@@ -157,7 +158,7 @@ class Data(NamedTuple):
                 .with_columns(group=pl.col("name").rle_id())
                 .drop("count")
             )
-            return df.join(df_name_order, on="name", how="left")
+            df_final = df.join(df_name_order, on="name", how="left")
         elif by == "Coverage":
             df_name_order = (
                 df.group_by(["name"])
@@ -166,6 +167,28 @@ class Data(NamedTuple):
                 .with_columns(group=pl.col("name").rle_id())
                 .drop("length")
             )
-            return df.join(df_name_order, on="name", how="left")
+            df_final = df.join(df_name_order, on="name", how="left")
         else:
-            return df.with_columns(group=pl.lit(None))
+            df_final = df.with_columns(group=pl.lit(None))
+
+        if rle:
+            df_final = (
+                df_final.sort(by=["chrom", "chrom_st"])
+                .with_columns(
+                    group_rle=pl.col("name").rle_id().over(["chrom"]),
+                    # Ensure exists
+                    strand=pl.coalesce(pl.col("^strand$"), pl.lit(".")),
+                    color=pl.coalesce(pl.col("^color$"), pl.lit("black")),
+                )
+                .group_by(["chrom", "group_rle"])
+                .agg(
+                    pl.col("chrom_st").min(),
+                    pl.col("chrom_end").max(),
+                    pl.col("name").first(),
+                    pl.col("strand").first(),
+                    pl.col("color").first(),
+                    pl.col("group").first(),
+                )
+                .drop("group_rle")
+            )
+        return df_final
