@@ -130,7 +130,7 @@ class Data(NamedTuple):
         chrom_st: int | None,
         chrom_end: int | None,
         *,
-        by: Literal["Original", "Length", "Frequency"],
+        by: Literal["Original", "Length", "Frequency", "Coverage"],
         to_relative: bool = True,
     ):
         df = self.query(
@@ -156,6 +156,15 @@ class Data(NamedTuple):
                 .value_counts(sort=True)
                 .with_columns(group=pl.col("name").rle_id())
                 .drop("count")
+            )
+            return df.join(df_name_order, on="name", how="left")
+        elif by == "Coverage":
+            df_name_order = (
+                df.group_by(["name"])
+                .agg(length=(pl.col("chrom_end") - pl.col("chrom_st")).sum())
+                .sort("length", descending=True)
+                .with_columns(group=pl.col("name").rle_id())
+                .drop("length")
             )
             return df.join(df_name_order, on="name", how="left")
         else:

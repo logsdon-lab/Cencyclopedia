@@ -26,12 +26,12 @@ def dataview_tab(
                                     disabled=disabled,
                                 )
                             ),
-                            # TODO
                             dbc.Row(
                                 dbc.Button(
                                     "Reset",
                                     id="btn-bed-reset-tracks",
                                     color="danger",
+                                    disabled=disabled,
                                 )
                             ),
                         ],
@@ -55,7 +55,7 @@ def dataview_tab(
                             dbc.Input(
                                 type="number",
                                 min=1,
-                                max=10,
+                                max=20,
                                 value=track_settings["limit"],
                                 step=1,
                                 id="input-bed-expand-tracks-limit",

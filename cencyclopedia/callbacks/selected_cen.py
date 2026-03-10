@@ -53,42 +53,13 @@ def draw_selected_cen_figure(
 
     region = df_region.row(0, named=True)
     props = []
-    indices = {}
+    indices: dict[str, tuple[list[int], pl.DataFrame]] = {}
 
     # Add additional rows if expand. If overlap, must ignore.
     track_params = list(data_fhs.track_params)
     # Update index based on if want to expand
     idx_offset = 0
     for i, (label, idx, prop) in enumerate(track_params):
-        track_settings = bed_track_settings[label]
-        mode = track_settings["mode"]
-        if mode == "Original":
-            indices[label] = [idx + idx_offset]
-            if not prop:
-                continue
-            props.append(prop)
-        else:
-            # Overlap ignored if expanded. Force to take space.
-            if not prop:
-                prev_label, prev_idx, prev_prop = track_params[i - 1]
-                prop = prev_prop
-
-            split_indices = []
-            for split_idx in range(track_settings["limit"]):
-                props.append(prop)
-                split_indices.append(idx + split_idx + idx_offset)
-
-            idx_offset += track_settings["limit"] - 1
-            indices[label] = split_indices
-
-    logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
-
-    fig: go._figure.Figure = make_subplots(
-        rows=len(props), cols=1, shared_xaxes=True, row_heights=props
-    )
-
-    for label, indices in indices.items():
-        dtype = data_fhs.datatype(label)
         track_settings = bed_track_settings[label]
         mode = track_settings["mode"]
 
@@ -101,7 +72,34 @@ def draw_selected_cen_figure(
             to_relative=False,
         ).sort(by="group")
 
-        # TODO: Split if expand
+        if mode == "Original":
+            indices[label] = ([idx + idx_offset], df)
+            if not prop:
+                continue
+            props.append(prop)
+        else:
+            # Overlap ignored if expanded. Force to take space.
+            if not prop:
+                prev_label, prev_idx, prev_prop = track_params[i - 1]
+                prop = prev_prop
+
+            limit = min(track_settings["limit"], df["group"].n_unique())
+            split_indices = []
+            for split_idx in range(limit):
+                props.append(prop)
+                split_indices.append(idx + split_idx + idx_offset)
+
+            idx_offset += limit - 1
+            indices[label] = (split_indices, df)
+
+    logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
+
+    fig: go._figure.Figure = make_subplots(
+        rows=len(props), cols=1, shared_xaxes=True, row_heights=props
+    )
+
+    for label, (indices, df) in indices.items():
+        dtype = data_fhs.datatype(label)
         dfs_groups = list(df.group_by(["group"], maintain_order=True))
         for i, track_idx in enumerate(indices):
             try:

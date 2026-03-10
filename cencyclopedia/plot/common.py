@@ -3,7 +3,6 @@ from typing import Literal, TypedDict
 
 
 class BedTrackSettings(TypedDict):
-    # TODO: coverage
     mode: Literal["Original", "Interval_Length", "Frequency", "Coverage"]
     limit: int
 

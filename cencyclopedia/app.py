@@ -7,6 +7,7 @@ from cencyclopedia.io.regions import read_or_write_regions
 from cencyclopedia.components.main import main_page
 from cencyclopedia.callbacks.main_page import *
 from cencyclopedia.callbacks.selected_cen import *
+from cencyclopedia.callbacks.dataview import *
 
 # import yaml
 

@@ -14,9 +14,17 @@ Live Array length: /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_anno
 * `/project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/README.md`
 
 ## CDRs
-* TODO: Rename to dip_# 
 ```bash
-awk -v OFS="\t"  '{match($1, "^(.+):", chrom); print chrom[1], $2, $3}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/all_cdrs_revised.0908.working.bed | \
+awk -v OFS="\t"  '{
+    match($1, "^(.+):", chrom);
+    if (chrom[1] in chroms) {
+        chroms[chrom[1]] += 1;
+    } else {
+        chroms[chrom[1]] = 0
+    };
+    name="cdr_"chroms[chrom[1]]
+    print chrom[1], $2, $3, name
+}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/all_cdrs_revised.0908.working.bed | \
 sort -k1,1 -k2,2n | \
 bgzip > data/all_cdrs.bed.gz
 tabix -p bed data/all_cdrs.bed.gz
