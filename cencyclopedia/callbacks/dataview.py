@@ -68,7 +68,7 @@ def draw_dataview_tab(
     Input("btn-bed-update-tracks", "n_clicks", allow_optional=True),
     State("data-label-tabs", "active_tab"),
     State("rd-bed-expand-tracks-mode", "value"),
-    State("input-bed-expand-tracks-limit", "value"),
+    State("dropdown-bed-expand-tracks-limit", "value"),
     State("bed-track-settings", "data"),
     State("selected-cen-stale", "data"),
     prevent_initial_call=True,
@@ -94,7 +94,7 @@ def update_bed_tracks_settings(
     Output("bed-track-settings", "data", allow_duplicate=True),
     Output("selected-cen-stale", "data", allow_duplicate=True),
     Output("rd-bed-expand-tracks-mode", "value"),
-    Output("input-bed-expand-tracks-limit", "value"),
+    Output("dropdown-bed-expand-tracks-limit", "value"),
     Input("btn-bed-reset-tracks", "n_clicks", allow_optional=True),
     State("data-label-tabs", "active_tab"),
     State("bed-track-settings", "data"),
@@ -110,7 +110,7 @@ def reset_bed_tracks_settings(
 
     default_settings = default_bed_track_settings()
     bed_tracks_settings[data_label] = default_settings
-    logger.debug(f"New expand tracks: {bed_tracks_settings}")
+    logger.debug("Reset expand tracks.")
     return (
         bed_tracks_settings,
         True,

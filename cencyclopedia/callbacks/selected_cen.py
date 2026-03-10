@@ -19,8 +19,6 @@ from cencyclopedia.plot.bed import (
 
 @callback(
     Output("fig-selected-cen", "figure"),
-    Output("dropdown-selected-cen", "value"),
-    Output("selected-cen-stale", "data", allow_duplicate=True),
     Input("selected-cen", "data"),
     Input("selected-cen-stale", "data"),
     State("regions", "data"),
@@ -35,7 +33,7 @@ def draw_selected_cen_figure(
     cfg: dict[str, Any],
     bed_track_settings: dict[str, BedTrackSettings],
 ):
-    logger.debug(f"{ctx.triggered}, {stale}")
+    logger.debug(f"draw: {ctx.triggered}")
     if not selected_cen or not stale:
         raise PreventUpdate
 
@@ -84,7 +82,12 @@ def draw_selected_cen_figure(
                 prev_label, prev_idx, prev_prop = track_params[i - 1]
                 prop = prev_prop
 
-            limit = min(track_settings["limit"], df["group"].n_unique())
+            # Split by all or a set limit.
+            if track_settings["limit"] == "All":
+                limit = df["group"].n_unique()
+            else:
+                limit = min(track_settings["limit"], df["group"].n_unique())
+
             split_indices = []
             for split_idx in range(limit):
                 props.append(prop)
@@ -93,7 +96,7 @@ def draw_selected_cen_figure(
             idx_offset += limit - 1
             indices[label] = (split_indices, df)
 
-    logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
+    # logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
 
     fig: go._figure.Figure = make_subplots(
         rows=len(props), cols=1, shared_xaxes=True, row_heights=props
@@ -142,19 +145,40 @@ def draw_selected_cen_figure(
                     f"Ignoring {label} (Group {grp}) of type {dtype} at index of {track_idx}"
                 )
 
-            logger.debug(f"Finished adding {label} (Group {grp}) on track {track_idx}")
+            # logger.debug(f"Finished adding {label} (Group {grp}) on track {track_idx}")
 
     fig.update_layout(
         template="simple_white",
         xaxis={"showgrid": False},
         yaxis={"showgrid": False},
         margin=dict(l=0, r=0, b=0, t=0),
+        modebar_remove=["select2d", "lasso2d"]
     )
     # https://plotly.com/python/reference/layout/xaxis/
     fig.update_xaxes(showline=False)
     fig.update_yaxes(showticklabels=False, ticks="", showline=False)
     # No longer stale.
-    return fig, selected_cen, False
+    return fig
+
+
+@callback(
+    Output("selected-cen", "data", allow_duplicate=True),
+    Output("selected-cen-stale", "data", allow_duplicate=True),
+    Input("dropdown-selected-cen", "value"),
+    State("selected-cen", "data"),
+    State("selected-cen-stale", "data"),
+    prevent_initial_call=True,
+)
+def update_selected_cen_by_dropdown(
+    dropdown_selected_cen: str,
+    selected_cen: str,
+    stale: bool
+):
+    logger.debug(f"dropdown: {ctx.triggered}, {selected_cen}, {stale}")
+    if dropdown_selected_cen != selected_cen:
+        return dropdown_selected_cen, True
+    else:
+        return selected_cen, stale
 
 
 @callback(
@@ -163,8 +187,6 @@ def draw_selected_cen_figure(
     Input("url", "pathname"),
     Input("fig-cens-tree", "clickData", allow_optional=True),
     Input("tree-arm", "data"),
-    Input("dropdown-selected-cen", "value"),
-    State("selected-cen", "data"),
     State("regions", "data"),
     State("cfg", "data"),
     prevent_initial_call=True,
@@ -173,16 +195,11 @@ def update_selected_cen_by_click(
     pathname: str,
     data: dict[str, Any] | None,
     tree_arm: Literal["p-arm", "q-arm"],
-    dropdown_selected_cen: str,
-    selected_cen: str,
     regions: str,
     cfg: dict[str, Any],
 ):
-    selected_cen_different = dropdown_selected_cen != selected_cen
-    # Select via dropdown
-    if selected_cen_different:
-        return dropdown_selected_cen, True
-    if not data and not selected_cen_different:
+    logger.debug(f"clk: {ctx.triggered}")
+    if not data:
         raise PreventUpdate
 
     chrom = pathname.strip("/")

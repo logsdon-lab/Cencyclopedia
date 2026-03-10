@@ -52,14 +52,15 @@ def draw_main_content_page(
         )
 
         chroms = df_regions_chrom["chrom"]
+        colors = df_regions_chrom["color"]
         try:
             path = get_asset_url(f"{chrom_name}_PhylogeneticTree_{tree_arm}.png")
             img = Image.open(path)
         except (OSError, KeyError) as err:
-            logger.error(f"Cannot open image for {chrom_name} p tree")
+            logger.error(f"Cannot open image for {chrom_name} {tree_arm} tree")
             raise PreventUpdate
 
-        fig = create_tree_figure(img, chroms, cfg, tree_arm=tree_arm)
+        fig = create_tree_figure(img, chroms, colors, cfg, tree_arm=tree_arm)
         selected_cen = chroms[0]
 
         content = main_content(
@@ -67,8 +68,9 @@ def draw_main_content_page(
                 figure=fig,
                 id="fig-cens-tree",
                 responsive=True,
+                config={"displaylogo": False}
             ),
-            fig_tree_legend=create_tree_legend_figure(cfg),
+            fig_tree_legend=create_tree_legend_figure(),
             tree_arm=tree_arm,
             dropdown=dcc.Dropdown(
                 chroms.to_list(),

@@ -1,7 +1,10 @@
 import dash_bootstrap_components as dbc
 
-from dash import html, dash_table
+from dash import html, dash_table, dcc
 from cencyclopedia.plot.common import BedTrackSettings
+
+
+DEFAULT_TRACK_LIMIT = 50
 
 
 def dataview_tab(
@@ -52,15 +55,13 @@ def dataview_tab(
                     dbc.Col(
                         [
                             dbc.Label("Track Limit"),
-                            dbc.Input(
-                                type="number",
-                                min=1,
-                                max=20,
+                            dcc.Dropdown(
                                 value=track_settings["limit"],
-                                step=1,
-                                id="input-bed-expand-tracks-limit",
-                                placeholder="Enter a limit to the number of tracks",
+                                options=["All", *range(1, DEFAULT_TRACK_LIMIT + 1)],
+                                searchable=True,
                                 disabled=disabled,
+                                id="dropdown-bed-expand-tracks-limit",
+                                placeholder="Select a limit to the number of tracks",
                             ),
                         ]
                     ),

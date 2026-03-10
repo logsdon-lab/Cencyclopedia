@@ -4,11 +4,11 @@ from typing import Literal, TypedDict
 
 class BedTrackSettings(TypedDict):
     mode: Literal["Original", "Interval_Length", "Frequency", "Coverage"]
-    limit: int
+    limit: int | Literal["All"]
 
 
 def default_bed_track_settings() -> BedTrackSettings:
-    return {"mode": "Original", "limit": 1}
+    return {"mode": "Original", "limit": "All"}
 
 
 def add_empty_track(fig: go._figure.Figure, xlim: tuple[int, int], **kwargs):

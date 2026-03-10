@@ -1,9 +1,8 @@
-from typing import Literal
 import numpy as np
 import plotly.graph_objs as go
 
 from PIL import Image
-from typing import Any, Iterable
+from typing import Any, Iterable, Literal
 from dash import dcc, get_asset_url
 
 from .image import add_image_to_figure
@@ -12,6 +11,7 @@ from .image import add_image_to_figure
 def create_tree_figure(
     img: Image,
     chroms: Iterable[str],
+    colors: Iterable[str],
     cfg: dict[str, Any],
     tree_arm: Literal["p-arm", "q-arm"],
 ) -> go._figure.Figure:
@@ -31,9 +31,11 @@ def create_tree_figure(
     else:
         x = [100.0] * len(ypos)
 
+    # TODO: Color by population
     fig.add_scatter(
         x=x,
         y=[yst, *ypos],
+        marker=dict(color=colors),
         customdata=chroms,
         hovertemplate="<b>%{customdata}</b>",
         mode="markers",
@@ -44,11 +46,12 @@ def create_tree_figure(
         xaxis={"showgrid": False, "fixedrange": True},
         yaxis={"showgrid": False, "fixedrange": True},
         margin=dict(l=0, r=0, b=0, t=0),
+        modebar_remove=["select2d", "lasso2d"]
     )
     return fig
 
 
-def create_tree_legend_figure(cfg: dict[str, Any]):
+def create_tree_legend_figure():
     fig = add_image_to_figure(
         Image.open(get_asset_url("VerticalLegend.png")), go._figure.Figure()
     )
@@ -58,5 +61,6 @@ def create_tree_legend_figure(cfg: dict[str, Any]):
         xaxis={"showgrid": False, "fixedrange": True},
         yaxis={"showgrid": False, "fixedrange": True},
         margin=dict(l=0, r=0, b=0, t=0),
+        modebar_remove=["select2d", "lasso2d"]
     )
-    return dcc.Graph(figure=fig, id="fig-cens-tree-legend", responsive=True)
+    return dcc.Graph(figure=fig, id="fig-cens-tree-legend", responsive=True, config={"displaylogo": False})

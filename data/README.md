@@ -82,8 +82,14 @@ tabix -p bed data/all_ModDotPlot.bed.gz
 awk -v OFS="\t" '{
     match($1, "^(.+):", chrom);
     $1=chrom[1];
+    if ($1 in chroms) {
+        chroms[$1] += 1;
+    } else {
+        chroms[$1] = 0
+    };
+    name=$5"_"chroms[$1]
     color=($5 ~ "^L1") ? "#0080FF" : "#FB0000";
-    print $1, $2, $3, $5, 0, ".", $2, $3, color
+    print $1, $2, $3, name, 0, ".", $2, $3, color
 }' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/MEI/MEI.HOR.bed | \
 sort -k1,1 -k2,2n | \
 bgzip > data/all_MEI.bed.gz
@@ -95,5 +101,9 @@ tabix -p bed data/all_MEI.bed.gz
 
 # Clades:
 ```bash
-awk -v FS="\t" -v OFS="\t" -v RS='\r\n' '{ name=FILENAME; match(name, "_(p|q).xls", arms); print $1, $2, arms[1] }' $(realpath /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/tree_clade/clades/chr*.xls)
+awk -v FS="\t" -v OFS="\t" -v RS='\r\n' '{
+    name=FILENAME;
+    match(name, "_(p|q).xls", arms);
+    print $1, $2, arms[1]
+}' $(realpath /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/tree_clade/clades/chr*.xls)
 ```

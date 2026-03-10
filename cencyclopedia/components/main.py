@@ -67,7 +67,7 @@ def main_content(
                                 target="fig-cens-tree",
                                 body=True,
                                 hide_arrow=True,
-                                trigger="click",
+                                trigger="hover",
                             ),
                         ],
                         style={"height": "200vh", "width": "50%"},
@@ -78,7 +78,7 @@ def main_content(
                             html.Hr(),
                             dropdown,
                             html.Br(),
-                            dcc.Graph(id="fig-selected-cen", responsive=True),
+                            dcc.Graph(id="fig-selected-cen", responsive=True, config={"displaylogo": False}),
                             html.Br(),
                             dataview,
                         ],
@@ -120,7 +120,7 @@ def main_page(
     datatypes = list(data.labels)
     content = main_content(
         fig_tree=dcc.Graph(id="fig-cens-tree", responsive=True),
-        fig_tree_legend=create_tree_legend_figure(cfg),
+        fig_tree_legend=create_tree_legend_figure(),
         tree_arm=tree_arm,
         dropdown=dcc.Dropdown(
             [],
