@@ -1,7 +1,7 @@
 from cencyclopedia.plot.common import default_bed_track_settings
 import dash_bootstrap_components as dbc
 
-from typing import Any
+from typing import Any, Literal
 from dash import html, dcc
 from cencyclopedia.io.data import Data
 from cencyclopedia.plot.tree import create_tree_legend_figure
@@ -39,8 +39,9 @@ def data_summary(labels: list[str]) -> html.Div:
 
 
 def main_content(
-    fig_clade: dcc.Graph,
-    fig_clade_legend: dcc.Graph,
+    fig_tree: dcc.Graph,
+    fig_tree_legend: dcc.Graph,
+    tree_arm: str,
     dropdown: dcc.Dropdown,
     dataview: html.Div,
 ):
@@ -50,11 +51,20 @@ def main_content(
                 [
                     dbc.Col(
                         [
-                            fig_clade,
+                            html.H3("Tree"),
+                            html.Hr(),
+                            dcc.Dropdown(
+                                ["p-arm", "q-arm"],
+                                value=tree_arm,
+                                searchable=True,
+                                id="dropdown-tree-arm",
+                            ),
+                            html.Br(),
+                            fig_tree,
                             dbc.Popover(
-                                [fig_clade_legend],
-                                id="popup-fig-cens-clade-ordered-legend",
-                                target="fig-cens-clade-ordered",
+                                [fig_tree_legend],
+                                id="popup-fig-cens-tree-legend",
+                                target="fig-cens-tree",
                                 body=True,
                                 hide_arrow=True,
                                 trigger="click",
@@ -80,7 +90,12 @@ def main_content(
     )
 
 
-def main_page(regions: str, chrom_names: list[str], cfg: dict[str, Any]):
+def main_page(
+    regions: str,
+    chrom_names: list[str],
+    cfg: dict[str, Any],
+    tree_arm: Literal["p-arm", "q-arm"] = "p-arm",
+):
     sidebar = html.Div(
         [
             html.H2("Cencyclopedia", className="display-7"),
@@ -104,8 +119,9 @@ def main_page(regions: str, chrom_names: list[str], cfg: dict[str, Any]):
     data = Data.new(cfg["data"])
     datatypes = list(data.labels)
     content = main_content(
-        fig_clade=dcc.Graph(id="fig-cens-clade-ordered", responsive=True),
-        fig_clade_legend=create_tree_legend_figure(cfg),
+        fig_tree=dcc.Graph(id="fig-cens-tree", responsive=True),
+        fig_tree_legend=create_tree_legend_figure(cfg),
+        tree_arm=tree_arm,
         dropdown=dcc.Dropdown(
             [],
             value=None,
@@ -118,6 +134,8 @@ def main_page(regions: str, chrom_names: list[str], cfg: dict[str, Any]):
         [
             # Regions
             dcc.Store(id="regions", data=regions),
+            # Tree arm
+            dcc.Store(id="tree-arm", data=tree_arm),
             # Configuration dictionary (yaml file)
             dcc.Store(id="cfg", data=cfg),
             # Datatypes provided

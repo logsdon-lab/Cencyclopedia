@@ -1,6 +1,7 @@
 import pysam
 import polars as pl
 
+from loguru import logger
 from typing import Self, Any, Literal, Iterator, NamedTuple
 
 from .bed import (
@@ -111,12 +112,16 @@ class Data(NamedTuple):
             read_fn = read_bed9_row
             cols = ["chrom", "chrom_st", "chrom_end", "name", "color"]
 
-        qry = self.fhs[label].fetch(chrom, st, end, parser=parser)
-        df = pl.DataFrame(
-            data=[read_fn(rec) for rec in qry],
-            orient="row",
-            schema=cols,
-        )
+        try:
+            qry = self.fhs[label].fetch(chrom, st, end, parser=parser)
+            df = pl.DataFrame(
+                data=[read_fn(rec) for rec in qry],
+                orient="row",
+                schema=cols,
+            )
+        except ValueError as err:
+            logger.debug(f"Unable to query: {err}")
+            return pl.DataFrame(schema=cols)
 
         if not to_relative:
             return df

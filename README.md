@@ -1,24 +1,21 @@
 # Cencyclopedia
+Interactive centromere catalog.
 
 ![](docs/ui.png)
 
 ## Getting Started
-Download data:
-```bash
-# WIP
-```
-
-Setup dependencies
+Setup dependencies.
 ```bash
 python -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-To run locally.
+## Run locally
+### Python
 ```bash
 python -m cencyclopedia.app
 ```
 
-## TODO
-[ ] - Remote file support
+### Docker
+> WIP

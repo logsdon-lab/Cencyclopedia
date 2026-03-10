@@ -9,21 +9,6 @@ from cencyclopedia.callbacks.main_page import *
 from cencyclopedia.callbacks.selected_cen import *
 from cencyclopedia.callbacks.dataview import *
 
-# import yaml
-
-# with open("config.yaml", "rb") as fh:
-#     cfg = yaml.safe_load(fh)
-# data = Data.new(cfg["data"])
-# data.split(
-#     "Alpha-satellite HORs",
-#     "chm1_chr1",
-#     chrom_st=None,
-#     chrom_end=None,
-#     by="Length",
-#     to_relative=False,
-# )
-# breakpoint()
-
 
 with open("config.yaml", "rb") as fh:
     cfg = yaml.safe_load(fh)

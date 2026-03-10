@@ -1,3 +1,4 @@
+from typing import Literal
 import numpy as np
 import plotly.graph_objs as go
 
@@ -9,7 +10,10 @@ from .image import add_image_to_figure
 
 
 def create_tree_figure(
-    img: Image, chroms: Iterable[str], cfg: dict[str, Any]
+    img: Image,
+    chroms: Iterable[str],
+    cfg: dict[str, Any],
+    tree_arm: Literal["p-arm", "q-arm"],
 ) -> go._figure.Figure:
     fig = go._figure.Figure()
     fig = add_image_to_figure(img, fig)
@@ -20,9 +24,15 @@ def create_tree_figure(
     ypos = np.cumsum([yoffset for i in range(len(chroms))])
     ypos *= -1
     ypos += yst
-    # Add scatter points on right side of centromeres
+
+    # Add scatter points on left or right side of centromeres based on tree_arm
+    if tree_arm == "p-arm":
+        x = [img.width - 100.0] * len(ypos)
+    else:
+        x = [100.0] * len(ypos)
+
     fig.add_scatter(
-        x=[img.width - 100.0] * len(ypos),
+        x=x,
         y=[yst, *ypos],
         customdata=chroms,
         hovertemplate="<b>%{customdata}</b>",
@@ -49,4 +59,4 @@ def create_tree_legend_figure(cfg: dict[str, Any]):
         yaxis={"showgrid": False, "fixedrange": True},
         margin=dict(l=0, r=0, b=0, t=0),
     )
-    return dcc.Graph(figure=fig, id="fig-cens-clade-ordered-legend", responsive=True)
+    return dcc.Graph(figure=fig, id="fig-cens-tree-legend", responsive=True)

@@ -1,3 +1,4 @@
+from typing import Literal
 import polars as pl
 import plotly.graph_objs as go
 
@@ -22,7 +23,15 @@ def add_bedgraph_track(df_bg: pl.DataFrame, fig: go._figure.Figure, **kwargs):
         )
 
 
-def add_bed_track(df_bed: pl.DataFrame, fig: go._figure.Figure, **kwargs):
+def add_bed_track(
+    df_bed: pl.DataFrame,
+    fig: go._figure.Figure,
+    shape: Literal["tri", "rect"] = "rect",
+    invert: bool = True,
+    bp_slop: int = 0,
+    **kwargs,
+):
+    invert = -1 if invert else 1
     for grp, df in (
         df_bed.with_columns(length=pl.col("chrom_end") - pl.col("chrom_st"))
         .sort(by="length", descending=True)
@@ -31,17 +40,16 @@ def add_bed_track(df_bed: pl.DataFrame, fig: go._figure.Figure, **kwargs):
         x, y = [], []
         name, color = grp
         for row in df.iter_rows(named=True):
-            x.extend(
-                [
-                    row["chrom_st"],
-                    row["chrom_end"],
-                    row["chrom_end"],
-                    row["chrom_st"],
-                    row["chrom_st"],
-                    None,
-                ]
-            )
-            y.extend([0, 0, 1, 1, 0, None])
+            st = row["chrom_st"] - bp_slop
+            end = row["chrom_end"] + bp_slop
+            length = end - st
+            if shape == "tri":
+                midpt = st + (length / 2)
+                x.extend([st, midpt, end, st, None])
+                y.extend([0, 1 * invert, 0, 0, None])
+            else:
+                x.extend([st, end, end, st, st, None])
+                y.extend([0, 0, 1, 1, 0, None])
 
         fig.add_scatter(
             fill="toself",

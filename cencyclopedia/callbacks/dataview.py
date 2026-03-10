@@ -1,4 +1,3 @@
-from cencyclopedia.plot.common import default_bed_track_settings
 import dash
 import polars as pl
 
@@ -8,7 +7,7 @@ from dash import Input, Output, callback, dash_table, State
 from dash.exceptions import PreventUpdate
 
 from cencyclopedia.io.data import Data
-from cencyclopedia.plot.common import BedTrackSettings
+from cencyclopedia.plot.common import BedTrackSettings, default_bed_track_settings
 from cencyclopedia.components.dataview import dataview_tab
 
 
@@ -18,15 +17,15 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
 @callback(
     Output("data-labels-output", "children"),
     Input("data-label-tabs", "active_tab"),
+    Input("selected-cen", "data"),
     State("regions", "data"),
-    State("selected-cen", "data"),
     State("cfg", "data"),
     State("bed-track-settings", "data"),
 )
 def draw_dataview_tab(
     data_label: str,
-    regions: str,
     selected_cen: str | None,
+    regions: str,
     cfg: dict[str, Any],
     expand_tracks: dict[str, BedTrackSettings],
 ):

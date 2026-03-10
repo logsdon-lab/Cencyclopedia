@@ -1,8 +1,7 @@
-import dash
 import polars as pl
 import plotly.graph_objs as go
 
-from typing import Any
+from typing import Any, Literal
 from loguru import logger
 from plotly.subplots import make_subplots
 from dash import Input, Output, callback, ctx, State
@@ -62,7 +61,8 @@ def draw_selected_cen_figure(
     for i, (label, idx, prop) in enumerate(track_params):
         track_settings = bed_track_settings[label]
         mode = track_settings["mode"]
-
+        # Whether to run-length encode
+        rle = data_fhs.options(label).get("rle", True)
         df = data_fhs.split(
             label,
             region["chrom"],
@@ -70,6 +70,7 @@ def draw_selected_cen_figure(
             region["chrom_end"],
             by=mode,
             to_relative=False,
+            rle=rle,
         ).sort(by="group")
 
         if mode == "Original":
@@ -100,6 +101,7 @@ def draw_selected_cen_figure(
 
     for label, (indices, df) in indices.items():
         dtype = data_fhs.datatype(label)
+        options = data_fhs.options(label)
         dfs_groups = list(df.group_by(["group"], maintain_order=True))
         for i, track_idx in enumerate(indices):
             try:
@@ -113,12 +115,20 @@ def draw_selected_cen_figure(
                     col=1,
                 )
                 logger.debug(
-                    f"Finished adding empty track for {label} (Group {grp}) on track {track_idx}"
+                    f"Finished adding empty track for {label} on track {track_idx}"
                 )
                 continue
 
             if dtype == "bed" or dtype == "bed_localselfident":
-                add_bed_track(df_grp, fig, row=track_idx, col=1)
+                add_bed_track(
+                    df_grp,
+                    fig,
+                    row=track_idx,
+                    col=1,
+                    shape=options.get("shape", "rect"),
+                    invert=options.get("invert", True),
+                    bp_slop=options.get("bp_slop", 0),
+                )
             elif dtype == "bedgraph":
                 add_bedgraph_track(df_grp, fig, row=track_idx, col=1)
             elif dtype == "bedstrand":
@@ -151,7 +161,8 @@ def draw_selected_cen_figure(
     Output("selected-cen", "data", allow_duplicate=True),
     Output("selected-cen-stale", "data", allow_duplicate=True),
     Input("url", "pathname"),
-    Input("fig-cens-clade-ordered", "clickData", allow_optional=True),
+    Input("fig-cens-tree", "clickData", allow_optional=True),
+    Input("tree-arm", "data"),
     Input("dropdown-selected-cen", "value"),
     State("selected-cen", "data"),
     State("regions", "data"),
@@ -161,6 +172,7 @@ def draw_selected_cen_figure(
 def update_selected_cen_by_click(
     pathname: str,
     data: dict[str, Any] | None,
+    tree_arm: Literal["p-arm", "q-arm"],
     dropdown_selected_cen: str,
     selected_cen: str,
     regions: str,
@@ -177,9 +189,10 @@ def update_selected_cen_by_click(
     click_data = data["points"][0]
     y = click_data["y"]
 
+    tree_arm = tree_arm.replace("-arm", "")
     df_regions_chrom = (
         pl.scan_csv(regions)
-        .filter(pl.col("chrom_name").eq(chrom) & pl.col("arm").eq(pl.lit("p")))
+        .filter(pl.col("chrom_name").eq(chrom) & pl.col("arm").eq(pl.lit(tree_arm)))
         .sort(by=["clade"])
         .collect()
     )

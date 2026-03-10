@@ -1,33 +1,54 @@
 data:
+  "MEI":
+    path: data/all_MEI.bed.gz
+    position: relative
+    type: bed
+    prop: 0.03
+    options:
+      rle: false
+      shape: tri
+      bp_slop: 10000
   "CDR":
     path: data/all_cdrs.bed.gz
     position: relative
     type: bed
     prop: 0.01
+    options:
+      rle: false
   "CpG Methylation":
     path: data/all_CpG_methyl.bedgraph.gz
     position: relative
     type: bedgraph
     prop: 0.25
+    options:
+      rle: false
   "Satellite Structure":
     path: data/all_RM_satellite_annotation.bed.gz
     position: relative
     type: bed
     prop: 0.15
+    options:
+      rle: false
   "Alpha-satellite HORs":
     path: data/all_AS-HOR_stv_row.bed.gz
     position: overlap
     type: bed
+    options:
+      rle: true
   "Local Self-Identity":
     path: data/all_local_self_identity.bed.gz
     position: relative
     type: bed_localselfident
     prop: 0.01
+    options:
+      rle: false
   "Alpha-satellite HOR array orientation":
     path: data/all_AS-HOR_stv_row_strand.bed.gz
     position: relative
     type: bedstrand
     prop: 0.05
+    options:
+      rle: false
   # "Self-Identity":
   #   path: data/all_ModDotPlot.bed.gz
   #   position: relative

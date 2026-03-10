@@ -78,6 +78,17 @@ tabix -p bed data/all_ModDotPlot.bed.gz
 ```
 
 ## MEI
+```bash
+awk -v OFS="\t" '{
+    match($1, "^(.+):", chrom);
+    $1=chrom[1];
+    color=($5 ~ "^L1") ? "#0080FF" : "#FB0000";
+    print $1, $2, $3, $5, 0, ".", $2, $3, color
+}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/MEI/MEI.HOR.bed | \
+sort -k1,1 -k2,2n | \
+bgzip > data/all_MEI.bed.gz
+tabix -p bed data/all_MEI.bed.gz
+```
 
 # Sample metadata:
 * `/project/logsdon_shared/project_archive/HGSVC3/non-redundant_centromeres/sample_populations_sex.tsv`
