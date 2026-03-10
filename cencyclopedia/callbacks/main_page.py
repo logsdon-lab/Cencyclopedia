@@ -15,7 +15,6 @@ from cencyclopedia.components.home import home_page
 @callback(
     Output("main-content", "children"),
     Output("selected-cen", "data", allow_duplicate=True),
-    Output("selected-cen-stale", "data", allow_duplicate=True),
     Input("url", "pathname"),
     Input("tree-arm", "data"),
     State("regions", "data"),
@@ -32,9 +31,9 @@ def draw_main_content_page(
 ):
     page = pathname.strip("/")
     if not page:
-        return home_page(), None, False
+        return home_page(), None
     elif page == "cite":
-        return cite_page(), None, False
+        return cite_page(), None
     else:
         chrom_name = page
         logger.debug(f"On {chrom_name}")
@@ -68,7 +67,7 @@ def draw_main_content_page(
                 figure=fig,
                 id="fig-cens-tree",
                 responsive=True,
-                config={"displaylogo": False}
+                config={"displaylogo": False},
             ),
             fig_tree_legend=create_tree_legend_figure(),
             tree_arm=tree_arm,
@@ -80,7 +79,7 @@ def draw_main_content_page(
             ),
             dataview=data_summary(dtypes),
         )
-        return content, selected_cen, True
+        return content, selected_cen
 
 
 @callback(

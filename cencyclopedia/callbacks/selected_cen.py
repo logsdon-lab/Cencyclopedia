@@ -20,21 +20,19 @@ from cencyclopedia.plot.bed import (
 @callback(
     Output("fig-selected-cen", "figure"),
     Input("selected-cen", "data"),
-    Input("selected-cen-stale", "data"),
+    Input("bed-track-settings", "data"),
     State("regions", "data"),
     State("cfg", "data"),
-    State("bed-track-settings", "data"),
     prevent_initial_call="initial_duplicate",
 )
 def draw_selected_cen_figure(
     selected_cen: str | None,
-    stale: bool,
+    bed_track_settings: dict[str, BedTrackSettings],
     regions: str,
     cfg: dict[str, Any],
-    bed_track_settings: dict[str, BedTrackSettings],
 ):
     logger.debug(f"draw: {ctx.triggered}")
-    if not selected_cen or not stale:
+    if not selected_cen:
         raise PreventUpdate
 
     df_region = (
@@ -152,58 +150,44 @@ def draw_selected_cen_figure(
         xaxis={"showgrid": False},
         yaxis={"showgrid": False},
         margin=dict(l=0, r=0, b=0, t=0),
-        modebar_remove=["select2d", "lasso2d"]
+        modebar_remove=["select2d", "lasso2d"],
     )
     # https://plotly.com/python/reference/layout/xaxis/
     fig.update_xaxes(showline=False)
     fig.update_yaxes(showticklabels=False, ticks="", showline=False)
-    # No longer stale.
     return fig
 
 
 @callback(
     Output("selected-cen", "data", allow_duplicate=True),
-    Output("selected-cen-stale", "data", allow_duplicate=True),
-    Input("dropdown-selected-cen", "value"),
-    State("selected-cen", "data"),
-    State("selected-cen-stale", "data"),
-    prevent_initial_call=True,
-)
-def update_selected_cen_by_dropdown(
-    dropdown_selected_cen: str,
-    selected_cen: str,
-    stale: bool
-):
-    logger.debug(f"dropdown: {ctx.triggered}, {selected_cen}, {stale}")
-    if dropdown_selected_cen != selected_cen:
-        return dropdown_selected_cen, True
-    else:
-        return selected_cen, stale
-
-
-@callback(
-    Output("selected-cen", "data", allow_duplicate=True),
-    Output("selected-cen-stale", "data", allow_duplicate=True),
+    Output("dropdown-selected-cen", "value"),
     Input("url", "pathname"),
     Input("fig-cens-tree", "clickData", allow_optional=True),
+    Input("dropdown-selected-cen", "value"),
     Input("tree-arm", "data"),
     State("regions", "data"),
     State("cfg", "data"),
+    State("selected-cen", "data"),
     prevent_initial_call=True,
 )
-def update_selected_cen_by_click(
+def update_selected_cen(
     pathname: str,
-    data: dict[str, Any] | None,
+    click_data: dict[str, Any] | None,
+    dropdown_selected_cen: str,
     tree_arm: Literal["p-arm", "q-arm"],
     regions: str,
     cfg: dict[str, Any],
+    selected_cen: str | None,
 ):
     logger.debug(f"clk: {ctx.triggered}")
-    if not data:
+    if dropdown_selected_cen != selected_cen:
+        return dropdown_selected_cen, dropdown_selected_cen
+
+    if not click_data:
         raise PreventUpdate
 
     chrom = pathname.strip("/")
-    click_data = data["points"][0]
+    click_data = click_data["points"][0]
     y = click_data["y"]
 
     tree_arm = tree_arm.replace("-arm", "")
@@ -221,8 +205,8 @@ def update_selected_cen_by_click(
     idx = round((y - yst) / yoffset)
     logger.debug(f"Clicked y-pos, {y}, corresponding to index {idx}")
     try:
-        chrom = chroms[idx]
+        selected_cen = chroms[idx]
     except IndexError:
         logger.debug(f"Invalid chrom index {idx}/{len(chroms)}")
         raise PreventUpdate
-    return chrom, True
+    return selected_cen, selected_cen

@@ -46,7 +46,7 @@ def create_tree_figure(
         xaxis={"showgrid": False, "fixedrange": True},
         yaxis={"showgrid": False, "fixedrange": True},
         margin=dict(l=0, r=0, b=0, t=0),
-        modebar_remove=["select2d", "lasso2d"]
+        modebar_remove=["select2d", "lasso2d"],
     )
     return fig
 
@@ -61,6 +61,11 @@ def create_tree_legend_figure():
         xaxis={"showgrid": False, "fixedrange": True},
         yaxis={"showgrid": False, "fixedrange": True},
         margin=dict(l=0, r=0, b=0, t=0),
-        modebar_remove=["select2d", "lasso2d"]
+        modebar_remove=["select2d", "lasso2d"],
     )
-    return dcc.Graph(figure=fig, id="fig-cens-tree-legend", responsive=True, config={"displaylogo": False})
+    return dcc.Graph(
+        figure=fig,
+        id="fig-cens-tree-legend",
+        responsive=True,
+        config={"displaylogo": False},
+    )

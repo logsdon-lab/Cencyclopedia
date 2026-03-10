@@ -64,13 +64,11 @@ def draw_dataview_tab(
 
 @callback(
     Output("bed-track-settings", "data", allow_duplicate=True),
-    Output("selected-cen-stale", "data", allow_duplicate=True),
     Input("btn-bed-update-tracks", "n_clicks", allow_optional=True),
     State("data-label-tabs", "active_tab"),
     State("rd-bed-expand-tracks-mode", "value"),
     State("dropdown-bed-expand-tracks-limit", "value"),
     State("bed-track-settings", "data"),
-    State("selected-cen-stale", "data"),
     prevent_initial_call=True,
 )
 def update_bed_tracks_settings(
@@ -79,20 +77,18 @@ def update_bed_tracks_settings(
     mode: str,
     limit: int,
     bed_tracks_settings: dict[str, BedTrackSettings],
-    stale: bool,
 ):
     # Don't update tracks to avoid rerender if not stale.
-    if not stale and not n_clicks:
-        return dash.no_update, False
+    if not n_clicks:
+        return dash.no_update
 
     bed_tracks_settings[data_label] = {"mode": mode, "limit": limit}
     logger.debug(f"New expand tracks: {bed_tracks_settings}")
-    return bed_tracks_settings, True
+    return bed_tracks_settings
 
 
 @callback(
     Output("bed-track-settings", "data", allow_duplicate=True),
-    Output("selected-cen-stale", "data", allow_duplicate=True),
     Output("rd-bed-expand-tracks-mode", "value"),
     Output("dropdown-bed-expand-tracks-limit", "value"),
     Input("btn-bed-reset-tracks", "n_clicks", allow_optional=True),
@@ -106,14 +102,13 @@ def reset_bed_tracks_settings(
     bed_tracks_settings: dict[str, BedTrackSettings],
 ):
     if not n_clicks:
-        return dash.no_update, False, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update
 
     default_settings = default_bed_track_settings()
     bed_tracks_settings[data_label] = default_settings
     logger.debug("Reset expand tracks.")
     return (
         bed_tracks_settings,
-        True,
         default_settings["mode"],
         default_settings["limit"],
     )

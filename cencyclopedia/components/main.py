@@ -78,7 +78,11 @@ def main_content(
                             html.Hr(),
                             dropdown,
                             html.Br(),
-                            dcc.Graph(id="fig-selected-cen", responsive=True, config={"displaylogo": False}),
+                            dcc.Graph(
+                                id="fig-selected-cen",
+                                responsive=True,
+                                config={"displaylogo": False},
+                            ),
                             html.Br(),
                             dataview,
                         ],
@@ -142,9 +146,6 @@ def main_page(
             dcc.Store(id="datatypes", data=datatypes),
             # Selected centromere
             dcc.Store(id="selected-cen", data=None),
-            # Need to rerender selected centromere.
-            # Stale at start.
-            dcc.Store(id="selected-cen-stale", data=True),
             # Individual track settings
             dcc.Store(
                 id="bed-track-settings",

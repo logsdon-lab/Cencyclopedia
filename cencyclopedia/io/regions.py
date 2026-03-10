@@ -12,7 +12,10 @@ def read_or_write_regions(
 ) -> pl.DataFrame:
     if not os.path.exists(regions):
         df_regions = read_regions_from_data(
-            cfg["regions"], cfg["clades"], cfg["sample_metadata"], cfg["population_colors"]
+            cfg["regions"],
+            cfg["clades"],
+            cfg["sample_metadata"],
+            cfg["population_colors"],
         )
         with gzip.open(regions, "wb") as fh:
             df_regions.write_csv(fh)
@@ -50,7 +53,7 @@ def read_regions_from_data(
         population_colors,
         separator="\t",
         has_header=False,
-        new_columns=["population", "color"]
+        new_columns=["population", "color"],
     )
     df_metadata = pl.read_csv(
         sample_metadata,
