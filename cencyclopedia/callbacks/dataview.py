@@ -1,3 +1,4 @@
+import sys
 import dash
 import polars as pl
 
@@ -18,6 +19,7 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
     Output("data-labels-output", "children"),
     Input("data-label-tabs", "active_tab"),
     Input("selected-cen", "data"),
+    Input("fig-selected-cen", "relayoutData"),
     State("regions", "data"),
     State("cfg", "data"),
     State("bed-track-settings", "data"),
@@ -25,6 +27,7 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
 def draw_dataview_tab(
     data_label: str,
     selected_cen: str | None,
+    zoom_info: dict[str, Any] | None,
     regions: str,
     cfg: dict[str, Any],
     expand_tracks: dict[str, BedTrackSettings],
@@ -32,19 +35,29 @@ def draw_dataview_tab(
     if not selected_cen:
         raise PreventUpdate
 
-    data_fhs = Data.new(cfg["data"])
-    df_region = (
-        pl.scan_csv(regions)
-        .filter(pl.col("chrom").eq(selected_cen) & pl.col("arm").eq(pl.lit("q")))
-        .collect()
-    )
-    # TODO: This could probably be updated to also interact with the user selected range.
-    if df_region.is_empty():
-        raise ValueError(f"Invalid selected_cen: {selected_cen}")
+    # Requires at least one track with xaxis range and zoom info
+    if not zoom_info or not "xaxis.range[0]" in zoom_info:
+        df_region = (
+            pl.scan_csv(regions)
+            .filter(pl.col("chrom").eq(selected_cen) & pl.col("arm").eq(pl.lit("q")))
+            .collect()
+        )
+        if df_region.is_empty():
+            raise ValueError(f"Invalid selected_cen: {selected_cen}")
 
-    region = df_region.row(0, named=True)
-    chrom, st, end = region["chrom"], region["chrom_st"], region["chrom_end"]
-    df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
+        region = df_region.row(0, named=True)
+        st, end = region["chrom_st"], region["chrom_end"]
+    else:
+        # Get coordinates from zoom level.
+        logger.debug(f"Zoom info: {zoom_info}")
+        st, end = sys.maxsize, 0
+        for val in zoom_info.values():
+            val = round(val)
+            st = min(st, val)
+            end = max(end, val)
+
+    data_fhs = Data.new(cfg["data"])
+    df = data_fhs.query(data_label, selected_cen, st, end, to_relative=False)
     data_table = dash_table.DataTable(
         id=f"data-{data_label}",
         data=list(df.iter_rows(named=True)),

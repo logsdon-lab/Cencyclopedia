@@ -62,7 +62,7 @@ def main_content(
                                 trigger="hover",
                             ),
                         ],
-                        style={"height": "125vh", "width": "50%"},
+                        style={"height": "150vh", "width": "50%"},
                     ),
                     dbc.Col(
                         [
