@@ -14,7 +14,6 @@ from cencyclopedia.components.home import home_page
 @callback(
     Output("main-content", "children"),
     Output("selected-cen", "data", allow_duplicate=True),
-    Output("tree-chrom-coords", "data"),
     Input("url", "pathname"),
     State("regions", "data"),
     State("cfg", "data"),
@@ -29,9 +28,9 @@ def draw_main_content_page(
 ):
     page = pathname.strip("/")
     if not page:
-        return home_page(), None, None
+        return home_page(), None
     elif page == "cite":
-        return cite_page(), None, None
+        return cite_page(), None
     else:
         chrom_name = page
         logger.debug(f"On {chrom_name}")
@@ -44,18 +43,18 @@ def draw_main_content_page(
             .sort(by=["arm", "clade"])
             .collect()
         )
-        dfs_regions_chrom_arm: dict[tuple[Any, ...], pl.DataFrame] = df_regions_chrom.partition_by(["arm"], maintain_order=True, as_dict=True)
+        dfs_regions_chrom_arm: dict[tuple[Any, ...], pl.DataFrame] = (
+            df_regions_chrom.partition_by(["arm"], maintain_order=True, as_dict=True)
+        )
         all_chroms = df_regions_chrom["chrom"].unique(maintain_order=True).to_list()
         selected_cen = all_chroms[0]
 
         try:
             path = get_asset_url(f"{chrom_name}_PhylogeneticTree_p_q-arm.png")
-            img = Image.open(path)
-            fig, coords = create_tree_figure(img, dfs_regions_chrom_arm, cfg)
+            fig = create_tree_figure(Image.open(path), dfs_regions_chrom_arm, cfg)
         except (OSError, KeyError) as err:
             logger.error(f"Cannot open image for {chrom_name} tree")
             fig = None
-            coords = None
 
         content = main_content(
             fig_tree=dcc.Graph(
@@ -73,4 +72,4 @@ def draw_main_content_page(
             ),
             dataview=data_summary(dtypes),
         )
-        return content, selected_cen, coords
+        return content, selected_cen

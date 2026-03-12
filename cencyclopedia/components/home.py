@@ -5,7 +5,7 @@ from dash import dcc, html, get_asset_url
 
 def home_page():
     path = get_asset_url(
-        "251207_Fig1_CenOverview_piechartsonright_flipped_boldColors_updated_resized.png"
+        "260302_Fig1_CenOverview_piechartsonright_flipped_boldColors_updated.png"
     )
     return html.Div(
         [

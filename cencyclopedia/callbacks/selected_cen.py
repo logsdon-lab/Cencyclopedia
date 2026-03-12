@@ -164,14 +164,12 @@ def draw_selected_cen_figure(
     Output("dropdown-selected-cen", "value"),
     Input("fig-cens-tree", "clickData", allow_optional=True),
     Input("dropdown-selected-cen", "value"),
-    State("tree-chrom-coords", "data"),
     State("selected-cen", "data"),
     prevent_initial_call=True,
 )
 def update_selected_cen(
     click_data: dict[str, Any] | None,
     dropdown_selected_cen: str,
-    tree_chrom_coords: dict[int, dict[int, str]],
     selected_cen: str | None,
 ):
     logger.debug(f"clk: {ctx.triggered}")
@@ -181,15 +179,10 @@ def update_selected_cen(
     if not click_data:
         raise PreventUpdate
 
-    click_data = click_data["points"][0]
-    
-    x = round(click_data["x"])
-    y = round(click_data["y"])
-
     try:
-        selected_cen = tree_chrom_coords[str(x)][str(y)]
-    except KeyError:
-        logger.debug(f"Invalid chrom click position ({x},{y})")
-        logger.debug(f"Valid coords: {tree_chrom_coords}")
+        selected_cen = click_data["points"][0]["customdata"][0]
+    except KeyError as err:
+        logger.debug(f"Error when accessing fields in {click_data}: {err}")
         raise PreventUpdate
+
     return selected_cen, selected_cen

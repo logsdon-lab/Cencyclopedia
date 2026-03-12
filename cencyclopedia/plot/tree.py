@@ -1,4 +1,3 @@
-from collections import defaultdict
 import polars as pl
 import numpy as np
 import plotly.graph_objs as go
@@ -6,51 +5,64 @@ import plotly.graph_objs as go
 from PIL import Image
 from typing import Any
 from dash import dcc, get_asset_url
+from collections import deque
+from itertools import islice
 
 from .image import add_image_to_figure
+
+
+def sliding_window(iterable, n):
+    "Collect data into overlapping fixed-length chunks or blocks."
+    # sliding_window('ABCDEFG', 3) → ABC BCD CDE DEF EFG
+    iterator = iter(iterable)
+    window = deque(islice(iterator, n - 1), maxlen=n)
+    for x in iterator:
+        window.append(x)
+        yield tuple(window)
 
 
 def create_tree_figure(
     img: Image,
     dfs_regions_chrom_arm: dict[tuple[Any, ...], pl.DataFrame],
     cfg: dict[str, Any],
-) -> tuple[go._figure.Figure, dict[int, dict[int, str]]]:
+) -> go._figure.Figure:
     fig = go._figure.Figure()
     fig = add_image_to_figure(img, fig)
 
     # Origin in top-left so y-coords are negative.
     yst = -cfg["tree_ystart"]
     yoffset = cfg["tree_yoffset"]
-    img_midpt = img.width // 2
+    img_midpt = int(img.width // 2)
 
-    coords = defaultdict(dict)
     for tree_arm, df in dfs_regions_chrom_arm.items():
         tree_arm = tree_arm[0]
         chroms = df["chrom"].to_list()
-        colors = df["color"].to_list()
         ypos = np.cumsum([yoffset for i in range(len(chroms) - 1)])
         ypos *= -1
         ypos += yst
 
-        # Add scatter points on left or right side of centromeres based on tree_arm
+        # Add rectangle around centromere coordinates based on tree_arm
         if tree_arm == "p":
-            x = [img_midpt - 100.0] * len(chroms)
+            x = [(0, img_midpt)] * len(chroms)
         else:
-            x = [img_midpt] * len(chroms)
-        y = [yst, *ypos]
+            x = [(img_midpt, int(img.width))] * len(chroms)
 
-        for _x, _y, chrom in zip(x, y, chroms, strict=True):
-            coords[int(_x)][int(_y)] = chrom
-
-        # Color by population
-        fig.add_scatter(
-            x=x,
-            y=y,
-            marker=dict(color=colors),
-            customdata=chroms,
-            hovertemplate="<b>%{customdata}</b>",
-            mode="markers",
-        )
+        y = list(sliding_window([yst, *ypos, ypos[-1] + yoffset], 2))
+        for (x0, x1), (y0, y1), chrom in zip(x, y, chroms, strict=True):
+            # Color by population
+            # Add rect [x_left_bottom, x_left_top, x_right_bottom, x_right_top, x_left_bottom]
+            #          [y_left_bottom, y_left_top, y_right_top, y_right_bottom, y_left_bottom]
+            fig.add_scatter(
+                x=[x0, x0, x1, x1, x0],
+                y=[y0, y1, y1, y0, y0],
+                fill="toself",
+                fillcolor="#FFFFFF",
+                opacity=0,
+                customdata=[chrom],
+                # opacity
+                name=chrom,
+                mode="lines",
+            )
 
     fig.update_layout(
         showlegend=False,
@@ -60,7 +72,7 @@ def create_tree_figure(
         margin=dict(l=0, r=0, b=0, t=0),
         modebar_remove=["select2d", "lasso2d"],
     )
-    return fig, coords
+    return fig
 
 
 def create_tree_legend_figure():

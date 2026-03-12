@@ -58,5 +58,5 @@ regions: data/all_array.bed.gz
 clades: data/clades.tsv.gz
 sample_metadata: data/sample_metadata.tsv.gz
 population_colors: data/all_population_colors.tsv
-tree_ystart: 624
+tree_ystart: 608
 tree_yoffset: 78

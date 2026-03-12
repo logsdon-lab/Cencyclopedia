@@ -1,10 +1,10 @@
-from cencyclopedia.plot.common import default_bed_track_settings
 import dash_bootstrap_components as dbc
 
 from typing import Any
 from dash import html, dcc
 from cencyclopedia.io.data import Data
 from cencyclopedia.plot.tree import create_tree_legend_figure
+from cencyclopedia.plot.common import default_bed_track_settings
 
 
 SIDEBAR_STYLE = {
@@ -132,8 +132,6 @@ def main_page(
             dcc.Store(id="cfg", data=cfg),
             # Datatypes provided
             dcc.Store(id="datatypes", data=datatypes),
-            # Tree chrom coords
-            dcc.Store(id="tree-chrom-coords", data=None),
             # Selected centromere
             dcc.Store(id="selected-cen", data=None),
             # Individual track settings
