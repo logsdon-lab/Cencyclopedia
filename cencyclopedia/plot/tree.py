@@ -31,7 +31,7 @@ def create_tree_figure(
     else:
         x = [100.0] * len(ypos)
 
-    # TODO: Color by population
+    # Color by population
     fig.add_scatter(
         x=x,
         y=[yst, *ypos],

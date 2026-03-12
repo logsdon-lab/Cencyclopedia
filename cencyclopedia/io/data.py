@@ -120,7 +120,7 @@ class Data(NamedTuple):
                 schema=cols,
             )
         except ValueError as err:
-            logger.debug(f"Unable to query: {err}")
+            logger.debug(f"Unable to query {label} for {chrom}:{st}-{end} ({err})")
             return pl.DataFrame(schema=cols)
 
         if not to_relative:

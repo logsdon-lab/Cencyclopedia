@@ -79,6 +79,7 @@ def draw_selected_cen_figure(
             if not prop:
                 prev_label, prev_idx, prev_prop = track_params[i - 1]
                 prop = prev_prop
+                idx = idx + 1
 
             # Split by all or a set limit.
             if track_settings["limit"] == "All":
@@ -94,7 +95,7 @@ def draw_selected_cen_figure(
             idx_offset += limit - 1
             indices[label] = (split_indices, df)
 
-    # logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
+    logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
 
     fig: go._figure.Figure = make_subplots(
         rows=len(props), cols=1, shared_xaxes=True, row_heights=props
@@ -143,7 +144,7 @@ def draw_selected_cen_figure(
                     f"Ignoring {label} (Group {grp}) of type {dtype} at index of {track_idx}"
                 )
 
-            # logger.debug(f"Finished adding {label} (Group {grp}) on track {track_idx}")
+            logger.debug(f"Finished adding {label} (Group {grp}) on track {track_idx}")
 
     fig.update_layout(
         template="simple_white",
