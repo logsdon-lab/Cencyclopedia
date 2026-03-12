@@ -1,11 +1,9 @@
 import sys
 import dash
-import polars as pl
 
-from typing import Any
+from typing import Any, Literal
 from loguru import logger
-from dash import Input, Output, callback, dash_table, State
-from dash.exceptions import PreventUpdate
+from dash import Input, Output, callback, dash_table, State, html
 
 from cencyclopedia.io.data import Data
 from cencyclopedia.plot.common import BedTrackSettings, default_bed_track_settings
@@ -16,48 +14,50 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
 
 
 @callback(
+    Output("itv-selected-cen", "data"),
+    Input("fig-selected-cen", "relayoutData"),
+    State("itv-selected-cen", "data"),
+)
+def update_selected_cen_coords_from_zoom_info(
+    zoom_info: dict[str, Any] | None, selected_cen: tuple[str, int, int] | None
+) -> dash._callback.NoUpdate | tuple[str, int, int]:
+    if not selected_cen or not zoom_info or not "xaxis.range[0]" in zoom_info:
+        return dash.no_update
+
+    # Get coordinates from zoom level.
+    logger.debug(f"Zoom info: {zoom_info}")
+    st, end = sys.maxsize, 0
+    for val in zoom_info.values():
+        val = round(val)
+        st = min(st, val)
+        end = max(end, val)
+
+    prev_chrom, prev_st, prev_end = selected_cen
+    logger.debug(
+        f"Updated start and end coordinates from {prev_chrom}:{prev_st}-{prev_end} to {prev_chrom}:{st}-{end}."
+    )
+    return prev_chrom, st, end
+
+
+@callback(
     Output("data-labels-output", "children"),
     Input("data-label-tabs", "active_tab"),
-    Input("selected-cen", "data"),
-    Input("fig-selected-cen", "relayoutData"),
-    State("regions", "data"),
+    Input("itv-selected-cen", "data"),
     State("cfg", "data"),
     State("bed-track-settings", "data"),
 )
 def draw_dataview_tab(
     data_label: str,
-    selected_cen: str | None,
-    zoom_info: dict[str, Any] | None,
-    regions: str,
+    itv_selected_cen: tuple[str, int, int] | None,
     cfg: dict[str, Any],
     expand_tracks: dict[str, BedTrackSettings],
-):
-    if not selected_cen:
-        raise PreventUpdate
+) -> list[html.Br | dash_table.DataTable | html.Div | html.H3 | html.Hr]:
+    if not itv_selected_cen:
+        return dash.no_update
 
-    # Requires at least one track with xaxis range and zoom info
-    if not zoom_info or not "xaxis.range[0]" in zoom_info:
-        df_region = (
-            pl.scan_csv(regions)
-            .filter(pl.col("chrom").eq(selected_cen) & pl.col("arm").eq(pl.lit("q")))
-            .collect()
-        )
-        if df_region.is_empty():
-            raise ValueError(f"Invalid selected_cen: {selected_cen}")
-
-        region = df_region.row(0, named=True)
-        st, end = region["chrom_st"], region["chrom_end"]
-    else:
-        # Get coordinates from zoom level.
-        logger.debug(f"Zoom info: {zoom_info}")
-        st, end = sys.maxsize, 0
-        for val in zoom_info.values():
-            val = round(val)
-            st = min(st, val)
-            end = max(end, val)
-
+    chrom, st, end = itv_selected_cen
     data_fhs = Data.new(cfg["data"])
-    df = data_fhs.query(data_label, selected_cen, st, end, to_relative=False)
+    df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
     data_table = dash_table.DataTable(
         id=f"data-{data_label}",
         data=list(df.iter_rows(named=True)),
@@ -90,7 +90,7 @@ def update_bed_tracks_settings(
     mode: str,
     limit: int,
     bed_tracks_settings: dict[str, BedTrackSettings],
-):
+) -> dash._callback.NoUpdate | dict[str, BedTrackSettings]:
     # Don't update tracks to avoid rerender if not stale.
     if not n_clicks:
         return dash.no_update
@@ -113,6 +113,13 @@ def reset_bed_tracks_settings(
     n_clicks: int | None,
     data_label: str,
     bed_tracks_settings: dict[str, BedTrackSettings],
+) -> (
+    tuple[dash._callback.NoUpdate, dash._callback.NoUpdate, dash._callback.NoUpdate]
+    | tuple[
+        dict[str, BedTrackSettings],
+        Literal["Coverage", "Frequency", "Length", "Original"],
+        Literal["All"] | int,
+    ]
 ):
     if not n_clicks:
         return dash.no_update, dash.no_update, dash.no_update

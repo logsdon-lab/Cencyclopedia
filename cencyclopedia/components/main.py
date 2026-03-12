@@ -24,7 +24,7 @@ CONTENT_STYLE = {
 }
 
 
-def data_summary(labels: list[str]) -> html.Div:
+def dataview_selected_cen(labels: list[str]) -> html.Div:
     return html.Div(
         [
             dbc.Tabs(
@@ -38,11 +38,50 @@ def data_summary(labels: list[str]) -> html.Div:
     )
 
 
+def rangeslider_selected_cen(
+    dropdown: dcc.Dropdown, min: int, max: int, value: list[int]
+) -> html.Div:
+    return html.Div(
+        [
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [dbc.Label("Contig"), dropdown],
+                        width=6,
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Label("Position"),
+                            dcc.RangeSlider(
+                                min=min,
+                                max=max,
+                                value=value,
+                                allowCross=False,
+                                id="rng-itv-selected_cens",
+                            ),
+                        ],
+                        width=4,
+                    ),
+                    dbc.Col(
+                        [
+                            html.Br(),
+                            dbc.Button(
+                                "Reset", id="btn-reset-itv-selected-cen", color="danger"
+                            ),
+                        ],
+                        width=2,
+                    ),
+                ]
+            )
+        ]
+    )
+
+
 def main_content(
     fig_tree: dcc.Graph,
     fig_tree_legend: dcc.Graph,
-    dropdown: dcc.Dropdown,
-    dataview: html.Div,
+    rangeslider_selected_cen: html.Div,
+    dataview_selected_cen: html.Div,
 ):
     return html.Div(
         [
@@ -66,9 +105,9 @@ def main_content(
                     ),
                     dbc.Col(
                         [
-                            html.H3("Contig"),
+                            html.H3("Tracks"),
                             html.Hr(),
-                            dropdown,
+                            rangeslider_selected_cen,
                             html.Br(),
                             dcc.Graph(
                                 id="fig-selected-cen",
@@ -76,7 +115,7 @@ def main_content(
                                 config={"displaylogo": False},
                             ),
                             html.Br(),
-                            dataview,
+                            dataview_selected_cen,
                         ],
                         style={"height": "50vh", "width": "50%"},
                     ),
@@ -116,13 +155,18 @@ def main_page(
     content = main_content(
         fig_tree=dcc.Graph(id="fig-cens-tree", responsive=True),
         fig_tree_legend=create_tree_legend_figure(),
-        dropdown=dcc.Dropdown(
-            [],
-            value=None,
-            searchable=True,
-            id="dropdown-selected-cen",
+        rangeslider_selected_cen=rangeslider_selected_cen(
+            min=0,
+            max=0,
+            value=[0, 0],
+            dropdown=dcc.Dropdown(
+                [],
+                value=None,
+                searchable=True,
+                id="dropdown-selected-cen",
+            ),
         ),
-        dataview=data_summary(datatypes),
+        dataview_selected_cen=dataview_selected_cen(datatypes),
     )
     return html.Div(
         [
@@ -132,8 +176,8 @@ def main_page(
             dcc.Store(id="cfg", data=cfg),
             # Datatypes provided
             dcc.Store(id="datatypes", data=datatypes),
-            # Selected centromere
-            dcc.Store(id="selected-cen", data=None),
+            # Interval for selected centromere
+            dcc.Store(id="itv-selected-cen", data=None),
             # Individual track settings
             dcc.Store(
                 id="bed-track-settings",

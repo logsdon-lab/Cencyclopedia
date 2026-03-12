@@ -3,6 +3,33 @@ import polars as pl
 
 from typing import Any
 
+BED_SCHEMA = {
+    "chrom": pl.String,
+    "chrom_st": pl.UInt64,
+    "chrom_end": pl.UInt64,
+    "name": pl.String,
+    "color": pl.String,
+}
+
+BEDGRAPH_SCHEMA = {
+    "chrom": pl.String,
+    "chrom_st": pl.UInt64,
+    "chrom_end": pl.UInt64,
+    "name": pl.Float32,
+}
+
+BEDPE_SCHEMA = {
+    "qry": pl.String,
+    "qry_st": pl.UInt64,
+    "qry_end": pl.UInt64,
+    "ref": pl.String,
+    "ref_st": pl.UInt64,
+    "ref_end": pl.UInt64,
+    "percent_identity_by_events": pl.Float32,
+    "color": pl.String,
+    "desc": pl.String,
+}
+
 
 def read_bedgraph_row(rec: Any):
     return (rec.contig, rec.start, rec.end, rec.name)

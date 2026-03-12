@@ -1,3 +1,4 @@
+import dash
 import polars as pl
 import plotly.graph_objs as go
 
@@ -19,34 +20,24 @@ from cencyclopedia.plot.bed import (
 
 @callback(
     Output("fig-selected-cen", "figure"),
-    Input("selected-cen", "data"),
+    Input("itv-selected-cen", "data"),
     Input("bed-track-settings", "data"),
-    State("regions", "data"),
     State("cfg", "data"),
     prevent_initial_call="initial_duplicate",
 )
 def draw_selected_cen_figure(
-    selected_cen: str | None,
+    itv_selected_cen: tuple[str, int, int] | None,
     bed_track_settings: dict[str, BedTrackSettings],
-    regions: str,
     cfg: dict[str, Any],
-):
-    logger.debug(f"draw: {ctx.triggered}")
-    if not selected_cen:
+) -> go._figure.Figure:
+    logger.debug(f"Draw update context: {ctx.triggered}")
+    if not itv_selected_cen:
         raise PreventUpdate
 
-    df_region = (
-        pl.scan_csv(regions)
-        .filter(pl.col("chrom").eq(selected_cen) & pl.col("arm").eq(pl.lit("q")))
-        .collect()
-    )
-    if df_region.is_empty():
-        raise ValueError(f"Invalid selected_cen: {selected_cen}")
-
+    chrom, st, end = itv_selected_cen
     # Open tabix file handles
     data_fhs = Data.new(cfg["data"])
 
-    region = df_region.row(0, named=True)
     props = []
     indices: dict[str, tuple[list[int], pl.DataFrame]] = {}
 
@@ -61,12 +52,13 @@ def draw_selected_cen_figure(
         rle = data_fhs.options(label).get("rle", True)
         df = data_fhs.split(
             label,
-            region["chrom"],
-            region["chrom_st"],
-            region["chrom_end"],
+            chrom,
+            st,
+            end,
             by=mode,
             to_relative=False,
             rle=rle,
+            clip=True,
         ).sort(by="group")
 
         if mode == "Original":
@@ -112,7 +104,7 @@ def draw_selected_cen_figure(
             except IndexError:
                 add_empty_track(
                     fig,
-                    xlim=(region["chrom_st"], region["chrom_end"]),
+                    xlim=(st, end),
                     row=track_idx,
                     col=1,
                 )
@@ -160,29 +152,49 @@ def draw_selected_cen_figure(
 
 
 @callback(
-    Output("selected-cen", "data", allow_duplicate=True),
+    Output("itv-selected-cen", "data", allow_duplicate=True),
     Output("dropdown-selected-cen", "value"),
     Input("fig-cens-tree", "clickData", allow_optional=True),
     Input("dropdown-selected-cen", "value"),
-    State("selected-cen", "data"),
+    State("itv-selected-cen", "data"),
+    State("regions", "data"),
     prevent_initial_call=True,
 )
 def update_selected_cen(
     click_data: dict[str, Any] | None,
     dropdown_selected_cen: str,
-    selected_cen: str | None,
+    itv_selected_cen: tuple[str, int, int] | None,
+    regions: str,
+) -> (
+    tuple[tuple[Any, ...], str]
+    | tuple[tuple[Any, ...], str]
+    | tuple[dash._callback.NoUpdate, dash._callback.NoUpdate]
 ):
-    logger.debug(f"clk: {ctx.triggered}")
-    if dropdown_selected_cen != selected_cen:
-        return dropdown_selected_cen, dropdown_selected_cen
+    logger.debug(f"Click update context: {ctx.triggered}")
+    if dropdown_selected_cen != itv_selected_cen[0]:
+        itv_selected_cen = (
+            pl.scan_csv(regions)
+            .filter(pl.col("chrom").eq(dropdown_selected_cen))
+            .select("chrom", "chrom_st", "chrom_end")
+            .collect()
+            .row(0)
+        )
+        return itv_selected_cen, dropdown_selected_cen
 
     if not click_data:
-        raise PreventUpdate
+        return dash.no_update, dash.no_update
 
     try:
         selected_cen = click_data["points"][0]["customdata"][0]
+        itv_selected_cen = (
+            pl.scan_csv(regions)
+            .filter(pl.col("chrom").eq(selected_cen))
+            .select("chrom", "chrom_st", "chrom_end")
+            .collect()
+            .row(0)
+        )
     except KeyError as err:
         logger.debug(f"Error when accessing fields in {click_data}: {err}")
-        raise PreventUpdate
+        return dash.no_update, dash.no_update
 
-    return selected_cen, selected_cen
+    return itv_selected_cen, selected_cen
