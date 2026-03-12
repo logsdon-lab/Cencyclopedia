@@ -1,7 +1,7 @@
 from cencyclopedia.plot.common import default_bed_track_settings
 import dash_bootstrap_components as dbc
 
-from typing import Any, Literal
+from typing import Any
 from dash import html, dcc
 from cencyclopedia.io.data import Data
 from cencyclopedia.plot.tree import create_tree_legend_figure
@@ -41,7 +41,6 @@ def data_summary(labels: list[str]) -> html.Div:
 def main_content(
     fig_tree: dcc.Graph,
     fig_tree_legend: dcc.Graph,
-    tree_arm: str,
     dropdown: dcc.Dropdown,
     dataview: html.Div,
 ):
@@ -53,13 +52,6 @@ def main_content(
                         [
                             html.H3("Tree"),
                             html.Hr(),
-                            dcc.Dropdown(
-                                ["p-arm", "q-arm"],
-                                value=tree_arm,
-                                searchable=True,
-                                id="dropdown-tree-arm",
-                            ),
-                            html.Br(),
                             fig_tree,
                             dbc.Popover(
                                 [fig_tree_legend],
@@ -70,7 +62,7 @@ def main_content(
                                 trigger="hover",
                             ),
                         ],
-                        style={"height": "200vh", "width": "50%"},
+                        style={"height": "125vh", "width": "50%"},
                     ),
                     dbc.Col(
                         [
@@ -98,7 +90,6 @@ def main_page(
     regions: str,
     chrom_names: list[str],
     cfg: dict[str, Any],
-    tree_arm: Literal["p-arm", "q-arm"] = "p-arm",
 ):
     sidebar = html.Div(
         [
@@ -125,7 +116,6 @@ def main_page(
     content = main_content(
         fig_tree=dcc.Graph(id="fig-cens-tree", responsive=True),
         fig_tree_legend=create_tree_legend_figure(),
-        tree_arm=tree_arm,
         dropdown=dcc.Dropdown(
             [],
             value=None,
@@ -138,12 +128,12 @@ def main_page(
         [
             # Regions
             dcc.Store(id="regions", data=regions),
-            # Tree arm
-            dcc.Store(id="tree-arm", data=tree_arm),
             # Configuration dictionary (yaml file)
             dcc.Store(id="cfg", data=cfg),
             # Datatypes provided
             dcc.Store(id="datatypes", data=datatypes),
+            # Tree chrom coords
+            dcc.Store(id="tree-chrom-coords", data=None),
             # Selected centromere
             dcc.Store(id="selected-cen", data=None),
             # Individual track settings

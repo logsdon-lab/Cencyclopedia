@@ -1,10 +1,9 @@
 import polars as pl
 
 from PIL import Image
-from typing import Any, Literal
+from typing import Any
 from loguru import logger
 from dash import Input, Output, callback, dcc, State, get_asset_url
-from dash.exceptions import PreventUpdate
 
 from cencyclopedia.plot.tree import create_tree_figure, create_tree_legend_figure
 from cencyclopedia.components.main import main_content, data_summary
@@ -15,8 +14,8 @@ from cencyclopedia.components.home import home_page
 @callback(
     Output("main-content", "children"),
     Output("selected-cen", "data", allow_duplicate=True),
+    Output("tree-chrom-coords", "data"),
     Input("url", "pathname"),
-    Input("tree-arm", "data"),
     State("regions", "data"),
     State("cfg", "data"),
     State("datatypes", "data"),
@@ -24,16 +23,15 @@ from cencyclopedia.components.home import home_page
 )
 def draw_main_content_page(
     pathname: str,
-    tree_arm: Literal["p-arm", "q-arm"],
     regions: str,
     cfg: dict[str, Any],
     dtypes: list[str],
 ):
     page = pathname.strip("/")
     if not page:
-        return home_page(), None
+        return home_page(), None, None
     elif page == "cite":
-        return cite_page(), None
+        return cite_page(), None, None
     else:
         chrom_name = page
         logger.debug(f"On {chrom_name}")
@@ -42,25 +40,22 @@ def draw_main_content_page(
 
         df_regions_chrom = (
             pl.scan_csv(regions)
-            .filter(
-                pl.col("chrom_name").eq(chrom_name)
-                & pl.col("arm").eq(pl.lit(tree_arm.replace("-arm", "")))
-            )
-            .sort(by=["clade"])
+            .filter(pl.col("chrom_name").eq(chrom_name))
+            .sort(by=["arm", "clade"])
             .collect()
         )
+        dfs_regions_chrom_arm: dict[tuple[Any, ...], pl.DataFrame] = df_regions_chrom.partition_by(["arm"], maintain_order=True, as_dict=True)
+        all_chroms = df_regions_chrom["chrom"].unique(maintain_order=True).to_list()
+        selected_cen = all_chroms[0]
 
-        chroms = df_regions_chrom["chrom"]
-        colors = df_regions_chrom["color"]
         try:
-            path = get_asset_url(f"{chrom_name}_PhylogeneticTree_{tree_arm}.png")
+            path = get_asset_url(f"{chrom_name}_PhylogeneticTree_p_q-arm.png")
             img = Image.open(path)
+            fig, coords = create_tree_figure(img, dfs_regions_chrom_arm, cfg)
         except (OSError, KeyError) as err:
-            logger.error(f"Cannot open image for {chrom_name} {tree_arm} tree")
-            raise PreventUpdate
-
-        fig = create_tree_figure(img, chroms, colors, cfg, tree_arm=tree_arm)
-        selected_cen = chroms[0]
+            logger.error(f"Cannot open image for {chrom_name} tree")
+            fig = None
+            coords = None
 
         content = main_content(
             fig_tree=dcc.Graph(
@@ -70,21 +65,12 @@ def draw_main_content_page(
                 config={"displaylogo": False},
             ),
             fig_tree_legend=create_tree_legend_figure(),
-            tree_arm=tree_arm,
             dropdown=dcc.Dropdown(
-                chroms.to_list(),
+                all_chroms,
                 value=selected_cen,
                 searchable=True,
                 id="dropdown-selected-cen",
             ),
             dataview=data_summary(dtypes),
         )
-        return content, selected_cen
-
-
-@callback(
-    Output("tree-arm", "data"),
-    Input("dropdown-tree-arm", "value"),
-)
-def update_clade_arm(tree_arm: Literal["p-arm", "q-arm"]) -> Literal["p-arm", "q-arm"]:
-    return tree_arm
+        return content, selected_cen, coords

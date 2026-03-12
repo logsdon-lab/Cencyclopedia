@@ -1,7 +1,7 @@
 import polars as pl
 import plotly.graph_objs as go
 
-from typing import Any, Literal
+from typing import Any
 from loguru import logger
 from plotly.subplots import make_subplots
 from dash import Input, Output, callback, ctx, State
@@ -88,11 +88,11 @@ def draw_selected_cen_figure(
                 limit = min(track_settings["limit"], df["group"].n_unique())
 
             split_indices = []
-            for split_idx in range(limit):
+            for split_idx in range(limit + 1):
                 props.append(prop)
                 split_indices.append(idx + split_idx + idx_offset)
 
-            idx_offset += limit - 1
+            idx_offset += limit
             indices[label] = (split_indices, df)
 
     logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
@@ -162,22 +162,16 @@ def draw_selected_cen_figure(
 @callback(
     Output("selected-cen", "data", allow_duplicate=True),
     Output("dropdown-selected-cen", "value"),
-    Input("url", "pathname"),
     Input("fig-cens-tree", "clickData", allow_optional=True),
     Input("dropdown-selected-cen", "value"),
-    Input("tree-arm", "data"),
-    State("regions", "data"),
-    State("cfg", "data"),
+    State("tree-chrom-coords", "data"),
     State("selected-cen", "data"),
     prevent_initial_call=True,
 )
 def update_selected_cen(
-    pathname: str,
     click_data: dict[str, Any] | None,
     dropdown_selected_cen: str,
-    tree_arm: Literal["p-arm", "q-arm"],
-    regions: str,
-    cfg: dict[str, Any],
+    tree_chrom_coords: dict[int, dict[int, str]],
     selected_cen: str | None,
 ):
     logger.debug(f"clk: {ctx.triggered}")
@@ -187,27 +181,15 @@ def update_selected_cen(
     if not click_data:
         raise PreventUpdate
 
-    chrom = pathname.strip("/")
     click_data = click_data["points"][0]
-    y = click_data["y"]
+    
+    x = round(click_data["x"])
+    y = round(click_data["y"])
 
-    tree_arm = tree_arm.replace("-arm", "")
-    df_regions_chrom = (
-        pl.scan_csv(regions)
-        .filter(pl.col("chrom_name").eq(chrom) & pl.col("arm").eq(pl.lit(tree_arm)))
-        .sort(by=["clade"])
-        .collect()
-    )
-    chroms = df_regions_chrom["chrom"]
-    y = abs(y)
-    yst = cfg["tree_ystart"]
-    yoffset = cfg["tree_yoffset"]
-
-    idx = round((y - yst) / yoffset)
-    logger.debug(f"Clicked y-pos, {y}, corresponding to index {idx}")
     try:
-        selected_cen = chroms[idx]
-    except IndexError:
-        logger.debug(f"Invalid chrom index {idx}/{len(chroms)}")
+        selected_cen = tree_chrom_coords[str(x)][str(y)]
+    except KeyError:
+        logger.debug(f"Invalid chrom click position ({x},{y})")
+        logger.debug(f"Valid coords: {tree_chrom_coords}")
         raise PreventUpdate
     return selected_cen, selected_cen
