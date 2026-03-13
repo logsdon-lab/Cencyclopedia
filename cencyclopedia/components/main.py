@@ -103,8 +103,8 @@ def main_content(
                                 trigger="hover",
                             ),
                         ],
-                        width=cfg["general"]["left_tree_width"],
-                        style={"height": cfg["general"]["left_tree_height"]},
+                        width=cfg["general"]["tree_width"],
+                        style={"height": cfg["general"]["tree_height"]},
                     ),
                     dbc.Col(
                         [
@@ -118,15 +118,13 @@ def main_content(
                                     id="fig-selected-cen",
                                     responsive=True,
                                     config={"displaylogo": False},
-                                    style={
-                                        "height": cfg["general"]["right_cen_height"]
-                                    },
+                                    style={"height": cfg["general"]["cen_height"]},
                                 )
                             ),
                             html.Br(),
                             dataview_selected_cen,
                         ],
-                        width=cfg["general"]["right_cen_width"],
+                        width=cfg["general"]["cen_width"],
                     ),
                 ],
             )

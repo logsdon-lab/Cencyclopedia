@@ -30,13 +30,14 @@ def create_tree_figure(
     fig = add_image_to_figure(img, fig)
 
     # Origin in top-left so y-coords are negative.
-    yst = -cfg["tree_ystart"]
-    yoffset = cfg["tree_yoffset"]
+    yst = -cfg["general"]["tree_ystart"]
+    yoffset = cfg["general"]["tree_yoffset"]
     img_midpt = int(img.width // 2)
 
     for tree_arm, df in dfs_regions_chrom_arm.items():
         tree_arm = tree_arm[0]
         chroms = df["chrom"].to_list()
+        colors = df["color"].to_list()
         ypos = np.cumsum([yoffset for i in range(len(chroms) - 1)])
         ypos *= -1
         ypos += yst
@@ -48,7 +49,7 @@ def create_tree_figure(
             x = [(img_midpt, int(img.width))] * len(chroms)
 
         y = list(sliding_window([yst, *ypos, ypos[-1] + yoffset], 2))
-        for (x0, x1), (y0, y1), chrom in zip(x, y, chroms, strict=True):
+        for (x0, x1), (y0, y1), chrom, color in zip(x, y, chroms, colors, strict=True):
             # Color by population
             # Add rect [x_left_bottom, x_left_top, x_right_bottom, x_right_top, x_left_bottom]
             #          [y_left_bottom, y_left_top, y_right_top, y_right_bottom, y_left_bottom]
@@ -56,7 +57,7 @@ def create_tree_figure(
                 x=[x0, x0, x1, x1, x0],
                 y=[y0, y1, y1, y0, y0],
                 fill="toself",
-                fillcolor="#FFFFFF",
+                fillcolor=color,
                 opacity=0,
                 customdata=[chrom],
                 # opacity

@@ -9,13 +9,17 @@ general:
   # y-axis title offset for selected cen plot
   ytitle_offset: -0.16
   # Tree height
-  left_tree_height: 120vh
+  tree_height: 120vh
   # Tree width (x / 12)
-  left_tree_width: 6
+  tree_width: 6
+  # Starting y-position of first centromere in tree
+  tree_ystart: 608
+  # Offset in y-position to reach next centromere
+  tree_yoffset: 78
   # Selected centromere height
-  right_cen_height: 45vh
+  cen_height: 45vh
   # Centromere plot width (x / 12)
-  right_cen_width: 6
+  cen_width: 6
 # Tracks
 data:
   # Unique label
@@ -142,5 +146,3 @@ regions: data/all_array.bed.gz
 clades: data/clades.tsv.gz
 sample_metadata: data/sample_metadata.tsv.gz
 population_colors: data/all_population_colors.tsv
-tree_ystart: 608
-tree_yoffset: 78
