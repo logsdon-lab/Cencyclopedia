@@ -90,14 +90,50 @@ def draw_selected_cen_figure(
     logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
 
     fig: go._figure.Figure = make_subplots(
-        rows=len(props), cols=1, shared_xaxes=True, row_heights=props
+        rows=len(props),
+        cols=1,
+        shared_xaxes=True,
+        row_heights=props,
+        horizontal_spacing=0,
+        vertical_spacing=cfg["general"]["hspace"],
     )
 
     for label, (indices, df) in indices.items():
         dtype = data_fhs.datatype(label)
         options = data_fhs.options(label)
         dfs_groups = list(df.group_by(["group"], maintain_order=True))
+        # https://plotly.com/python/reference/layout/xaxis/
+        update_xaxis_kwargs = options.get("xaxis_kwargs")
+        update_yaxis_kwargs = options.get("yaxis_kwargs")
+
         for i, track_idx in enumerate(indices):
+            # Remove title text before updating axes args
+            try:
+                yaxis_title = update_yaxis_kwargs.pop("title_text")
+            except KeyError:
+                yaxis_title = None
+
+            if yaxis_title:
+                fig.add_annotation(
+                    x=cfg["general"]["ytitle_offset"],
+                    y=0.5,
+                    xref="x domain",
+                    yref="y domain",
+                    yanchor="middle",
+                    text=yaxis_title,
+                    showarrow=False,
+                    row=track_idx,
+                    col=1,
+                )
+
+            # Set range to start and end so legend axis ticks reach plot.
+            fig.update_xaxes(
+                **update_xaxis_kwargs, range=(st, end), row=track_idx, col=1
+            )
+            fig.update_yaxes(
+                **update_yaxis_kwargs, row=track_idx, col=1, fixedrange=True
+            )
+
             try:
                 grp, df_grp = dfs_groups[i]
                 grp = grp[0]
@@ -128,8 +164,6 @@ def draw_selected_cen_figure(
             elif dtype == "bedstrand":
                 add_bedstrand_track(df_grp, fig, row=track_idx, col=1)
             elif dtype == "bedpe_selfident":
-                # https://plotly.com/python/heatmaps/#display-an-xarray-image-with-pximshow
-                # img_mdp = add_ident_track(df)
                 add_ident_track(df_grp, fig, row=track_idx, col=1)
             else:
                 logger.debug(
@@ -142,12 +176,15 @@ def draw_selected_cen_figure(
         template="simple_white",
         xaxis={"showgrid": False},
         yaxis={"showgrid": False},
-        margin=dict(l=0, r=0, b=0, t=0),
+        margin=dict(
+            l=cfg["general"]["lmargin"],
+            r=cfg["general"]["rmargin"],
+            b=cfg["general"]["bmargin"],
+            t=cfg["general"]["tmargin"],
+        ),
         modebar_remove=["select2d", "lasso2d"],
     )
-    # https://plotly.com/python/reference/layout/xaxis/
-    fig.update_xaxes(showline=False)
-    fig.update_yaxes(showticklabels=False, ticks="", showline=False)
+
     return fig
 
 
@@ -166,8 +203,7 @@ def update_selected_cen(
     itv_selected_cen: tuple[str, int, int] | None,
     regions: str,
 ) -> (
-    tuple[tuple[Any, ...], str]
-    | tuple[tuple[Any, ...], str]
+    tuple[tuple[str, int, int], str]
     | tuple[dash._callback.NoUpdate, dash._callback.NoUpdate]
 ):
     logger.debug(f"Click update context: {ctx.triggered}")

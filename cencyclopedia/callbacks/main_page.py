@@ -149,5 +149,6 @@ def draw_main_content_page(
                 value=[itv_selected_cen[1], itv_selected_cen[2]],
             ),
             dataview_selected_cen=dataview_selected_cen(dtypes),
+            cfg=cfg,
         )
         return content, itv_selected_cen

@@ -1,10 +1,11 @@
 import dash_bootstrap_components as dbc
+import plotly.graph_objs as go
 
 from typing import Any
 from dash import html, dcc
 from cencyclopedia.io.data import Data
 from cencyclopedia.plot.tree import create_tree_legend_figure
-from cencyclopedia.plot.common import default_bed_track_settings
+from cencyclopedia.plot.common import default_bed_track_settings, add_empty_track
 
 
 SIDEBAR_STYLE = {
@@ -82,6 +83,7 @@ def main_content(
     fig_tree_legend: dcc.Graph,
     rangeslider_selected_cen: html.Div,
     dataview_selected_cen: html.Div,
+    cfg: dict[str, Any],
 ):
     return html.Div(
         [
@@ -101,7 +103,8 @@ def main_content(
                                 trigger="hover",
                             ),
                         ],
-                        style={"height": "150vh", "width": "50%"},
+                        width=cfg["general"]["left_tree_width"],
+                        style={"height": cfg["general"]["left_tree_height"]},
                     ),
                     dbc.Col(
                         [
@@ -109,15 +112,21 @@ def main_content(
                             html.Hr(),
                             rangeslider_selected_cen,
                             html.Br(),
-                            dcc.Graph(
-                                id="fig-selected-cen",
-                                responsive=True,
-                                config={"displaylogo": False},
+                            dbc.Spinner(
+                                dcc.Graph(
+                                    figure=add_empty_track(go._figure.Figure(), (0, 1)),
+                                    id="fig-selected-cen",
+                                    responsive=True,
+                                    config={"displaylogo": False},
+                                    style={
+                                        "height": cfg["general"]["right_cen_height"]
+                                    },
+                                )
                             ),
                             html.Br(),
                             dataview_selected_cen,
                         ],
-                        style={"height": "50vh", "width": "50%"},
+                        width=cfg["general"]["right_cen_width"],
                     ),
                 ],
             )
@@ -167,6 +176,7 @@ def main_page(
             ),
         ),
         dataview_selected_cen=dataview_selected_cen(datatypes),
+        cfg=cfg,
     )
     return html.Div(
         [
