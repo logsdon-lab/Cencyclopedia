@@ -1,7 +1,8 @@
+import dash
 import polars as pl
 import plotly.graph_objs as go
 
-from typing import Any, Literal
+from typing import Any
 from loguru import logger
 from plotly.subplots import make_subplots
 from dash import Input, Output, callback, ctx, State
@@ -19,34 +20,24 @@ from cencyclopedia.plot.bed import (
 
 @callback(
     Output("fig-selected-cen", "figure"),
-    Input("selected-cen", "data"),
+    Input("itv-selected-cen", "data"),
     Input("bed-track-settings", "data"),
-    State("regions", "data"),
     State("cfg", "data"),
     prevent_initial_call="initial_duplicate",
 )
 def draw_selected_cen_figure(
-    selected_cen: str | None,
+    itv_selected_cen: tuple[str, int, int] | None,
     bed_track_settings: dict[str, BedTrackSettings],
-    regions: str,
     cfg: dict[str, Any],
-):
-    logger.debug(f"draw: {ctx.triggered}")
-    if not selected_cen:
+) -> go._figure.Figure:
+    logger.debug(f"Draw update context: {ctx.triggered}")
+    if not itv_selected_cen:
         raise PreventUpdate
 
-    df_region = (
-        pl.scan_csv(regions)
-        .filter(pl.col("chrom").eq(selected_cen) & pl.col("arm").eq(pl.lit("q")))
-        .collect()
-    )
-    if df_region.is_empty():
-        raise ValueError(f"Invalid selected_cen: {selected_cen}")
-
+    chrom, st, end = itv_selected_cen
     # Open tabix file handles
     data_fhs = Data.new(cfg["data"])
 
-    region = df_region.row(0, named=True)
     props = []
     indices: dict[str, tuple[list[int], pl.DataFrame]] = {}
 
@@ -61,12 +52,13 @@ def draw_selected_cen_figure(
         rle = data_fhs.options(label).get("rle", True)
         df = data_fhs.split(
             label,
-            region["chrom"],
-            region["chrom_st"],
-            region["chrom_end"],
+            chrom,
+            st,
+            end,
             by=mode,
             to_relative=False,
             rle=rle,
+            clip=True,
         ).sort(by="group")
 
         if mode == "Original":
@@ -88,31 +80,67 @@ def draw_selected_cen_figure(
                 limit = min(track_settings["limit"], df["group"].n_unique())
 
             split_indices = []
-            for split_idx in range(limit):
+            for split_idx in range(limit + 1):
                 props.append(prop)
                 split_indices.append(idx + split_idx + idx_offset)
 
-            idx_offset += limit - 1
+            idx_offset += limit
             indices[label] = (split_indices, df)
 
     logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
 
     fig: go._figure.Figure = make_subplots(
-        rows=len(props), cols=1, shared_xaxes=True, row_heights=props
+        rows=len(props),
+        cols=1,
+        shared_xaxes=True,
+        row_heights=props,
+        horizontal_spacing=0,
+        vertical_spacing=cfg["general"]["hspace"],
     )
 
     for label, (indices, df) in indices.items():
         dtype = data_fhs.datatype(label)
         options = data_fhs.options(label)
         dfs_groups = list(df.group_by(["group"], maintain_order=True))
+        # https://plotly.com/python/reference/layout/xaxis/
+        update_xaxis_kwargs = options.get("xaxis_kwargs")
+        update_yaxis_kwargs = options.get("yaxis_kwargs")
+
         for i, track_idx in enumerate(indices):
+            # Remove title text before updating axes args
+            try:
+                yaxis_title = update_yaxis_kwargs.pop("title_text")
+            except KeyError:
+                yaxis_title = None
+
+            if yaxis_title:
+                fig.add_annotation(
+                    x=cfg["general"]["ytitle_offset"],
+                    y=0.5,
+                    xref="x domain",
+                    yref="y domain",
+                    yanchor="middle",
+                    text=yaxis_title,
+                    showarrow=False,
+                    row=track_idx,
+                    col=1,
+                )
+
+            # Set range to start and end so legend axis ticks reach plot.
+            fig.update_xaxes(
+                **update_xaxis_kwargs, range=(st, end), row=track_idx, col=1
+            )
+            fig.update_yaxes(
+                **update_yaxis_kwargs, row=track_idx, col=1, fixedrange=True
+            )
+
             try:
                 grp, df_grp = dfs_groups[i]
                 grp = grp[0]
             except IndexError:
                 add_empty_track(
                     fig,
-                    xlim=(region["chrom_st"], region["chrom_end"]),
+                    xlim=(st, end),
                     row=track_idx,
                     col=1,
                 )
@@ -136,8 +164,6 @@ def draw_selected_cen_figure(
             elif dtype == "bedstrand":
                 add_bedstrand_track(df_grp, fig, row=track_idx, col=1)
             elif dtype == "bedpe_selfident":
-                # https://plotly.com/python/heatmaps/#display-an-xarray-image-with-pximshow
-                # img_mdp = add_ident_track(df)
                 add_ident_track(df_grp, fig, row=track_idx, col=1)
             else:
                 logger.debug(
@@ -150,64 +176,61 @@ def draw_selected_cen_figure(
         template="simple_white",
         xaxis={"showgrid": False},
         yaxis={"showgrid": False},
-        margin=dict(l=0, r=0, b=0, t=0),
+        margin=dict(
+            l=cfg["general"]["lmargin"],
+            r=cfg["general"]["rmargin"],
+            b=cfg["general"]["bmargin"],
+            t=cfg["general"]["tmargin"],
+        ),
         modebar_remove=["select2d", "lasso2d"],
     )
-    # https://plotly.com/python/reference/layout/xaxis/
-    fig.update_xaxes(showline=False)
-    fig.update_yaxes(showticklabels=False, ticks="", showline=False)
+
     return fig
 
 
 @callback(
-    Output("selected-cen", "data", allow_duplicate=True),
+    Output("itv-selected-cen", "data", allow_duplicate=True),
     Output("dropdown-selected-cen", "value"),
-    Input("url", "pathname"),
     Input("fig-cens-tree", "clickData", allow_optional=True),
     Input("dropdown-selected-cen", "value"),
-    Input("tree-arm", "data"),
+    State("itv-selected-cen", "data"),
     State("regions", "data"),
-    State("cfg", "data"),
-    State("selected-cen", "data"),
     prevent_initial_call=True,
 )
 def update_selected_cen(
-    pathname: str,
     click_data: dict[str, Any] | None,
     dropdown_selected_cen: str,
-    tree_arm: Literal["p-arm", "q-arm"],
+    itv_selected_cen: tuple[str, int, int] | None,
     regions: str,
-    cfg: dict[str, Any],
-    selected_cen: str | None,
+) -> (
+    tuple[tuple[str, int, int], str]
+    | tuple[dash._callback.NoUpdate, dash._callback.NoUpdate]
 ):
-    logger.debug(f"clk: {ctx.triggered}")
-    if dropdown_selected_cen != selected_cen:
-        return dropdown_selected_cen, dropdown_selected_cen
+    logger.debug(f"Click update context: {ctx.triggered}")
+    if dropdown_selected_cen != itv_selected_cen[0]:
+        itv_selected_cen = (
+            pl.scan_csv(regions)
+            .filter(pl.col("chrom").eq(dropdown_selected_cen))
+            .select("chrom", "chrom_st", "chrom_end")
+            .collect()
+            .row(0)
+        )
+        return itv_selected_cen, dropdown_selected_cen
 
     if not click_data:
-        raise PreventUpdate
+        return dash.no_update, dash.no_update
 
-    chrom = pathname.strip("/")
-    click_data = click_data["points"][0]
-    y = click_data["y"]
-
-    tree_arm = tree_arm.replace("-arm", "")
-    df_regions_chrom = (
-        pl.scan_csv(regions)
-        .filter(pl.col("chrom_name").eq(chrom) & pl.col("arm").eq(pl.lit(tree_arm)))
-        .sort(by=["clade"])
-        .collect()
-    )
-    chroms = df_regions_chrom["chrom"]
-    y = abs(y)
-    yst = cfg["tree_ystart"]
-    yoffset = cfg["tree_yoffset"]
-
-    idx = round((y - yst) / yoffset)
-    logger.debug(f"Clicked y-pos, {y}, corresponding to index {idx}")
     try:
-        selected_cen = chroms[idx]
-    except IndexError:
-        logger.debug(f"Invalid chrom index {idx}/{len(chroms)}")
-        raise PreventUpdate
-    return selected_cen, selected_cen
+        selected_cen = click_data["points"][0]["customdata"][0]
+        itv_selected_cen = (
+            pl.scan_csv(regions)
+            .filter(pl.col("chrom").eq(selected_cen))
+            .select("chrom", "chrom_st", "chrom_end")
+            .collect()
+            .row(0)
+        )
+    except KeyError as err:
+        logger.debug(f"Error when accessing fields in {click_data}: {err}")
+        return dash.no_update, dash.no_update
+
+    return itv_selected_cen, selected_cen

@@ -1,4 +1,4 @@
-RGX_SM_CHROM = r"^(?<sample>.*?)_(?<chrom_name>chr[0-9XY]+)[_:]*"
+RGX_SM_CHROM = r"^(?<sample>.*?)_(rc-)*(?<chrom_name>chr[0-9XY]+)[_:]*"
 CHROM_NAMES = [f"chr{i}" for i in (*range(1, 23), "X", "Y")]
 IDENT_BREAKPOINTS = (
     85.0,

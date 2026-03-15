@@ -15,7 +15,6 @@ def dataview_tab(
 ):
     div_expand = html.Div(
         [
-            html.H3("Modify track"),
             # We don't store by data label
             # The callback looks at the active tab to determine where to store the state.
             dbc.Row(

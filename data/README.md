@@ -24,7 +24,7 @@ awk -v OFS="\t"  '{
     };
     name="cdr_"chroms[chrom[1]]
     print chrom[1], $2, $3, name
-}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/all_cdrs_revised.0908.working.bed | \
+}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/all_cdrs_revised.0309.working.bed | \
 sort -k1,1 -k2,2n | \
 bgzip > data/all_cdrs.bed.gz
 tabix -p bed data/all_cdrs.bed.gz
@@ -103,7 +103,8 @@ tabix -p bed data/all_MEI.bed.gz
 ```bash
 awk -v FS="\t" -v OFS="\t" -v RS='\r\n' '{
     name=FILENAME;
-    match(name, "_(p|q).xls", arms);
-    print $1, $2, arms[1]
-}' $(realpath /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/tree_clade/clades/chr*.xls)
+    match(name, "(_|.)(p|q).xls", arms);
+    print $1, $2, arms[2]
+}' $(realpath /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/tree_clade/clades/chr*.xls) | \
+gzip > data/clades.tsv.gz
 ```

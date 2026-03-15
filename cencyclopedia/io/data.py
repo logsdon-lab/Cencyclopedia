@@ -10,6 +10,9 @@ from .bed import (
     read_bedgraph_row,
     read_bedstrand_row,
     read_bed_local_selfident_row,
+    BED_SCHEMA,
+    BEDGRAPH_SCHEMA,
+    BEDPE_SCHEMA,
 )
 from .bedpe import (
     read_bedpe_selfident_row,
@@ -73,13 +76,13 @@ class Data(NamedTuple):
         to_relative_fn = to_relative_coords_bed
         if self.cfg[label]["type"] == "bed9":
             read_fn = read_bed9_row
-            cols = ["chrom", "chrom_st", "chrom_end", "name", "color"]
+            schema = BED_SCHEMA
         elif self.cfg[label]["type"] == "bedstrand":
             read_fn = read_bedstrand_row
-            cols = ["chrom", "chrom_st", "chrom_end", "name", "color"]
+            schema = BED_SCHEMA
         elif self.cfg[label]["type"] == "bedgraph":
             read_fn = read_bedgraph_row
-            cols = ["chrom", "chrom_st", "chrom_end", "name"]
+            schema = BEDGRAPH_SCHEMA
         elif self.cfg[label]["type"] == "bed_localselfident":
             breakpoints, colors = read_identity_breakpoints(
                 self.cfg[label].get("ident_breakpoints")
@@ -87,7 +90,7 @@ class Data(NamedTuple):
             read_fn = lambda rec: read_bed_local_selfident_row(
                 rec, breakpoints=breakpoints, colors=colors
             )
-            cols = ["chrom", "chrom_st", "chrom_end", "name", "color"]
+            schema = BED_SCHEMA
         elif self.cfg[label]["type"] == "bedpe_selfident":
             parser = pysam.asTuple()
             breakpoints, colors = read_identity_breakpoints(
@@ -97,31 +100,21 @@ class Data(NamedTuple):
                 rec, breakpoints=breakpoints, colors=colors
             )
             to_relative_fn = to_relative_coords_bedpe_selfident
-            cols = [
-                "qry",
-                "qry_st",
-                "qry_end",
-                "ref",
-                "ref_st",
-                "ref_end",
-                "percent_identity_by_events",
-                "color",
-                "desc",
-            ]
+            schema = BEDPE_SCHEMA
         else:
             read_fn = read_bed9_row
-            cols = ["chrom", "chrom_st", "chrom_end", "name", "color"]
+            schema = BED_SCHEMA
 
         try:
             qry = self.fhs[label].fetch(chrom, st, end, parser=parser)
             df = pl.DataFrame(
                 data=[read_fn(rec) for rec in qry],
                 orient="row",
-                schema=cols,
+                schema=schema,
             )
         except ValueError as err:
             logger.debug(f"Unable to query {label} for {chrom}:{st}-{end} ({err})")
-            return pl.DataFrame(schema=cols)
+            return pl.DataFrame(schema=BED_SCHEMA)
 
         if not to_relative:
             return df
@@ -137,6 +130,7 @@ class Data(NamedTuple):
         *,
         by: Literal["Original", "Length", "Frequency", "Coverage"],
         rle: bool = True,
+        clip: bool = True,
         to_relative: bool = True,
     ):
         df = self.query(
@@ -195,5 +189,27 @@ class Data(NamedTuple):
                     pl.col("group").first(),
                 )
                 .drop("group_rle")
+            )
+        if clip and chrom_st and chrom_end:
+            df_final = (
+                df_final.with_columns(
+                    pl.col("chrom_st").clip(chrom_st, chrom_end),
+                    pl.col("chrom_end").clip(chrom_st, chrom_end),
+                )
+                # To clip, we only take intervals that are non-null,
+                #   Before:
+                #   ||
+                #      | | # (st, end)
+                #   After:
+                #      |    <- Remove this
+                #      | | # (st, end)
+                .filter(
+                    ~(
+                        pl.col("chrom_st").eq(pl.lit(chrom_st))
+                        & pl.col("chrom_end").eq(pl.lit(chrom_st))
+                        | pl.col("chrom_st").eq(pl.lit(chrom_end))
+                        & pl.col("chrom_end").eq(pl.lit(chrom_end))
+                    )
+                )
             )
         return df_final
