@@ -9,13 +9,13 @@ general:
   # y-axis title offset for selected cen plot
   ytitle_offset: -0.16
   # Tree height
-  tree_height: 120vh
+  tree_height: 100vh
   # Tree width (x / 12)
   tree_width: 6
   # Starting y-position of first centromere in tree
   tree_ystart: 608
   # Offset in y-position to reach next centromere
-  tree_yoffset: 78
+  tree_yoffset: 77
   # Selected centromere height
   cen_height: 45vh
   # Centromere plot width (x / 12)

@@ -109,7 +109,7 @@ def draw_main_content_page(
         df_regions_chrom = (
             pl.scan_csv(regions)
             .filter(pl.col("chrom_name").eq(chrom_name))
-            .sort(by=["arm", "clade"])
+            .sort(by=["arm", "clade"], maintain_order=True)
             .collect()
         )
         dfs_regions_chrom_arm: dict[tuple[Any, ...], pl.DataFrame] = (
@@ -122,11 +122,12 @@ def draw_main_content_page(
             .row(0)
         )
 
+        fname = f"{chrom_name}_PhylogeneticTree_p_q-arm.png"
         try:
-            path = get_asset_url(f"{chrom_name}_PhylogeneticTree_p_q-arm.png")
+            path = get_asset_url(fname)
             fig = create_tree_figure(Image.open(path), dfs_regions_chrom_arm, cfg)
         except (OSError, KeyError) as err:
-            logger.error(f"Cannot open image for {chrom_name} tree")
+            logger.error(f"Cannot open image ({fname}) for {chrom_name} tree")
             fig = None
 
         content = main_content(

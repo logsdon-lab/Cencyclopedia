@@ -103,7 +103,8 @@ tabix -p bed data/all_MEI.bed.gz
 ```bash
 awk -v FS="\t" -v OFS="\t" -v RS='\r\n' '{
     name=FILENAME;
-    match(name, "_(p|q).xls", arms);
-    print $1, $2, arms[1]
-}' $(realpath /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/tree_clade/clades/chr*.xls)
+    match(name, "(_|.)(p|q).xls", arms);
+    print $1, $2, arms[2]
+}' $(realpath /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/tree_clade/clades/chr*.xls) | \
+gzip > data/clades.tsv.gz
 ```

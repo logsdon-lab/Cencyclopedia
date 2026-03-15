@@ -38,9 +38,9 @@ def create_tree_figure(
         tree_arm = tree_arm[0]
         chroms = df["chrom"].to_list()
         colors = df["color"].to_list()
-        ypos = np.cumsum([yoffset for i in range(len(chroms) - 1)])
+        ypos = np.cumsum([yoffset for i in range(len(chroms) + 1)])
         ypos *= -1
-        ypos += yst
+        ypos += yst + yoffset
 
         # Add rectangle around centromere coordinates based on tree_arm
         if tree_arm == "p":
@@ -48,7 +48,7 @@ def create_tree_figure(
         else:
             x = [(img_midpt, int(img.width))] * len(chroms)
 
-        y = list(sliding_window([yst, *ypos, ypos[-1] + yoffset], 2))
+        y = list(sliding_window(ypos, 2))
         for (x0, x1), (y0, y1), chrom, color in zip(x, y, chroms, colors, strict=True):
             # Color by population
             # Add rect [x_left_bottom, x_left_top, x_right_bottom, x_right_top, x_left_bottom]
@@ -58,7 +58,7 @@ def create_tree_figure(
                 y=[y0, y1, y1, y0, y0],
                 fill="toself",
                 fillcolor=color,
-                opacity=0,
+                opacity=0.1,
                 customdata=[chrom],
                 # opacity
                 name=chrom,
@@ -68,8 +68,8 @@ def create_tree_figure(
     fig.update_layout(
         showlegend=False,
         template="simple_white",
-        xaxis={"showgrid": False, "fixedrange": True},
-        yaxis={"showgrid": False, "fixedrange": True},
+        xaxis={"showgrid": False},
+        yaxis={"showgrid": False},
         margin=dict(l=0, r=0, b=0, t=0),
         modebar_remove=["select2d", "lasso2d"],
     )
