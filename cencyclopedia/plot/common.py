@@ -21,7 +21,19 @@ def add_empty_track(fig: go._figure.Figure, xlim: tuple[int, int], **kwargs):
         showlegend=False,
         template="simple_white",
         xaxis_range=xlim,
-        xaxis={"showgrid": False, "fixedrange": True},
-        yaxis={"showgrid": False, "fixedrange": True},
+        xaxis={
+            "showgrid": False,
+            "fixedrange": True,
+            "showticklabels": False,
+            "ticks": "",
+            "showline": False,
+        },
+        yaxis={
+            "showgrid": False,
+            "fixedrange": True,
+            "showticklabels": False,
+            "ticks": "",
+            "showline": False,
+        },
         margin=dict(l=0, r=0, b=0, t=0),
     )

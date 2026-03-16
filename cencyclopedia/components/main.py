@@ -1,3 +1,4 @@
+import polars as pl
 import dash_bootstrap_components as dbc
 import plotly.graph_objs as go
 
@@ -100,11 +101,11 @@ def main_content(
                                 target="fig-cens-tree",
                                 body=True,
                                 hide_arrow=True,
-                                trigger="hover",
+                                trigger="legacy",
                             ),
                         ],
-                        width=cfg["general"]["tree_width"],
-                        style={"height": cfg["general"]["tree_height"]},
+                        width=cfg["general"]["tree"]["width"],
+                        style={"height": cfg["general"]["tree"]["height"]},
                     ),
                     dbc.Col(
                         [
@@ -114,17 +115,20 @@ def main_content(
                             html.Br(),
                             dbc.Spinner(
                                 dcc.Graph(
-                                    figure=add_empty_track(go._figure.Figure(), (0, 1)),
                                     id="fig-selected-cen",
                                     responsive=True,
                                     config={"displaylogo": False},
-                                    style={"height": cfg["general"]["cen_height"]},
+                                    style={
+                                        "height": cfg["general"]["selected_cen"][
+                                            "height"
+                                        ]
+                                    },
                                 )
                             ),
                             html.Br(),
                             dataview_selected_cen,
                         ],
-                        width=cfg["general"]["cen_width"],
+                        width=cfg["general"]["selected_cen"]["width"],
                     ),
                 ],
             )
@@ -157,25 +161,9 @@ def main_page(
         ],
         style=SIDEBAR_STYLE,
     )
+    # Data
     data = Data.new(cfg["data"])
     datatypes = list(data.labels)
-    content = main_content(
-        fig_tree=dcc.Graph(id="fig-cens-tree", responsive=True),
-        fig_tree_legend=create_tree_legend_figure(),
-        rangeslider_selected_cen=rangeslider_selected_cen(
-            min=0,
-            max=0,
-            value=[0, 0],
-            dropdown=dcc.Dropdown(
-                [],
-                value=None,
-                searchable=True,
-                id="dropdown-selected-cen",
-            ),
-        ),
-        dataview_selected_cen=dataview_selected_cen(datatypes),
-        cfg=cfg,
-    )
     return html.Div(
         [
             # Regions
@@ -195,7 +183,7 @@ def main_page(
             dbc.Row(
                 [
                     dbc.Col(sidebar, width=2),
-                    dbc.Col(content, width=10, id="main-content"),
+                    dbc.Col(width=10, id="main-content"),
                 ],
                 style=CONTENT_STYLE,
             ),

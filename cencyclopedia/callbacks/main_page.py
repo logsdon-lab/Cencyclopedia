@@ -14,6 +14,7 @@ from cencyclopedia.components.main import (
 )
 from cencyclopedia.components.cite import cite_page
 from cencyclopedia.components.home import home_page
+from cencyclopedia.io.common import get_regions
 
 
 @callback(
@@ -97,7 +98,7 @@ def draw_main_content_page(
 ):
     page = pathname.strip("/")
     if not page:
-        return home_page(), None
+        return home_page(regions, cfg), None
     elif page == "cite":
         return cite_page(), None
     else:
@@ -106,12 +107,7 @@ def draw_main_content_page(
         if not chrom_name:
             return []
 
-        df_regions_chrom = (
-            pl.scan_csv(regions)
-            .filter(pl.col("chrom_name").eq(chrom_name))
-            .sort(by=["arm", "clade"], maintain_order=True)
-            .collect()
-        )
+        df_regions_chrom = get_regions(regions, chrom_name)
         dfs_regions_chrom_arm: dict[tuple[Any, ...], pl.DataFrame] = (
             df_regions_chrom.partition_by(["arm"], maintain_order=True, as_dict=True)
         )

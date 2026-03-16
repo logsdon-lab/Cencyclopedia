@@ -8,7 +8,7 @@ from cencyclopedia.components.main import main_page
 from cencyclopedia.callbacks.main_page import *
 from cencyclopedia.callbacks.selected_cen import *
 from cencyclopedia.callbacks.dataview import *
-
+from cencyclopedia.callbacks.figure_1 import *
 
 with open("config.yaml", "rb") as fh:
     cfg = yaml.safe_load(fh)

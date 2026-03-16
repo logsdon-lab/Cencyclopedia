@@ -30,8 +30,8 @@ def create_tree_figure(
     fig = add_image_to_figure(img, fig)
 
     # Origin in top-left so y-coords are negative.
-    yst = -cfg["general"]["tree_ystart"]
-    yoffset = cfg["general"]["tree_yoffset"]
+    yst = -cfg["general"]["tree"]["ystart"]
+    yoffset = cfg["general"]["tree"]["yoffset"]
     img_midpt = int(img.width // 2)
 
     for tree_arm, df in dfs_regions_chrom_arm.items():
@@ -58,7 +58,7 @@ def create_tree_figure(
                 y=[y0, y1, y1, y0, y0],
                 fill="toself",
                 fillcolor=color,
-                opacity=0.1,
+                opacity=0,
                 customdata=[chrom],
                 # opacity
                 name=chrom,
@@ -68,8 +68,8 @@ def create_tree_figure(
     fig.update_layout(
         showlegend=False,
         template="simple_white",
-        xaxis={"showgrid": False},
-        yaxis={"showgrid": False},
+        xaxis={"showgrid": False, "fixedrange": True},
+        yaxis={"showgrid": False, "fixedrange": True},
         margin=dict(l=0, r=0, b=0, t=0),
         modebar_remove=["select2d", "lasso2d"],
     )

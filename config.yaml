@@ -1,25 +1,33 @@
 general:
-  # Horizontal space between tracks
-  hspace: 0.05
-  # Left, right, bottom, and top margin of selected cen plot
-  lmargin: 100
-  rmargin: 0
-  bmargin: 0
-  tmargin: 0
-  # y-axis title offset for selected cen plot
-  ytitle_offset: -0.16
-  # Tree height
-  tree_height: 100vh
-  # Tree width (x / 12)
-  tree_width: 6
-  # Starting y-position of first centromere in tree
-  tree_ystart: 608
-  # Offset in y-position to reach next centromere
-  tree_yoffset: 77
-  # Selected centromere height
-  cen_height: 45vh
-  # Centromere plot width (x / 12)
-  cen_width: 6
+  fig_1:
+    bboxes: assets/Figure1_chrom_bboxes.csv
+    order: assets/Figure1_order.csv
+    use_data:
+    - "CDR"
+    - "CpG Methylation"
+    - "Satellite Structure"
+    - "Alpha-satellite HORs"
+  tree:
+    # Tree height
+    height: 100vh
+    # Tree width (x / 12)
+    width: 6
+    # Starting y-position of first centromere in tree
+    ystart: 608
+    # Offset in y-position to reach next centromere
+    yoffset: 77
+  selected_cen:
+    # Selected centromere height
+    height: 45vh
+    # Centromere plot width (x / 12)
+    width: 6
+    # Vertical space between tracks
+    vspace: 0.05
+    # Left, right, bottom, and top margin of selected cen plot
+    lmargin: 100
+    rmargin: 0
+    bmargin: 0
+    tmargin: 0
 # Tracks
 data:
   # Unique label

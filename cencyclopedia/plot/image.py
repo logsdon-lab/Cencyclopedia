@@ -1,10 +1,20 @@
+from typing import Any
 from PIL import Image
 import plotly.graph_objs as go
 
 
 def add_image_to_figure(
-    img: Image, fig: go._figure.Figure, **kwargs
+    img: Image,
+    fig: go._figure.Figure,
+    xaxis_kwargs: dict[str, Any] | None = None,
+    yaxis_kwargs: dict[str, Any] | None = None,
+    **kwargs,
 ) -> go._figure.Figure:
+    if not xaxis_kwargs:
+        xaxis_kwargs = {}
+    if not yaxis_kwargs:
+        yaxis_kwargs = {}
+
     # Constants
     img_width = img.width
     img_height = img.height
@@ -20,8 +30,10 @@ def add_image_to_figure(
     )
 
     # Configure axes
-    fig.update_xaxes(visible=False, range=[0, img_width], **kwargs)
-    fig.update_yaxes(visible=False, scaleanchor="x", range=[-img_height, 0], **kwargs)
+    xaxis_kwargs = {"visible": False} | xaxis_kwargs
+    yaxis_kwargs = {"visible": False} | yaxis_kwargs
+    fig.update_xaxes(range=[0, img_width], **xaxis_kwargs)
+    fig.update_yaxes(scaleanchor="x", range=[-img_height, 0], **yaxis_kwargs)
 
     # Add image
     fig.add_layout_image(

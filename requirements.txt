@@ -2,7 +2,7 @@ polars
 censtats
 matplotlib
 plotly
-dash
+dash==4.0.0
 pysam
 pyyaml
 loguru
