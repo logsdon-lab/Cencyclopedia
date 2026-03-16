@@ -8,7 +8,7 @@ def read_figure_1_bbox_data(cfg: dict[str, Any]):
         pl.read_csv(cfg["general"]["fig_1"]["order"])
         .with_columns(mtch=pl.col("chrom").str.extract_groups(RGX_SM_CHROM))
         .unnest("mtch")
-        .with_columns(idx=pl.col("sample").rle_id().over("chrom_name"))
+        .with_columns(idx=pl.col("chrom").rle_id().over("chrom_name"))
         .select("chrom", "label", "sample", "chrom_name", "idx")
     )
 

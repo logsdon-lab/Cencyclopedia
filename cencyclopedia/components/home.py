@@ -33,7 +33,6 @@ def draw_fig1(img: Image, df_fig1_bboxes: pl.DataFrame) -> go._figure.Figure:
             opacity=0,
             # opacity=0.1,
             customdata=[chrom],
-            # opacity
             name=chrom,
             mode="lines",
         )
