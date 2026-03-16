@@ -26,6 +26,3 @@ dynamic = ["dependencies"]
 
 [project.urls]
 Homepage = "https://github.com/logsdon-lab/cenplot"
-
-[project.scripts]
-cenplot = "cenplot_int.run:main"

@@ -1,3 +1,4 @@
+import os
 import yaml
 import polars as pl
 import dash_bootstrap_components as dbc
@@ -28,6 +29,12 @@ app.layout = main_page(
     chrom_names=df_regions["chrom_name"].unique().sort().to_list(),
     cfg=cfg,
 )
+server = app.server
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # https://github.com/yaojiach/docker-dash/blob/main/app/app.py
+    app.run(
+        port=8050,
+        host="0.0.0.0",
+        debug=os.environ["DASH_DEBUG_MODE"] == "True"
+    )

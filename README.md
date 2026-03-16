@@ -36,7 +36,13 @@ Set up app locally. Data is stored in repo.
 python -m cencyclopedia.app
 ```
 
-Then, open `127.0.0.1:8050` in browser:
+Then, open [`127.0.0.1:8050`](http://127.0.0.1:8050) in browser.
 
 ### Docker
-> WIP
+Build the container and run app exposed on port 8050.
+```bash
+docker build -t cencyclopedia:latest .
+docker run -p 8050:8050 --rm cencyclopedia:latest
+```
+
+Then, open [`127.0.0.1:8050`](http://127.0.0.1:8050) in browser.
