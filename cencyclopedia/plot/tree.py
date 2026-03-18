@@ -38,7 +38,10 @@ def create_tree_figure(
         chroms = df["chrom"].to_list()
         chrom_name = df["chrom_name"][0]
         colors = df["color"].to_list()
-
+        descs = [
+            f"Population: {pop}<br>Gender: {gender}"
+            for pop, gender in df.select("population", "gender").iter_rows()
+        ]
         # Set img midpt and yst based on chromosome name.
         img_midpt = cfg["general"]["tree"]["xmidpt"].get(chrom_name, default_midpt)
         # Default to half the image.
@@ -60,7 +63,9 @@ def create_tree_figure(
             x = [(img_midpt, int(img.width))] * len(chroms)
 
         y = list(sliding_window(ypos, 2))
-        for (x0, x1), (y0, y1), chrom, color in zip(x, y, chroms, colors, strict=True):
+        for (x0, x1), (y0, y1), chrom, color, desc in zip(
+            x, y, chroms, colors, descs, strict=True
+        ):
             # Color by population
             # Add rect [x_left_bottom, x_left_top, x_right_bottom, x_right_top, x_left_bottom]
             #          [y_left_bottom, y_left_top, y_right_top, y_right_bottom, y_left_bottom]
@@ -71,10 +76,15 @@ def create_tree_figure(
                 fillcolor=color,
                 # opacity=0.1,
                 opacity=0,
+                # Add customdata for click.
                 customdata=[chrom],
+                hovertemplate=desc,
+                hoverlabel=dict(bgcolor=color, font_color="white"),
+                line=dict(color=color),
+                marker=dict(color=color),
                 # opacity
                 name=chrom,
-                mode="lines",
+                mode="lines+markers+text",
             )
 
     fig.update_layout(

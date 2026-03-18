@@ -25,4 +25,4 @@ license = {text = "MIT License"}
 dynamic = ["dependencies"]
 
 [project.urls]
-Homepage = "https://github.com/logsdon-lab/cenplot"
+Homepage = "https://github.com/logsdon-lab/Cencyclopedia"

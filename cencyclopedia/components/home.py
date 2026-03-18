@@ -5,7 +5,6 @@ import dash_bootstrap_components as dbc
 from typing import Any
 from PIL import Image
 from dash import dcc, html, get_asset_url
-from cencyclopedia.io.common import get_selected_cen
 from cencyclopedia.plot.image import add_image_to_figure
 from cencyclopedia.io.figure_1 import read_figure_1_bbox_data
 
@@ -16,6 +15,7 @@ def draw_fig1(img: Image, df_fig1_bboxes: pl.DataFrame) -> go._figure.Figure:
 
     # Figure 1 bboxes around centromeres
     for row in df_fig1_bboxes.iter_rows(named=True):
+        desc = f"Population: {row['population']}<br>Gender: {row['gender']}"
         # ChrY CHM1 has none so skip
         if not row["ypos_st"]:
             continue
@@ -29,12 +29,16 @@ def draw_fig1(img: Image, df_fig1_bboxes: pl.DataFrame) -> go._figure.Figure:
             x=[x0, x0, x1, x1, x0],
             y=[y0, y1, y1, y0, y0],
             fill="toself",
-            fillcolor="#000000",
+            fillcolor=row["color"],
             opacity=0,
             # opacity=0.1,
             customdata=[chrom],
+            hoverlabel=dict(bgcolor=row["color"], font_color="white"),
+            line=dict(color=row["color"]),
+            marker=dict(color=row["color"]),
+            hovertemplate=desc,
             name=chrom,
-            mode="lines",
+            mode="lines+markers+text",
         )
 
     fig.update_layout(
@@ -50,7 +54,24 @@ def draw_fig1(img: Image, df_fig1_bboxes: pl.DataFrame) -> go._figure.Figure:
 
 def home_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "chr8"):
     df_fig1_data = read_figure_1_bbox_data(cfg)
-    selected_cen = get_selected_cen(regions, default_chrom_name)
+    df_regions = pl.scan_csv(regions).collect()
+
+    # Add population and gender
+    df_fig1_data = df_fig1_data.join(
+        df_regions.select("chrom", "population", "gender", "color"),
+        on="chrom",
+        how="left",
+    )
+
+    # Get interval
+    df_regions_subset = df_regions.filter(pl.col("chrom_name").eq(default_chrom_name))
+    all_chroms = df_regions_subset["chrom"].unique(maintain_order=True).to_list()
+    selected_cen = (
+        df_regions_subset.filter(pl.col("chrom").eq(pl.lit(all_chroms[0])))
+        .select("chrom", "chrom_st", "chrom_end")
+        .row(0)
+    )
+
     fig = draw_fig1(Image.open(get_asset_url("Figure1.png")), df_fig1_data)
     return html.Div(
         [

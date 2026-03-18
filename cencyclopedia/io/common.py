@@ -17,13 +17,3 @@ def get_regions(regions: str, chrom_name: str) -> pl.DataFrame:
         .sort(by=["arm", "clade"], maintain_order=True)
         .collect()
     )
-
-
-def get_selected_cen(regions: str, chrom_name: str) -> tuple[str, int, int]:
-    df_regions_chrom = get_regions(regions, chrom_name)
-    all_chroms = df_regions_chrom["chrom"].unique(maintain_order=True).to_list()
-    return (
-        df_regions_chrom.filter(pl.col("chrom").eq(pl.lit(all_chroms[0])))
-        .select("chrom", "chrom_st", "chrom_end")
-        .row(0)
-    )
