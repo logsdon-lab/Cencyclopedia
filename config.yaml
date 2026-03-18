@@ -12,10 +12,26 @@ general:
     height: 100vh
     # Tree width (x / 12)
     width: 6
+    # Midpoint of tree. Defaults to half of the image.
+    xmidpt:
+      chr13: 4000
+      chr14: 4000
+      chr15: 4030
+      chr21: 4160
+      chr22: 4160
+      default: null
     # Starting y-position of first centromere in tree
-    ystart: 608
+    ystart:
+      chr13: 601
+      chr14: 601
+      chr15: 601
+      chr21: 601
+      chr22: 601
+      default: 608
     # Offset in y-position to reach next centromere
-    yoffset: 77
+    # Applied to both acro and other chromosomes
+    yoffset:
+      default: 77
   selected_cen:
     # Selected centromere height
     height: 45vh

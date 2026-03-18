@@ -1,6 +1,5 @@
 import os
 import yaml
-import polars as pl
 import dash_bootstrap_components as dbc
 
 from dash import Dash
@@ -34,7 +33,5 @@ server = app.server
 if __name__ == "__main__":
     # https://github.com/yaojiach/docker-dash/blob/main/app/app.py
     app.run(
-        port=8050,
-        host="0.0.0.0",
-        debug=os.environ["DASH_DEBUG_MODE"] == "True"
+        port=8050, host="0.0.0.0", debug=os.environ.get("DASH_DEBUG_MODE") == "True"
     )

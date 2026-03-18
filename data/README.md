@@ -1,4 +1,5 @@
 # Data:
+HGSVC
 ```
 HOR annotation: /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/HOR
 RM annotation: /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/RM
@@ -13,91 +14,35 @@ Live Array length: /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_anno
 ```
 * `/project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/README.md`
 
-## CDRs
-```bash
-awk -v OFS="\t"  '{
-    match($1, "^(.+):", chrom);
-    if (chrom[1] in chroms) {
-        chroms[chrom[1]] += 1;
-    } else {
-        chroms[chrom[1]] = 0
-    };
-    name="cdr_"chroms[chrom[1]]
-    print chrom[1], $2, $3, name
-}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/all_cdrs_revised.0309.working.bed | \
-sort -k1,1 -k2,2n | \
-bgzip > data/all_cdrs.bed.gz
-tabix -p bed data/all_cdrs.bed.gz
+HPRC
+```
+RM:
+/project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/add_two_chr22_HPRC/RM/all_cens_chr22.annotation.fa.out
+HOR:
+/project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/add_two_chr22_HPRC/HOR/chr22_AS-HOR_stv_row.all.bed
+CDR:
+/project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/add_two_chr22_HPRC/all_cdrs.bed
+1D:
+/project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/add_two_chr22_HPRC/1DModplot.bed
+Ort:
+/project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/add_two_chr22_HPRC/Ort/chr22_AS-HOR_stv_row.ort.bed
+MEI:
+None
 ```
 
-## CpG methylation
+## Script
+On UPenn LPC, run `update_all_data.sh`.
 ```bash
-awk -v OFS="\t"  '{match($1, "^(.+):", chrom); $1=chrom[1]; print}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/all_methyl_w_chm.bed | \
-sort -k1,1 -k2,2n | \
-bgzip > data/all_CpG_methyl.bedgraph.gz
-tabix -p bed data/all_CpG_methyl.bedgraph.gz
-```
-
-## AS-HOR
-```bash
-# Requires cenplot
-python data/update_as_hor.py /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/HOR/all_AS-HOR_stv_row.bed | \
-bgzip > data/all_AS-HOR_stv_row.bed.gz
-tabix -p bed data/all_AS-HOR_stv_row.bed.gz
-```
-
-## AS-HOR strand
-```bash
-awk -v OFS="\t"  '{match($1, "^(.+):", chrom); print chrom[1], $2, $3, ".", 0, $4, $2, $3, ($4 == "+") ? "#ff0000" : "#0000ff"}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/Ort/*.bed | \
-sort -k1,1 -k2,2n | \
-bgzip > data/all_AS-HOR_stv_row_strand.bed.gz
-tabix -p bed data/all_AS-HOR_stv_row_strand.bed.gz
-```
-
-## Satellite annotation
-```bash
-awk -v OFS="\t"  '{match($1, "^(.+):", chrom); $1=chrom[1]; print}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/RM/*.out | \
-sort -k1,1 -k2,2n | \
-bgzip > data/all_RM_satellite_annotation.bed.gz
-tabix -p bed data/all_RM_satellite_annotation.bed.gz
-```
-
-## ModDotPlot
-Convert to absolute coordinates.
-```bash
-awk -v OFS="\t" '{
-    match($1, "^(.+):([0-9]+)-([0-9]+)$", mtch);
-    $1=mtch[1]; $4=mtch[1];
-    $2=$2+mtch[2]; $3=$3+mtch[2];
-    $5=$5+mtch[2]; $6=$6+mtch[2];
-    print
-}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/Moddotplot/*.bed | \
-sort -k1,1 -k2,2n | \
-bgzip > data/all_ModDotPlot.bed.gz
-tabix -p bed data/all_ModDotPlot.bed.gz
-```
-
-## MEI
-```bash
-awk -v OFS="\t" '{
-    match($1, "^(.+):", chrom);
-    $1=chrom[1];
-    if ($1 in chroms) {
-        chroms[$1] += 1;
-    } else {
-        chroms[$1] = 0
-    };
-    name=$5"_"chroms[$1]
-    color=($5 ~ "^L1") ? "#0080FF" : "#FB0000";
-    print $1, $2, $3, name, 0, ".", $2, $3, color
-}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/MEI/MEI.HOR.bed | \
-sort -k1,1 -k2,2n | \
-bgzip > data/all_MEI.bed.gz
-tabix -p bed data/all_MEI.bed.gz
+bash update_all_data.sh
 ```
 
 # Sample metadata:
-* `/project/logsdon_shared/project_archive/HGSVC3/non-redundant_centromeres/sample_populations_sex.tsv`
+```bash
+# Add CHMs and special HPRC chr22 cases
+cat /project/logsdon_shared/project_archive/HGSVC3/non-redundant_centromeres/sample_populations_sex.tsv \
+    <(printf "chm13\tEUR\tN\nchm1\tEUR\tN\nHG00235\tEUR\tF\nHG00639\tAMR\tF\n") | \
+gzip > data/sample_metadata.tsv.gz
+```
 
 # Clades:
 ```bash

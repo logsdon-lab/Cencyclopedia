@@ -29,15 +29,26 @@ def create_tree_figure(
     fig = go._figure.Figure()
     fig = add_image_to_figure(img, fig)
 
-    # Origin in top-left so y-coords are negative.
-    yst = -cfg["general"]["tree"]["ystart"]
-    yoffset = cfg["general"]["tree"]["yoffset"]
-    img_midpt = int(img.width // 2)
+    default_midpt = cfg["general"]["tree"]["xmidpt"]["default"]
+    default_yst = cfg["general"]["tree"]["ystart"]["default"]
+    default_yoffset = cfg["general"]["tree"]["yoffset"]["default"]
 
     for tree_arm, df in dfs_regions_chrom_arm.items():
         tree_arm = tree_arm[0]
         chroms = df["chrom"].to_list()
+        chrom_name = df["chrom_name"][0]
         colors = df["color"].to_list()
+
+        # Set img midpt and yst based on chromosome name.
+        img_midpt = cfg["general"]["tree"]["xmidpt"].get(chrom_name, default_midpt)
+        # Default to half the image.
+        if not img_midpt:
+            img_midpt = int(img.width // 2)
+
+        # Origin in top-left so y-coords are negative.
+        yst = -cfg["general"]["tree"]["ystart"].get(chrom_name, default_yst)
+        yoffset = cfg["general"]["tree"]["yoffset"].get(chrom_name, default_yoffset)
+
         ypos = np.cumsum([yoffset for i in range(len(chroms) + 1)])
         ypos *= -1
         ypos += yst + yoffset
@@ -58,6 +69,7 @@ def create_tree_figure(
                 y=[y0, y1, y1, y0, y0],
                 fill="toself",
                 fillcolor=color,
+                # opacity=0.1,
                 opacity=0,
                 customdata=[chrom],
                 # opacity
@@ -68,8 +80,8 @@ def create_tree_figure(
     fig.update_layout(
         showlegend=False,
         template="simple_white",
-        xaxis={"showgrid": False, "fixedrange": True},
-        yaxis={"showgrid": False, "fixedrange": True},
+        xaxis={"showgrid": False},
+        yaxis={"showgrid": False},
         margin=dict(l=0, r=0, b=0, t=0),
         modebar_remove=["select2d", "lasso2d"],
     )
