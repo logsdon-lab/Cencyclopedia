@@ -1,12 +1,10 @@
-import polars as pl
 import dash_bootstrap_components as dbc
-import plotly.graph_objs as go
 
 from typing import Any
 from dash import html, dcc
 from cencyclopedia.io.data import Data
-from cencyclopedia.plot.tree import create_tree_legend_figure
-from cencyclopedia.plot.common import default_bed_track_settings, add_empty_track
+from cencyclopedia.components.err_msg import modal_error_message
+from cencyclopedia.plot.common import default_bed_track_settings
 
 
 SIDEBAR_STYLE = {
@@ -88,6 +86,7 @@ def main_content(
 ):
     return html.Div(
         [
+            modal_error_message(),
             dbc.Row(
                 [
                     dbc.Col(
@@ -131,7 +130,7 @@ def main_content(
                         width=cfg["general"]["selected_cen"]["width"],
                     ),
                 ],
-            )
+            ),
         ],
     )
 

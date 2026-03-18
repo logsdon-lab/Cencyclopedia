@@ -4,15 +4,18 @@ import plotly.graph_objs as go
 
 from typing import Any
 from loguru import logger
-from dash import Input, Output, callback, ctx, State
+from dash import Input, Output, callback, ctx, State, dcc
 from dash.exceptions import PreventUpdate
 
 from cencyclopedia.plot.common import BedTrackSettings
 from cencyclopedia.plot.cen import draw_cenplot
+from cencyclopedia.components.err_msg import modal_body_content
 
 
 @callback(
     Output("fig-selected-cen", "figure"),
+    Output("body-err-msg", "children"),
+    Output("modal-err-msg", "is_open"),
     Input("itv-selected-cen", "data"),
     Input("bed-track-settings", "data"),
     State("cfg", "data"),
@@ -22,13 +25,19 @@ def draw_selected_cen_figure(
     itv_selected_cen: tuple[str, int, int] | None,
     bed_track_settings: dict[str, BedTrackSettings],
     cfg: dict[str, Any],
-) -> go._figure.Figure:
+) -> tuple[
+    go._figure.Figure,
+    dcc.Markdown | dash._callback.NoUpdate,
+    bool | dash._callback.NoUpdate,
+]:
     logger.debug(f"Draw update context: {ctx.triggered}")
-    fig = draw_cenplot(itv_selected_cen, bed_track_settings, cfg)
     if not itv_selected_cen:
         raise PreventUpdate
-
-    return fig
+    try:
+        fig = draw_cenplot(itv_selected_cen, bed_track_settings, cfg)
+    except Exception as err:
+        return dash.no_update, modal_body_content(str(err)), True
+    return fig, dash.no_update, dash.no_update
 
 
 @callback(
