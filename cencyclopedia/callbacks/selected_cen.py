@@ -14,6 +14,7 @@ from cencyclopedia.components.err_msg import modal_body_content
 
 @callback(
     Output("fig-selected-cen", "figure"),
+    Output("fig-selected-cen", "style"),
     Output("body-err-msg", "children"),
     Output("modal-err-msg", "is_open"),
     Input("itv-selected-cen", "data"),
@@ -34,10 +35,10 @@ def draw_selected_cen_figure(
     if not itv_selected_cen:
         raise PreventUpdate
     try:
-        fig = draw_cenplot(itv_selected_cen, bed_track_settings, cfg)
+        fig, style = draw_cenplot(itv_selected_cen, bed_track_settings, cfg)
     except Exception as err:
-        return dash.no_update, modal_body_content(str(err)), True
-    return fig, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, modal_body_content(str(err)), True
+    return fig, style, dash.no_update, dash.no_update
 
 
 @callback(

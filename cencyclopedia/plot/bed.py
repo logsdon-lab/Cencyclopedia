@@ -56,7 +56,7 @@ def add_bed_track(
             else:
                 x = [slop_st, slop_end, slop_end, slop_st, slop_st]
                 y = [0, 0, 1, 1, 0]
-
+            score = row.get("score")
             fig.add_scatter(
                 fill="toself",
                 x=x,
@@ -67,7 +67,7 @@ def add_bed_track(
                 ),
                 name=name,
                 mode="text",
-                hovertemplate=f"Interval: ({st}, {end})<br>Length: {length}",
+                hovertemplate=f"Interval: ({st}, {end})<br>Length: {length}<br>Score: {score}",
                 fillcolor=color,
                 showlegend=False,
                 **kwargs,

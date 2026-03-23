@@ -9,6 +9,7 @@ BED_SCHEMA = {
     "chrom_end": pl.UInt64,
     "name": pl.String,
     "color": pl.String,
+    "score": pl.Float64,
 }
 
 BEDGRAPH_SCHEMA = {
@@ -40,7 +41,11 @@ def read_bedstrand_row(rec: Any):
         item_rgb = rec.itemRGB
     except KeyError:
         item_rgb = "#000000"
-    return (rec.contig, rec.start, rec.end, rec.strand, item_rgb)
+    try:
+        score = rec.score
+    except KeyError:
+        score = 0
+    return (rec.contig, rec.start, rec.end, rec.strand, item_rgb, score)
 
 
 def read_bed9_row(rec: Any):
@@ -52,31 +57,39 @@ def read_bed9_row(rec: Any):
         item_rgb = rec.itemRGB
     except KeyError:
         item_rgb = "#000000"
-    return (rec.contig, rec.start, rec.end, name, item_rgb)
+    try:
+        score = rec.score
+    except KeyError:
+        score = 0
+    return (rec.contig, rec.start, rec.end, name, item_rgb, score)
 
 
 def read_bed_local_selfident_row(
     rec: tuple[str, str, str, str],
     breakpoints: list[float],
     colors: list[str],
-) -> tuple[str, int, int, float, str]:
+) -> tuple[str, int, int, float, str, int]:
     chrom, chrom_st, chrom_end, ident = rec
     chrom_st = int(chrom_st)
     chrom_end = int(chrom_end)
     ident = float(ident)
     if ident == 0.0:
         color = colors[0]
-        return (chrom, chrom_st, chrom_end, ident, color)
+        label = f"0.0-{breakpoints[0]}"
+        return (chrom, chrom_st, chrom_end, label, color, ident)
     try:
         idx_end = bisect.bisect(breakpoints, ident)
         if idx_end == 0:
             color = colors[0]
+            label = f"0.0-{breakpoints[0]}"
         else:
             color = colors[idx_end - 1]
+            label = f"{breakpoints[idx_end - 1]}-{breakpoints[idx_end]}"
     except IndexError:
         color = colors[-1]
+        label = str(breakpoints[-1])
 
-    return (chrom, chrom_st, chrom_end, ident, color)
+    return (chrom, chrom_st, chrom_end, label, color, ident)
 
 
 def to_relative_coords_bed(df: pl.DataFrame):

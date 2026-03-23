@@ -184,6 +184,7 @@ class Data(NamedTuple):
                     pl.col("chrom_st").min(),
                     pl.col("chrom_end").max(),
                     pl.col("name").first(),
+                    pl.col("score").median(),
                     pl.col("strand").first(),
                     pl.col("color").first(),
                     pl.col("group").first(),

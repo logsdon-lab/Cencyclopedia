@@ -56,10 +56,10 @@ def draw_selected_cen_home_figure(
     # TODO: Then set both to largest xlim and relative coordinates
     fig_cfg = deepcopy(cfg)
     fig_chm13_cfg = deepcopy(cfg)
-    fig = draw_cenplot(itv_selected_cen, None, fig_cfg)
+    fig, _ = draw_cenplot(itv_selected_cen, None, fig_cfg)
 
     if itv_chm13:
-        fig_chm13 = draw_cenplot(itv_chm13, None, fig_chm13_cfg)
+        fig_chm13, _ = draw_cenplot(itv_chm13, None, fig_chm13_cfg)
     else:
         fig_chm13 = go._figure.Figure()
         add_empty_track(fig_chm13, xlim=[0, 1])

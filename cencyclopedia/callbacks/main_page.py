@@ -12,7 +12,7 @@ from cencyclopedia.components.main import (
     dataview_selected_cen,
     rangeslider_selected_cen,
 )
-from cencyclopedia.components.cite import cite_page
+from cencyclopedia.components.overview import overview_page
 from cencyclopedia.components.home import home_page
 from cencyclopedia.io.common import get_regions
 
@@ -98,9 +98,9 @@ def draw_main_content_page(
 ):
     page = pathname.strip("/")
     if not page:
-        return home_page(regions, cfg), None
-    elif page == "cite":
-        return cite_page(), None
+        return home_page(), None
+    elif page == "overview":
+        return overview_page(regions, cfg), None
     else:
         chrom_name = page
         logger.debug(f"On {chrom_name}")
@@ -122,7 +122,7 @@ def draw_main_content_page(
         try:
             path = get_asset_url(fname)
             fig = create_tree_figure(Image.open(path), dfs_regions_chrom_arm, cfg)
-        except (OSError, KeyError) as err:
+        except (OSError, KeyError):
             logger.error(f"Cannot open image ({fname}) for {chrom_name} tree")
             fig = None
 
@@ -145,7 +145,10 @@ def draw_main_content_page(
                 max=itv_selected_cen[2],
                 value=[itv_selected_cen[1], itv_selected_cen[2]],
             ),
-            dataview_selected_cen=dataview_selected_cen(dtypes),
+            dataview_selected_cen=dataview_selected_cen(
+                dtypes,
+                active_tab=cfg["general"]["selected_cen"].get("default_data_tab"),
+            ),
             cfg=cfg,
         )
         return content, itv_selected_cen

@@ -25,7 +25,7 @@ def draw_cenplot(
     cfg: dict[str, Any],
     *,
     to_relative: bool = False,
-) -> go._figure.Figure | None:
+) -> tuple[go._figure.Figure, dict[str, Any]] | None:
     if not itv_selected_cen:
         return None
     if not bed_track_settings:
@@ -36,6 +36,7 @@ def draw_cenplot(
     data_fhs = Data.new(cfg["data"])
 
     props = []
+    total_original_prop = 0.0
     indices: dict[str, tuple[list[int], pl.DataFrame]] = {}
 
     # Add additional rows if expand. If overlap, must ignore.
@@ -57,6 +58,8 @@ def draw_cenplot(
             rle=rle,
             clip=True,
         ).sort(by="group")
+        if prop:
+            total_original_prop += prop
 
         if mode == "Original":
             indices[label] = ([idx + idx_offset], df)
@@ -92,9 +95,15 @@ def draw_cenplot(
         shared_xaxes=True,
         row_heights=props,
         horizontal_spacing=0,
-        vertical_spacing=cfg["general"]["selected_cen"]["vspace"],
     )
 
+    # Adjust height
+    style = {"height": cfg["general"]["selected_cen"]["height"]}
+    if isinstance(cfg["general"]["selected_cen"]["height"], int):
+        ht_adj_ratio = sum(props) / total_original_prop
+        style["height"] = cfg["general"]["selected_cen"]["height"] * ht_adj_ratio
+
+    idx_yaxis_titles = {}
     for label, (indices, df) in indices.items():
         dtype = data_fhs.datatype(label)
         options = data_fhs.options(label)
@@ -110,7 +119,8 @@ def draw_cenplot(
             except KeyError:
                 yaxis_title = None
 
-            if yaxis_title:
+            # Only plot first.
+            if yaxis_title and not idx_yaxis_titles.get(track_idx):
                 fig.add_annotation(
                     x=0,
                     y=0.5,
@@ -127,6 +137,7 @@ def draw_cenplot(
                     row=track_idx,
                     col=1,
                 )
+                idx_yaxis_titles[track_idx] = yaxis_title
 
             # Set range to start and end so legend axis ticks reach plot.
             fig.update_xaxes(
@@ -187,4 +198,4 @@ def draw_cenplot(
         modebar_remove=["select2d", "lasso2d"],
     )
 
-    return fig
+    return fig, style

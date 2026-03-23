@@ -21,7 +21,7 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
 def update_selected_cen_coords_from_zoom_info(
     zoom_info: dict[str, Any] | None, selected_cen: tuple[str, int, int] | None
 ) -> dash._callback.NoUpdate | tuple[str, int, int]:
-    if not selected_cen or not zoom_info or not "xaxis.range[0]" in zoom_info:
+    if not selected_cen or not zoom_info or "xaxis.range[0]" not in zoom_info:
         return dash.no_update
 
     # Get coordinates from zoom level.
@@ -66,6 +66,8 @@ def draw_dataview_tab(
         column_selectable="single",
         sort_action="native",
         filter_action="native",
+        style_cell={"textAlign": "left"},
+        style_data={"whiteSpace": "normal", "height": "auto", "lineHeight": "15px"},
     )
     # Use defaults.
     track_settings = expand_tracks[data_label]

@@ -9,7 +9,10 @@ from cenplot.lib.io.bed_hor import read_bed_hor
         pl.col("chrom_st"),
         pl.col("chrom_end"),
         pl.col("name"),
-        pl.lit(0),
+        ((pl.col("chrom_end") - pl.col("chrom_st")) / pl.lit(171))
+        .clip(lower_bound=1)
+        .round(mode="half_away_from_zero")
+        .alias("score"),
         pl.col("strand"),
         pl.col("chrom_st").alias("thick_st"),
         pl.col("chrom_end").alias("thick_end"),

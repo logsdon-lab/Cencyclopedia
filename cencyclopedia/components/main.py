@@ -13,24 +13,35 @@ SIDEBAR_STYLE = {
     "left": 0,
     "bottom": 0,
     "width": "16rem",
-    "padding": "2rem 1rem",
-    "overflow": "scroll",
+    "padding-top": "2rem",
+    "padding-bottom": "2rem",
+    "padding-left": "1rem",
+    "padding-right": "1rem",
     # Hide scrollbar
+    "overflow": "scroll",
     "scrollbar-width": "none",
     "background-color": "#f8f9fa",
 }
 CONTENT_STYLE = {
-    "padding": "2rem 1rem",
+    "overflow": "scroll",
+    # Hide scrollbar
+    "scrollbar-width": "none",
+    "padding-top": "2rem",
+    "padding-bottom": "2rem",
+    "padding-left": "1rem",
+    "padding-right": "1rem",
 }
 
 
-def dataview_selected_cen(labels: list[str]) -> html.Div:
+def dataview_selected_cen(labels: list[str], active_tab: str | None = None) -> html.Div:
+    if not active_tab:
+        active_tab = labels[0]
     return html.Div(
         [
             dbc.Tabs(
                 [dbc.Tab(label=label, tab_id=label) for label in labels],
                 id="data-label-tabs",
-                active_tab=labels[0],
+                active_tab=active_tab,
             ),
             html.Br(),
             html.Div(id="data-labels-output"),
@@ -100,6 +111,7 @@ def main_content(
                                 target="fig-cens-tree",
                                 body=True,
                                 hide_arrow=True,
+                                placement="left",
                                 trigger="legacy",
                             ),
                         ],
@@ -120,7 +132,7 @@ def main_content(
                                     style={
                                         "height": cfg["general"]["selected_cen"][
                                             "height"
-                                        ]
+                                        ],
                                     },
                                 )
                             ),
@@ -147,7 +159,7 @@ def main_page(
             dbc.Nav(
                 [
                     dbc.NavLink("Home", href="/", active="exact"),
-                    dbc.NavLink("Cite", href="/cite", active="exact"),
+                    dbc.NavLink("Overview", href="/overview", active="exact"),
                     html.Hr(),
                     *[
                         dbc.NavLink(chrom, href=f"/{chrom}", active="exact")
@@ -186,5 +198,10 @@ def main_page(
                 ],
                 style=CONTENT_STYLE,
             ),
-        ]
+        ],
+        style={
+            "overflow": "scroll",
+            # Hide scrollbar
+            "scrollbar-width": "none",
+        },
     )

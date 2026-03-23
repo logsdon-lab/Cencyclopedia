@@ -39,8 +39,8 @@ def create_tree_figure(
         chrom_name = df["chrom_name"][0]
         colors = df["color"].to_list()
         descs = [
-            f"Population: {pop}<br>Gender: {gender}"
-            for pop, gender in df.select("population", "gender").iter_rows()
+            f"Population: {pop}<br>Sex: {sex}"
+            for pop, sex in df.select("population", "sex").iter_rows()
         ]
         # Set img midpt and yst based on chromosome name.
         img_midpt = cfg["general"]["tree"]["xmidpt"].get(chrom_name, default_midpt)
@@ -66,6 +66,7 @@ def create_tree_figure(
         for (x0, x1), (y0, y1), chrom, color, desc in zip(
             x, y, chroms, colors, descs, strict=True
         ):
+            desc = f"Contig: {chrom}<br>{desc}"
             # Color by population
             # Add rect [x_left_bottom, x_left_top, x_right_bottom, x_right_top, x_left_bottom]
             #          [y_left_bottom, y_left_top, y_right_top, y_right_bottom, y_left_bottom]
@@ -83,7 +84,7 @@ def create_tree_figure(
                 line=dict(color=color),
                 marker=dict(color=color),
                 # opacity
-                name=chrom,
+                name=desc,
                 mode="lines+markers+text",
             )
 
@@ -100,7 +101,9 @@ def create_tree_figure(
 
 def create_tree_legend_figure():
     fig = add_image_to_figure(
-        Image.open(get_asset_url("VerticalLegend.png")), go._figure.Figure()
+        Image.open(get_asset_url("VerticalLegend.png")),
+        go._figure.Figure(),
+        # Image.open(get_asset_url("HorizontalLegend.png")), go._figure.Figure()
     )
     fig.update_layout(
         showlegend=False,
@@ -115,4 +118,5 @@ def create_tree_legend_figure():
         id="fig-cens-tree-legend",
         responsive=True,
         config={"displaylogo": False},
+        # style={"height": "15vh"},
     )

@@ -59,7 +59,7 @@ def read_regions_from_data(
         sample_metadata,
         separator="\t",
         has_header=False,
-        new_columns=["sample", "population", "gender"],
+        new_columns=["sample", "population", "sex"],
     )
     df_final_regions = (
         df_regions.join(df_clades, on=["chrom", "sample", "chrom_name"])
