@@ -1,4 +1,3 @@
-import bisect
 import polars as pl
 
 from .constants import IDENT_BREAKPOINTS, IDENT_COLORS
@@ -30,37 +29,38 @@ def read_identity_breakpoints(
 
 def read_bedpe_selfident_row(
     rec: tuple[str, str, str, str, str, str, str],
-    breakpoints: list[float],
-    colors: list[str],
-) -> tuple[str, int, int, str, int, int, float, str, str]:
+    # breakpoints: list[float],
+    # colors: list[str],
+    # ) -> tuple[str, int, int, str, int, int, float, str, str]:
+) -> tuple[str, int, int, str, int, int, float]:
     qry, qry_st, qry_end, ref, ref_st, ref_end, ident = rec
     qry_st = int(qry_st)
     qry_end = int(qry_end)
     ref_st = int(ref_st)
     ref_end = int(ref_end)
     ident = float(ident)
-    if ident == 0.0:
-        color = colors[0]
-        desc = str(ident_end)
-        # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
-        return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
-    try:
-        idx_end = bisect.bisect(breakpoints, ident)
-        ident_end = breakpoints[idx_end]
-        if idx_end == 0:
-            ident_st = 0.0
-            color = colors[0]
-        else:
-            ident_st = breakpoints[idx_end - 1]
-            color = colors[idx_end - 1]
-        desc = f"{ident_st}%-{ident_end}%"
-    except IndexError:
-        ident_end = breakpoints[-1]
-        color = colors[-1]
-        desc = str(ident_end)
+    # if ident == 0.0:
+    #     color = colors[0]
+    #     desc = str(ident_end)
+    #     # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
+    #     return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
+    # try:
+    #     idx_end = bisect.bisect(breakpoints, ident)
+    #     ident_end = breakpoints[idx_end]
+    #     if idx_end == 0:
+    #         ident_st = 0.0
+    #         color = colors[0]
+    #     else:
+    #         ident_st = breakpoints[idx_end - 1]
+    #         color = colors[idx_end - 1]
+    #     desc = f"{ident_st}%-{ident_end}%"
+    # except IndexError:
+    #     ident_end = breakpoints[-1]
+    #     color = colors[-1]
+    #     desc = str(ident_end)
 
-    # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
-    return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
+    return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
+    # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
 
 
 def to_relative_coords_bedpe_selfident(df: pl.DataFrame) -> pl.DataFrame:

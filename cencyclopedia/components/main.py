@@ -194,7 +194,11 @@ def main_page(
             dbc.Row(
                 [
                     dbc.Col(sidebar, width=2),
-                    dbc.Col(width=10, id="main-content"),
+                    dbc.Col(
+                        width=10,
+                        id="main-content",
+                        style={"padding-left": "8rem", "padding-right": "2rem"},
+                    ),
                 ],
                 style=CONTENT_STYLE,
             ),

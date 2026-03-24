@@ -97,7 +97,8 @@ class Data(NamedTuple):
                 self.cfg[label].get("ident_breakpoints")
             )
             read_fn = lambda rec: read_bedpe_selfident_row(
-                rec, breakpoints=breakpoints, colors=colors
+                rec,
+                # breakpoints=breakpoints, colors=colors
             )
             to_relative_fn = to_relative_coords_bedpe_selfident
             schema = BEDPE_SCHEMA

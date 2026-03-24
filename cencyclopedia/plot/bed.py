@@ -1,6 +1,7 @@
-from typing import Literal
 import polars as pl
 import plotly.graph_objs as go
+
+from typing import Literal
 
 
 def add_bedgraph_track(df_bg: pl.DataFrame, fig: go._figure.Figure, **kwargs):
@@ -42,36 +43,42 @@ def add_bed_track(
         .group_by(["name", "color"], maintain_order=True)
     ):
         name, color = grp
+        x = []
+        y = []
+        custom_data = []
         for row in df.iter_rows(named=True):
             slop_st = row["chrom_st"] - bp_slop
-            st = row["chrom_st"]
             slop_end = row["chrom_end"] + bp_slop
-            end = row["chrom_end"]
-            length = end - st
             slop_length = slop_end - slop_st
+            hoverdata = [
+                row["chrom_st"],
+                row["chrom_end"],
+                row["chrom_end"] - row["chrom_st"],
+                row["score"],
+            ]
             if shape == "tri":
                 midpt = slop_st + (slop_length / 2)
-                x = [slop_st, midpt, slop_end, slop_st]
-                y = [0, 1 * invert, 0, 0]
+                x.extend([slop_st, midpt, slop_end, slop_st, None])
+                y.extend([0, 1 * invert, 0, 0, None])
+                custom_data.extend((hoverdata for _ in range(5)))
             else:
-                x = [slop_st, slop_end, slop_end, slop_st, slop_st]
-                y = [0, 0, 1, 1, 0]
-            score = row.get("score")
-            fig.add_scatter(
-                fill="toself",
-                x=x,
-                y=y,
-                line=dict(
-                    color=color,
-                    width=2,
-                ),
-                name=name,
-                mode="text",
-                hovertemplate=f"Interval: ({st}, {end})<br>Length: {length}<br>Score: {score}",
-                fillcolor=color,
-                showlegend=False,
-                **kwargs,
-            )
+                x.extend([slop_st, slop_end, slop_end, slop_st, slop_st, None])
+                y.extend([0, 0, 1, 1, 0, None])
+                custom_data.extend((hoverdata for _ in range(6)))
+
+        fig.add_scatter(
+            fill="toself",
+            x=x,
+            y=y,
+            line=dict(color=color, width=2),
+            customdata=custom_data,
+            name=name,
+            mode="text",
+            hovertemplate="Interval: (%{customdata[0]}, %{customdata[1]})<br>Length: %{customdata[2]}<br>Score: %{customdata[3]}",
+            fillcolor=color,
+            showlegend=False,
+            **kwargs,
+        )
 
 
 def add_bedstrand_track(df_bedstrand: pl.DataFrame, fig: go._figure.Figure, **kwargs):

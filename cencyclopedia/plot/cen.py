@@ -11,7 +11,7 @@ from cencyclopedia.plot.common import (
     add_empty_track,
     default_bed_track_settings,
 )
-from cencyclopedia.plot.ident import add_ident_track
+from cencyclopedia.plot.ident import add_heatmap_track
 from cencyclopedia.plot.bed import (
     add_bed_track,
     add_bedgraph_track,
@@ -48,16 +48,23 @@ def draw_cenplot(
         mode = track_settings["mode"]
         # Whether to run-length encode
         rle = data_fhs.options(label).get("rle", True)
-        df = data_fhs.split(
-            label,
-            chrom,
-            st,
-            end,
-            by=mode,
-            to_relative=to_relative,
-            rle=rle,
-            clip=True,
-        ).sort(by="group")
+        dtype = data_fhs.datatype(label)
+        if dtype == "bedpe_selfident":
+            df = data_fhs.query(
+                label, chrom, st, end, to_relative=to_relative
+            ).with_columns(group=pl.lit(0))
+        else:
+            df = data_fhs.split(
+                label,
+                chrom,
+                st,
+                end,
+                by=mode,
+                to_relative=to_relative,
+                rle=rle,
+                clip=True,
+            ).sort(by="group")
+
         if prop:
             total_original_prop += prop
 
@@ -109,8 +116,8 @@ def draw_cenplot(
         options = data_fhs.options(label)
         dfs_groups = list(df.group_by(["group"], maintain_order=True))
         # https://plotly.com/python/reference/layout/xaxis/
-        update_xaxis_kwargs = options.get("xaxis_kwargs")
-        update_yaxis_kwargs = options.get("yaxis_kwargs")
+        update_xaxis_kwargs = options.get("xaxis_kwargs", {})
+        update_yaxis_kwargs = options.get("yaxis_kwargs", {})
 
         for i, track_idx in enumerate(indices):
             # Remove title text before updating axes args
@@ -138,14 +145,6 @@ def draw_cenplot(
                     col=1,
                 )
                 idx_yaxis_titles[track_idx] = yaxis_title
-
-            # Set range to start and end so legend axis ticks reach plot.
-            fig.update_xaxes(
-                **update_xaxis_kwargs, range=(st, end), row=track_idx, col=1
-            )
-            fig.update_yaxes(
-                **update_yaxis_kwargs, row=track_idx, col=1, fixedrange=True
-            )
 
             try:
                 grp, df_grp = dfs_groups[i]
@@ -177,11 +176,19 @@ def draw_cenplot(
             elif dtype == "bedstrand":
                 add_bedstrand_track(df_grp, fig, row=track_idx, col=1)
             elif dtype == "bedpe_selfident":
-                add_ident_track(df_grp, fig, row=track_idx, col=1)
+                add_heatmap_track(df_grp, fig, row=track_idx, col=1)
             else:
                 logger.debug(
                     f"Ignoring {label} (Group {grp}) of type {dtype} at index of {track_idx}"
                 )
+
+            # Set range to start and end so legend axis ticks reach plot.
+            fig.update_xaxes(
+                **update_xaxis_kwargs, range=(st, end), row=track_idx, col=1
+            )
+            fig.update_yaxes(
+                **update_yaxis_kwargs, row=track_idx, col=1, fixedrange=True
+            )
 
             logger.debug(f"Finished adding {label} (Group {grp}) on track {track_idx}")
 

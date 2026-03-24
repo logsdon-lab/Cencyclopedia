@@ -27,8 +27,6 @@ BEDPE_SCHEMA = {
     "ref_st": pl.UInt64,
     "ref_end": pl.UInt64,
     "percent_identity_by_events": pl.Float32,
-    "color": pl.String,
-    "desc": pl.String,
 }
 
 

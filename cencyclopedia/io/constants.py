@@ -12,7 +12,7 @@ IDENT_BREAKPOINTS = (
     99.25,
     99.5,
     99.75,
-    100.0,
+    99.9,
 )
 IDENT_COLORS = (
     "#4b3991",

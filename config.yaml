@@ -123,7 +123,7 @@ data:
     position: overlap
     type: bed
     options:
-      rle: true
+      rle: false
       xaxis_kwargs:
         ticks: ""
         showline: false
@@ -162,11 +162,13 @@ data:
         showticklabels: false
         ticks: ""
         showline: false
-  # "Self-Identity":
-  #   path: data/all_ModDotPlot.bed.gz
-  #   position: relative
-  #   type: bedpe_selfident
-  #   prop: 4.0
+  "Self-Identity":
+    path: data/all_ModDotPlot.bed.gz
+    position: relative
+    type: bedpe_selfident
+    prop: 4.0
+    options:
+        rle: false
 regions: data/all_array.bed.gz
 clades: data/clades.tsv.gz
 sample_metadata: data/sample_metadata.tsv.gz
