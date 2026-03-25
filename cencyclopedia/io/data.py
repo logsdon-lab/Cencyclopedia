@@ -1,8 +1,10 @@
+import os
 import pysam
+import pathlib
 import polars as pl
 
 from loguru import logger
-from typing import Self, Any, Literal, Iterator, NamedTuple
+from typing import Callable, Self, Any, Literal, Iterator, NamedTuple
 
 from .bed import (
     to_relative_coords_bed,
@@ -22,14 +24,21 @@ from .bedpe import (
 
 
 class Data(NamedTuple):
-    fhs: dict[str, pysam.TabixFile]
+    fhs: dict[str, pysam.TabixFile | pathlib.Path]
     cfg: dict[str, Any]
 
     def new(cfg: dict[str, Any]) -> Self:
         fhs = {}
         cfgs = {}
         for label, trk_info in cfg.items():
-            fhs[label] = pysam.TabixFile(trk_info["path"])
+            path = trk_info["path"]
+            if os.path.isfile(path):
+                fhs[label] = pysam.TabixFile(trk_info["path"])
+            elif os.path.isdir(path):
+                fhs[label] = pathlib.Path(path)
+            else:
+                logger.debug(f"Invalid file type for {path}")
+                continue
             cfgs[label] = trk_info
 
         return Data(fhs=fhs, cfg=cfgs)
@@ -73,7 +82,8 @@ class Data(NamedTuple):
         * `end`
         """
         parser: pysam.asBed | pysam.asTuple = pysam.asBed()
-        to_relative_fn = to_relative_coords_bed
+        to_relative_fn = lambda df: to_relative_coords_bed(df, st)
+        finalizer_fn: Callable[[pl.DataFrame], pl.DataFrame] | None = None
         if self.cfg[label]["type"] == "bed9":
             read_fn = read_bed9_row
             schema = BED_SCHEMA
@@ -98,21 +108,43 @@ class Data(NamedTuple):
             )
             read_fn = lambda rec: read_bedpe_selfident_row(
                 rec,
-                # breakpoints=breakpoints, colors=colors
             )
-            to_relative_fn = to_relative_coords_bedpe_selfident
+            to_relative_fn = lambda df: to_relative_coords_bedpe_selfident(df, st)
+            finalizer_fn = lambda df: df.filter(
+                pl.col("ref_st").is_between(st, end)
+                & pl.col("ref_end").is_between(st, end)
+            )
             schema = BEDPE_SCHEMA
         else:
             read_fn = read_bed9_row
             schema = BED_SCHEMA
 
+        fh = self.fhs[label]
+        if isinstance(fh, pysam.TabixFile):
+            fh = fh
+        elif isinstance(fh, pathlib.Path):
+            try:
+                fname = fh.joinpath(f"{chrom}.bed.gz").as_posix()
+                fh = pysam.TabixFile(fname)
+            except Exception as err:
+                raise RuntimeError(
+                    f"Error reading {fname} for {label} and {chrom}:{st}-{end}: {err}."
+                )
+        else:
+            raise TypeError(
+                f"Invalid file handle type for {label} and {chrom}:{st}-{end}: {fh}"
+            )
+
         try:
-            qry = self.fhs[label].fetch(chrom, st, end, parser=parser)
+            logger.debug(f"Query {label} for {chrom}:{st}-{end}")
+            qry = fh.fetch(chrom, st, end, parser=parser)
             df = pl.DataFrame(
                 data=[read_fn(rec) for rec in qry],
                 orient="row",
                 schema=schema,
             )
+            if finalizer_fn:
+                df = finalizer_fn(df)
         except ValueError as err:
             logger.debug(f"Unable to query {label} for {chrom}:{st}-{end} ({err})")
             return pl.DataFrame(schema=BED_SCHEMA)
@@ -131,7 +163,6 @@ class Data(NamedTuple):
         *,
         by: Literal["Original", "Length", "Frequency", "Coverage"],
         rle: bool = True,
-        clip: bool = True,
         to_relative: bool = True,
     ):
         df = self.query(
@@ -192,26 +223,5 @@ class Data(NamedTuple):
                 )
                 .drop("group_rle")
             )
-        if clip and chrom_st and chrom_end:
-            df_final = (
-                df_final.with_columns(
-                    pl.col("chrom_st").clip(chrom_st, chrom_end),
-                    pl.col("chrom_end").clip(chrom_st, chrom_end),
-                )
-                # To clip, we only take intervals that are non-null,
-                #   Before:
-                #   ||
-                #      | | # (st, end)
-                #   After:
-                #      |    <- Remove this
-                #      | | # (st, end)
-                .filter(
-                    ~(
-                        pl.col("chrom_st").eq(pl.lit(chrom_st))
-                        & pl.col("chrom_end").eq(pl.lit(chrom_st))
-                        | pl.col("chrom_st").eq(pl.lit(chrom_end))
-                        & pl.col("chrom_end").eq(pl.lit(chrom_end))
-                    )
-                )
-            )
+
         return df_final

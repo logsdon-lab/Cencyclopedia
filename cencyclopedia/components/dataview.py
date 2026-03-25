@@ -11,7 +11,7 @@ def dataview_tab(
     data_table: dash_table.DataTable,
     track_settings: BedTrackSettings,
     *,
-    disabled: bool = False,
+    all_disabled: bool = False,
 ):
     div_expand = html.Div(
         [
@@ -25,7 +25,7 @@ def dataview_tab(
                                 dbc.Button(
                                     "Update",
                                     id="btn-bed-update-tracks",
-                                    disabled=disabled,
+                                    disabled=True or all_disabled,
                                 )
                             ),
                             dbc.Row(
@@ -33,7 +33,7 @@ def dataview_tab(
                                     "Reset",
                                     id="btn-bed-reset-tracks",
                                     color="danger",
-                                    disabled=disabled,
+                                    disabled=False or all_disabled,
                                 )
                             ),
                         ],
@@ -58,7 +58,7 @@ def dataview_tab(
                                 value=track_settings["limit"],
                                 options=["All", *range(1, DEFAULT_TRACK_LIMIT + 1)],
                                 searchable=True,
-                                disabled=disabled,
+                                disabled=False or all_disabled,
                                 id="dropdown-bed-expand-tracks-limit",
                                 placeholder="Select a limit to the number of tracks",
                             ),
@@ -68,4 +68,19 @@ def dataview_tab(
             ),
         ]
     )
-    return [div_expand, html.Br(), html.H3("Data"), html.Hr(), data_table]
+    return html.Div(
+        [
+            div_expand,
+            html.Br(),
+            html.H3("Data"),
+            html.Hr(),
+            html.Div(
+                data_table,
+                style={
+                    "overflow": "scroll",
+                    # Hide scrollbar
+                    "scrollbar-width": "none",
+                },
+            ),
+        ]
+    )

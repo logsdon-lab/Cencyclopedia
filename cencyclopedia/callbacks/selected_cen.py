@@ -9,6 +9,18 @@ from dash.exceptions import PreventUpdate
 
 from cencyclopedia.plot.common import BedTrackSettings
 from cencyclopedia.plot.cen import draw_cenplot
+from cencyclopedia.components.err_msg import modal_body_content
+
+
+@callback(
+    Output("collapse-howto-selected-cen", "is_open"),
+    [Input("btn-collapse-howto-selected-cen", "n_clicks")],
+    [State("collapse-howto-selected-cen", "is_open")],
+)
+def toggle_howto_selected_cen(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 
 @callback(
@@ -33,10 +45,10 @@ def draw_selected_cen_figure(
     logger.debug(f"Draw update context: {ctx.triggered}")
     if not itv_selected_cen:
         raise PreventUpdate
-    # try:
-    fig, style = draw_cenplot(itv_selected_cen, bed_track_settings, cfg)
-    # except Exception as err:
-    #     return dash.no_update, dash.no_update, modal_body_content(str(err)), True
+    try:
+        fig, style = draw_cenplot(itv_selected_cen, bed_track_settings, cfg)
+    except Exception as err:
+        return dash.no_update, dash.no_update, modal_body_content(str(err)), True
     return fig, style, dash.no_update, dash.no_update
 
 

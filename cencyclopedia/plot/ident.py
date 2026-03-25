@@ -1,30 +1,47 @@
-from typing import Iterable
+import bisect
 import polars as pl
 import numpy as np
 import plotly.graph_objs as go
+
 from loguru import logger
+from typing import Iterable
 
 from cencyclopedia.io.constants import IDENT_BREAKPOINTS, IDENT_COLORS
+
+
+def assign_color_ident(ident: float, colorscale: list[list[float | str]]):
+    breakpoints, colors = zip(*colorscale)
+    try:
+        idx_end = bisect.bisect(breakpoints, ident)
+        if idx_end == 0:
+            color = colors[0]
+        else:
+            color = colors[idx_end - 1]
+    except IndexError:
+        _, color = colorscale[-1]
+
+    return color
 
 
 def format_colorscale(
     breakpoints: Iterable[float],
     colors: Iterable[str],
-) -> list[tuple[float, str]]:
+) -> list[list[float | str]]:
     assert len(breakpoints) == len(colors)
     brkpts = list(zip(breakpoints, colors))
     final_brkpts = []
     for i, (brk, color) in enumerate(brkpts):
-        try:
-            prev, _ = brkpts[i - 1]
-        except IndexError:
+        idx = i - 1
+        if idx == -1:
             prev = 0.0
-        final_brkpts.append((prev, color))
-        final_brkpts.append((brk, color))
+        else:
+            prev, _ = brkpts[i - 1]
+        final_brkpts.append([prev / 100.0, color])
+        final_brkpts.append([brk / 100.0, color])
 
     # Add final
     _, final_color = brkpts[-1]
-    final_brkpts.append((100.0, final_color))
+    final_brkpts.append([1.0, final_color])
     return final_brkpts
 
 
@@ -34,8 +51,8 @@ def add_heatmap_track(
     fig: go._figure.Figure,
     row: int,
     col: int,
-    min_value: float | None = None,
-    max_value: float | None = None,
+    zmin: float = 70.0,
+    zmax: float = 100.0,
     colorscale: list[tuple[float, str]] | None = None,
     flip_y: bool = True,
 ) -> None:
@@ -57,7 +74,7 @@ def add_heatmap_track(
         Min identity.
     max_value : float
         Max identity.
-    colorscale : list[str] | list[tuple[float| int, str]]
+    colorscale : list[tuple[float, str]]
         Colorscale identity breakpoints
     flip_y : bool
         Flip triangle.
@@ -67,9 +84,6 @@ def add_heatmap_track(
     None
         The function modifies the figure in-place.
     """
-    # compute zmin/zmax
-    zmax = max_value if max_value else data["percent_identity_by_events"].max()
-    zmin = min_value if min_value else data["percent_identity_by_events"].min()
     data = data.filter(
         (data["percent_identity_by_events"] >= zmin)
         & (data["percent_identity_by_events"] <= zmax)
@@ -81,6 +95,8 @@ def add_heatmap_track(
     if not colorscale:
         colorscale = format_colorscale(IDENT_BREAKPOINTS, IDENT_COLORS)
 
+    logger.debug(f"Using colorscale: {colorscale}")
+
     # build bins
     bins = (
         pl.concat(
@@ -89,7 +105,7 @@ def add_heatmap_track(
                     [pl.col("qry_st").alias("start"), pl.col("qry_end").alias("end")]
                 ),
                 data.select(
-                    [pl.col("ref_st").alias("start"), pl.col("qry_end").alias("end")]
+                    [pl.col("ref_st").alias("start"), pl.col("ref_end").alias("end")]
                 ),
             ]
         )
@@ -103,7 +119,6 @@ def add_heatmap_track(
     bin_centers = (bin_starts + bin_ends) / 2
 
     # join i/j
-    breakpoint()
     data = data.join(
         bins.rename({"start": "qry_st", "idx": "i"}), on="qry_st", how="left"
     ).join(bins.rename({"start": "ref_st", "idx": "j"}), on="ref_st", how="left")
@@ -163,15 +178,19 @@ def add_heatmap_track(
     z_vals[~mask_nonzero] = np.nan
 
     # add trace
+    invert = -1 if flip_y else 1
     fig.add_trace(
         go.Heatmap(
             x=x_bins,
-            y=y_bins,
+            y=y_bins * invert,
             z=z_vals,
             colorscale=colorscale,
             zmin=zmin,
             zmax=zmax,
             showscale=False,
+            # Can assign bg color but worthwhile?
+            # hoverlabel=dict(bgcolor=),
+            hovertemplate="Position: %{x}<br>Identity: %{z}%<extra></extra>",
             colorbar=dict(
                 orientation="h",  # horizontal
                 x=0.5,
@@ -183,13 +202,12 @@ def add_heatmap_track(
         row=row,
         col=col,
     )
-
     fig.update_yaxes(
-        range=[0, (x_max - x_min) / 2] if not flip_y else [(x_max - x_min) / 2, 0],
+        # Maintains aspect ratio when scaling figure.
         scaleanchor=f"x{row}",
         constrain="domain",
-        showticklabels=False,
-        ticks="",
+        ## If need to adjust, move up rather than to middle.
+        constraintoward="top",
         row=row,
-        col=1,
+        col=col,
     )

@@ -7,6 +7,7 @@ from PIL import Image
 from dash import dcc, html, get_asset_url
 from cencyclopedia.plot.image import add_image_to_figure
 from cencyclopedia.io.figure_1 import read_figure_1_bbox_data
+from cencyclopedia.components.help import row_title_with_help, collapse_help
 
 
 def draw_fig1(img: Image, df_fig1_bboxes: pl.DataFrame) -> go._figure.Figure:
@@ -79,74 +80,95 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
         [
             # Home selected cen
             dcc.Store(id="itv-selected-cen-home", data=selected_cen),
-            dcc.Markdown(
-                """
-                Sequence, structure, methylation pattern, local sequence identity, and haplotype frequency of 2,156 completely assembled centromeres from CHM13, CHM1, and 65 diverse human genomes.
-                * The α-satellite HORs are colored by the number of α-satellite monomers within them, and the orientation of the active α-satellite HOR arrays are indicated by an arrow.
-                * The site of the putative kinetochore, marked by the centromere dip region (CDR), is shown with a black bar.
-                * The local sequence identity across each centromeric region is indicated with a 1D heat map, and mobile element insertions (MEIs) within α-satellite HOR arrays are indicated with colored triangles.
-                * Haplotype frequencies are shown as pie charts, with the continental group indicated.
-                * The most common haplotype for each chromosome is marked with an asterisk.
-                """
-            ),
-            html.Hr(),
-            # All 226 new major haplotypes are shown in Supplementary Fig. 3. Zoomed-in views of each haplotype and their pie chart are also shown in Supplementary Figs. 4-6.
-            dbc.Row(
+            dbc.Col(
                 [
-                    dbc.Col(
+                    dbc.Row(
                         [
-                            dbc.Spinner(
-                                dcc.Graph(
-                                    id="fig-1-home",
-                                    figure=fig,
-                                    style={"height": "100vh"},
-                                )
-                            )
+                            dbc.Col(
+                                [
+                                    row_title_with_help(
+                                        "Centromere Haplotypes",
+                                        "btn-collapse-howto-fig1",
+                                        button_width=1,
+                                    ),
+                                    html.Hr(),
+                                    dcc.Markdown(
+                                        """
+                                        Sequence, structure, methylation pattern, local sequence identity, and haplotype frequency of 2,156 completely assembled centromeres from CHM13, CHM1, and 65 diverse human genomes.
+                                        * The α-satellite HORs are colored by the number of α-satellite monomers within them, and the orientation of the active α-satellite HOR arrays are indicated by an arrow.
+                                        * The site of the putative kinetochore, marked by the centromere dip region (CDR), is shown with a black bar.
+                                        * The local sequence identity across each centromeric region is indicated with a 1D heat map, and mobile element insertions (MEIs) within α-satellite HOR arrays are indicated with colored triangles.
+                                        * Haplotype frequencies are shown as pie charts, with the continental group indicated.
+                                        * The most common haplotype for each chromosome is marked with an asterisk.
+                                        """
+                                    ),
+                                ],
+                                width=6,
+                            ),
+                            dbc.Col(
+                                [
+                                    collapse_help(
+                                        """
+                                    1. Each centromere haplotype on this figure is clickable.
+                                        * Hovering over each centromere displays the contig, superpopulation and sex.
+                                    2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
+                                    3. To move around the image, use the **"Pan"** option.
+                                    4. To reset the image, click the **"Reset axes"**.
+                                    """,
+                                        "collapse-howto-fig1",
+                                    ),
+                                    dbc.Spinner(
+                                        dcc.Graph(
+                                            id="fig-1-home",
+                                            figure=fig,
+                                            style={"height": "50vh"},
+                                        )
+                                    ),
+                                ],
+                                width=6,
+                            ),
                         ],
-                        width=6,
                     ),
-                    dbc.Col(
+                    html.Br(),
+                    dbc.Row(
                         [
-                            html.Br(),
-                            html.Br(),
-                            dbc.Alert(
-                                "No two centromeres are identical! Click a centromere on the left and see how it compare to CHM13.",
-                                color="primary",
+                            dbc.Col(
+                                dbc.Spinner(
+                                    [
+                                        html.H5(
+                                            f"chm13_{default_chrom_name}",
+                                            id="lbl-selected-cen-home-chm13",
+                                        ),
+                                        html.Br(),
+                                        dcc.Graph(
+                                            id="fig-selected-cen-home-chm13",
+                                            responsive=True,
+                                            config={"displaylogo": False},
+                                            style={"height": "34vh"},
+                                        ),
+                                    ]
+                                ),
+                                width=6,
                             ),
-                            html.Br(),
-                            dbc.Spinner(
-                                [
-                                    html.H4(
-                                        f"chm13_{default_chrom_name}",
-                                        id="lbl-selected-cen-home-chm13",
-                                    ),
-                                    html.Br(),
-                                    dcc.Graph(
-                                        id="fig-selected-cen-home-chm13",
-                                        responsive=True,
-                                        config={"displaylogo": False},
-                                        style={"height": "25vh"},
-                                    ),
-                                ]
-                            ),
-                            html.Br(),
-                            dbc.Spinner(
-                                [
-                                    html.H4(
-                                        selected_cen[0],
-                                        id="lbl-selected-cen-home",
-                                    ),
-                                    html.Br(),
-                                    dcc.Graph(
-                                        id="fig-selected-cen-home",
-                                        responsive=True,
-                                        config={"displaylogo": False},
-                                        style={"height": "25vh"},
-                                    ),
-                                ]
+                            dbc.Col(
+                                dbc.Spinner(
+                                    [
+                                        html.H5(
+                                            selected_cen[0],
+                                            id="lbl-selected-cen-home",
+                                        ),
+                                        html.Br(),
+                                        dcc.Graph(
+                                            id="fig-selected-cen-home",
+                                            responsive=True,
+                                            config={"displaylogo": False},
+                                            style={"height": "34vh"},
+                                        ),
+                                    ]
+                                ),
+                                width=6,
                             ),
                         ],
-                        width=6,
                     ),
                 ]
             ),

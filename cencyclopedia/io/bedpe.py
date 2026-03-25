@@ -29,9 +29,6 @@ def read_identity_breakpoints(
 
 def read_bedpe_selfident_row(
     rec: tuple[str, str, str, str, str, str, str],
-    # breakpoints: list[float],
-    # colors: list[str],
-    # ) -> tuple[str, int, int, str, int, int, float, str, str]:
 ) -> tuple[str, int, int, str, int, int, float]:
     qry, qry_st, qry_end, ref, ref_st, ref_end, ident = rec
     qry_st = int(qry_st)
@@ -39,34 +36,22 @@ def read_bedpe_selfident_row(
     ref_st = int(ref_st)
     ref_end = int(ref_end)
     ident = float(ident)
-    # if ident == 0.0:
-    #     color = colors[0]
-    #     desc = str(ident_end)
-    #     # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
-    #     return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
-    # try:
-    #     idx_end = bisect.bisect(breakpoints, ident)
-    #     ident_end = breakpoints[idx_end]
-    #     if idx_end == 0:
-    #         ident_st = 0.0
-    #         color = colors[0]
-    #     else:
-    #         ident_st = breakpoints[idx_end - 1]
-    #         color = colors[idx_end - 1]
-    #     desc = f"{ident_st}%-{ident_end}%"
-    # except IndexError:
-    #     ident_end = breakpoints[-1]
-    #     color = colors[-1]
-    #     desc = str(ident_end)
-
     return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident)
-    # return (qry, qry_st, qry_end, ref, ref_st, ref_end, ident, color, desc)
 
 
-def to_relative_coords_bedpe_selfident(df: pl.DataFrame) -> pl.DataFrame:
+def to_relative_coords_bedpe_selfident(
+    df: pl.DataFrame, min_st: int | None
+) -> pl.DataFrame:
+    if min_st:
+        min_st_ref = pl.lit(min_st)
+        min_st_qry = pl.lit(min_st)
+    else:
+        min_st_ref = pl.col("ref_st").min().over("ref")
+        min_st_qry = pl.col("qry_st").min().over("qry")
+
     return df.with_columns(
-        pl.col("qry_st") - pl.col("qry_st").min().over("qry"),
-        pl.col("qry_end") - pl.col("qry_st").min().over("qry"),
-        pl.col("ref_st") - pl.col("ref_st").min().over("ref"),
-        pl.col("ref_end") - pl.col("ref_st").min().over("ref"),
+        pl.col("qry_st") - min_st_qry,
+        pl.col("qry_end") - min_st_qry,
+        pl.col("ref_st") - min_st_ref,
+        pl.col("ref_end") - min_st_ref,
     )

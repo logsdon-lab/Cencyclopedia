@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 from typing import Any
 from dash import html, dcc
 from cencyclopedia.io.data import Data
+from cencyclopedia.components.help import row_title_with_help, collapse_help
 from cencyclopedia.components.err_msg import modal_error_message
 from cencyclopedia.plot.common import default_bed_track_settings
 
@@ -22,7 +23,8 @@ SIDEBAR_STYLE = {
     "scrollbar-width": "none",
     "background-color": "#f8f9fa",
 }
-CONTENT_STYLE = {
+CONTENT_STYLE = {"padding-left": "4rem", "padding-right": "6rem"}
+CONTAINER_STYLE = {
     "overflow": "scroll",
     # Hide scrollbar
     "scrollbar-width": "none",
@@ -102,8 +104,20 @@ def main_content(
                 [
                     dbc.Col(
                         [
-                            html.H3("Tree"),
+                            row_title_with_help("Tree", "btn-collapse-howto-tree"),
                             html.Hr(),
+                            collapse_help(
+                                """
+                                1. Each centromere haplotype on this figure is clickable.
+                                    * Hovering over each centromere displays the contig name, superpopulation, and sex.
+                                2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
+                                3. To move around the image, use the **"Pan"** option.
+                                4. To reset the image, click the **"Reset axes"** icon.
+                                5. To display the figure legend, click anywhere in the top-most part of the image.
+                                """,
+                                "collapse-howto-tree",
+                            ),
+                            html.Br(),
                             fig_tree,
                             dbc.Popover(
                                 [fig_tree_legend],
@@ -120,8 +134,39 @@ def main_content(
                     ),
                     dbc.Col(
                         [
-                            html.H3("Tracks"),
+                            row_title_with_help(
+                                "Tracks", "btn-collapse-howto-selected-cen"
+                            ),
                             html.Hr(),
+                            collapse_help(
+                                """
+                                ### General
+                                1. Select a contig from the dropdown. Contigs are ordered in the same order as the tree.
+                                2. There are multiple ways to adjust position in the displayed plot:
+                                    1. Adjust the slider. Click the **"Reset"** button to reset to the original coordinates.
+                                    2. Zoom in using the **"Zoom"** icon.
+                                    3. Drag along the track with **"Pan"** to move to a new position.
+                                3. Hover over individual annotations to get a short description.
+
+                                ### Expand
+                                To expand BED tracks, use the "Expand Tracks" section. The following modes are possible:
+                                * Original
+                                    * Default.
+                                * Length
+                                    * Show the largest annotation at the top.
+                                * Frequency
+                                    * Show the most frequent annotation at the top.
+                                * Coverage
+                                    * Show the annotation covering the largest portion of the region.
+
+                                Once set, click **"Update"** to replot.
+                                * *"All"* or a set number up to 50 can be drawn at a time.
+
+                                To reset the tracks for a give data type to its default. Click the **"Reset"** button.
+                                * This is only done for that data type.
+                                """,
+                                "collapse-howto-selected-cen",
+                            ),
                             rangeslider_selected_cen,
                             html.Br(),
                             dbc.Spinner(
@@ -197,10 +242,10 @@ def main_page(
                     dbc.Col(
                         width=10,
                         id="main-content",
-                        style={"padding-left": "8rem", "padding-right": "2rem"},
+                        style=CONTENT_STYLE,
                     ),
                 ],
-                style=CONTENT_STYLE,
+                style=CONTAINER_STYLE,
             ),
         ],
         style={

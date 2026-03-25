@@ -12,6 +12,17 @@ from cencyclopedia.plot.cen import draw_cenplot
 from cencyclopedia.plot.common import add_empty_track
 
 
+@callback(
+    Output("collapse-howto-fig1", "is_open"),
+    [Input("btn-collapse-howto-fig1", "n_clicks")],
+    [State("collapse-howto-fig1", "is_open")],
+)
+def toggle_howto_fig1_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
 # Return chm13 and other.
 @callback(
     Output("fig-selected-cen-home", "figure"),
@@ -53,13 +64,30 @@ def draw_selected_cen_home_figure(
         k: v for k, v in cfg["data"].items() if k in cfg["general"]["fig_1"]["use_data"]
     }
 
-    # TODO: Then set both to largest xlim and relative coordinates
+    # Then set both to largest xlim and relative coordinates
     fig_cfg = deepcopy(cfg)
+    fig_cfg["general"]["selected_cen"]["ytitle_pos"] = "right"
+    fig_cfg["general"]["selected_cen"]["lmargin"] = 0
+    fig_cfg["general"]["selected_cen"]["rmargin"] = 100
+
     fig_chm13_cfg = deepcopy(cfg)
-    fig, _ = draw_cenplot(itv_selected_cen, None, fig_cfg)
+    fig_chm13_cfg["general"]["selected_cen"]["ytitle_pos"] = "right"
+    fig_chm13_cfg["general"]["selected_cen"]["lmargin"] = 0
+    fig_chm13_cfg["general"]["selected_cen"]["rmargin"] = 100
+
+    length_selected_cen = itv_selected_cen[2] - itv_selected_cen[1]
+    if itv_chm13:
+        length_chm13 = itv_chm13[2] - itv_chm13[1]
+        xlim = (0, max(length_selected_cen, length_chm13))
+    else:
+        xlim = (0, length_selected_cen)
+
+    fig, _ = draw_cenplot(itv_selected_cen, None, fig_cfg, to_relative=True, xlim=xlim)
 
     if itv_chm13:
-        fig_chm13, _ = draw_cenplot(itv_chm13, None, fig_chm13_cfg)
+        fig_chm13, _ = draw_cenplot(
+            itv_chm13, None, fig_chm13_cfg, to_relative=True, xlim=xlim
+        )
     else:
         fig_chm13 = go._figure.Figure()
         add_empty_track(fig_chm13, xlim=[0, 1])

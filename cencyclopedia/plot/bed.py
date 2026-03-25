@@ -19,8 +19,8 @@ def add_bedgraph_track(df_bg: pl.DataFrame, fig: go._figure.Figure, **kwargs):
                 st,
             ],
             y=[0, 0, value, value, 0],
-            line=dict(color="#000000", width=2),
-            hovertemplate=f"Interval: ({st}, {end})<br>Value: {value}<br>Length: {length}",
+            line=dict(color="#000000"),
+            hovertemplate=f"Interval: ({st}, {end})<br>Length: {length}<br>Value: {value}<extra></extra>",
             mode="text",
             fillcolor="#000000",
             showlegend=False,
@@ -66,11 +66,11 @@ def add_bed_track(
                 y.extend([0, 0, 1, 1, 0, None])
                 custom_data.extend((hoverdata for _ in range(6)))
 
-        fig.add_scatter(
+        fig.add_scattergl(
             fill="toself",
             x=x,
             y=y,
-            line=dict(color=color, width=2),
+            line=dict(color=color),
             customdata=custom_data,
             name=name,
             mode="text",
