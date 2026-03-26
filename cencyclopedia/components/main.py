@@ -14,24 +14,11 @@ SIDEBAR_STYLE = {
     "left": 0,
     "bottom": 0,
     "width": "16rem",
-    "padding-top": "2rem",
-    "padding-bottom": "2rem",
-    "padding-left": "1rem",
-    "padding-right": "1rem",
-    # Hide scrollbar
-    "overflow": "scroll",
-    "scrollbar-width": "none",
+    "padding": "2rem 1rem",
     "background-color": "#f8f9fa",
 }
-CONTENT_STYLE = {"padding-left": "4rem", "padding-right": "6rem"}
-CONTAINER_STYLE = {
-    "overflow": "scroll",
-    # Hide scrollbar
-    "scrollbar-width": "none",
-    "padding-top": "2rem",
-    "padding-bottom": "2rem",
-    "padding-left": "1rem",
-    "padding-right": "1rem",
+CONTENT_STYLE = {
+    "padding": "2rem 10rem",
 }
 
 
@@ -236,14 +223,13 @@ def main_page(
             dcc.Location(id="url", refresh=False),
             dbc.Row(
                 [
-                    dbc.Col(sidebar, width=2),
+                    dbc.Col(sidebar, width=1),
                     dbc.Col(
-                        width=10,
+                        width=11,
                         id="main-content",
                         style=CONTENT_STYLE,
                     ),
                 ],
-                style=CONTAINER_STYLE,
             ),
         ],
         style={

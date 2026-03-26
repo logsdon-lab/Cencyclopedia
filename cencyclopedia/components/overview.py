@@ -64,7 +64,11 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                                 "displaylogo": False,
                                                 "displayModeBar": True,
                                             },
-                                            style={"height": "100vh"},
+                                            style={
+                                                "height": cfg["general"]["fig_1"][
+                                                    "height_figure"
+                                                ]
+                                            },
                                         )
                                     ),
                                 ],
@@ -88,7 +92,11 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                                 id="fig-selected-cen-home-chm13",
                                                 responsive=True,
                                                 config={"displaylogo": False},
-                                                style={"height": "34vh"},
+                                                style={
+                                                    "height": cfg["general"]["fig_1"][
+                                                        "height_cens"
+                                                    ]
+                                                },
                                             ),
                                         ],
                                     ),
@@ -104,7 +112,11 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                                 id="fig-selected-cen-home",
                                                 responsive=True,
                                                 config={"displaylogo": False},
-                                                style={"height": "34vh"},
+                                                style={
+                                                    "height": cfg["general"]["fig_1"][
+                                                        "height_cens"
+                                                    ]
+                                                },
                                             ),
                                         ]
                                     ),
