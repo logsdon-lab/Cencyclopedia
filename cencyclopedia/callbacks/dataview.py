@@ -14,6 +14,14 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
 
 
 @callback(
+    Output("btn-bed-update-tracks", "disabled"),
+    Input("rd-bed-expand-tracks-mode", "value"),
+)
+def disable_update_while_original(mode: str) -> bool:
+    return mode == "Original"
+
+
+@callback(
     Output("itv-selected-cen", "data"),
     Input("fig-selected-cen", "relayoutData"),
     State("itv-selected-cen", "data"),
@@ -27,7 +35,9 @@ def update_selected_cen_coords_from_zoom_info(
     # Get coordinates from zoom level.
     logger.debug(f"Zoom info: {zoom_info}")
     st, end = sys.maxsize, 0
-    for val in zoom_info.values():
+    for key, val in zoom_info.items():
+        if not key.startswith("xaxis"):
+            continue
         val = round(val)
         st = min(st, val)
         end = max(end, val)
@@ -51,7 +61,7 @@ def draw_dataview_tab(
     itv_selected_cen: tuple[str, int, int] | None,
     cfg: dict[str, Any],
     expand_tracks: dict[str, BedTrackSettings],
-) -> list[html.Br | dash_table.DataTable | html.Div | html.H3 | html.Hr]:
+) -> html.Div:
     if not itv_selected_cen:
         return dash.no_update
 
@@ -73,7 +83,7 @@ def draw_dataview_tab(
     track_settings = expand_tracks[data_label]
     disabled = data_fhs.datatype(data_label) not in EXPANDABLE_DTYPES
     return dataview_tab(
-        data_table=data_table, track_settings=track_settings, disabled=disabled
+        data_table=data_table, track_settings=track_settings, all_disabled=disabled
     )
 
 

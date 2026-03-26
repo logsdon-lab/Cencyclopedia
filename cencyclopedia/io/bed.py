@@ -27,8 +27,6 @@ BEDPE_SCHEMA = {
     "ref_st": pl.UInt64,
     "ref_end": pl.UInt64,
     "percent_identity_by_events": pl.Float32,
-    "color": pl.String,
-    "desc": pl.String,
 }
 
 
@@ -92,8 +90,12 @@ def read_bed_local_selfident_row(
     return (chrom, chrom_st, chrom_end, label, color, ident)
 
 
-def to_relative_coords_bed(df: pl.DataFrame):
+def to_relative_coords_bed(df: pl.DataFrame, min_st: int | None):
+    if min_st:
+        min_st = pl.lit(min_st)
+    else:
+        min_st = pl.col("chrom_st").min().over("chrom")
     return df.with_columns(
-        pl.col("chrom_st") - pl.col("chrom_st").min().over("chrom"),
-        pl.col("chrom_end") - pl.col("chrom_st").min().over("chrom"),
+        pl.col("chrom_st") - min_st,
+        pl.col("chrom_end") - min_st,
     )

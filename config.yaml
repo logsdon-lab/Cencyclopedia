@@ -3,15 +3,19 @@ general:
     bboxes: assets/Figure1_chrom_bboxes.csv
     order: assets/Figure1_order.csv
     use_data:
+    - "MEI"
     - "CDR"
     - "CpG Methylation"
     - "Satellite Structure"
     - "Alpha-satellite HORs"
+    - "Local Self-Identity"
+    - "Alpha-satellite HOR array orientation"
+    - "Self-Identity"
   tree:
     # Tree height
-    height: 100vh
+    height: 200vh
     # Tree width (x / 12)
-    width: 6
+    width: 7
     # Midpoint of tree. Defaults to half of the image.
     xmidpt:
       chr13: 4000
@@ -34,9 +38,13 @@ general:
       default: 77
   selected_cen:
     # Selected centromere height
-    height: 300
+    height: 500
     # Centromere plot width (x / 12)
-    width: 6
+    width: 5
+    # y-axis title position. left or right. Should also adjust margins below to accomodate.
+    ytitle_pos: left
+    # y-axis title borderpad pad
+    ytitle_borderpad: 20
     # Left, right, bottom, and top margin of selected cen plot
     lmargin: 100
     rmargin: 0
@@ -120,10 +128,12 @@ data:
         showline: false
   "Alpha-satellite HORs":
     path: data/all_AS-HOR_stv_row.bed.gz
+    # position: relative
     position: overlap
     type: bed
+    # prop: 0.05
     options:
-      rle: true
+      rle: false
       xaxis_kwargs:
         ticks: ""
         showline: false
@@ -136,7 +146,7 @@ data:
     path: data/all_local_self_identity.bed.gz
     position: relative
     type: bed_localselfident
-    prop: 0.01
+    prop: 0.02
     options:
       rle: false
       xaxis_kwargs:
@@ -162,11 +172,21 @@ data:
         showticklabels: false
         ticks: ""
         showline: false
-  # "Self-Identity":
-  #   path: data/all_ModDotPlot.bed.gz
-  #   position: relative
-  #   type: bedpe_selfident
-  #   prop: 4.0
+  "Self-Identity":
+    # If dir, will expect ${dir}/${contig}.bed.gz
+    path: data/ModDotPlot/
+    position: relative
+    type: bedpe_selfident
+    prop: 0.5
+    options:
+        rle: false
+        xaxis_kwargs:
+          showline: false
+        yaxis_kwargs:
+          showline: false
+          showticklabels: false
+          ticks: ""
+          title_text: Self-Identity
 regions: data/all_array.bed.gz
 clades: data/clades.tsv.gz
 sample_metadata: data/sample_metadata.tsv.gz

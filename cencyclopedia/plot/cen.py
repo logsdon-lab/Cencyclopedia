@@ -6,12 +6,13 @@ from loguru import logger
 from plotly.subplots import make_subplots
 
 from cencyclopedia.io.data import Data
+from cencyclopedia.io.common import clip_df
 from cencyclopedia.plot.common import (
     BedTrackSettings,
     add_empty_track,
     default_bed_track_settings,
 )
-from cencyclopedia.plot.ident import add_ident_track
+from cencyclopedia.plot.ident import add_heatmap_track
 from cencyclopedia.plot.bed import (
     add_bed_track,
     add_bedgraph_track,
@@ -24,6 +25,7 @@ def draw_cenplot(
     bed_track_settings: dict[str, BedTrackSettings] | None,
     cfg: dict[str, Any],
     *,
+    xlim: tuple[int, int] | None = None,
     to_relative: bool = False,
 ) -> tuple[go._figure.Figure, dict[str, Any]] | None:
     if not itv_selected_cen:
@@ -48,16 +50,27 @@ def draw_cenplot(
         mode = track_settings["mode"]
         # Whether to run-length encode
         rle = data_fhs.options(label).get("rle", True)
-        df = data_fhs.split(
-            label,
-            chrom,
-            st,
-            end,
-            by=mode,
-            to_relative=to_relative,
-            rle=rle,
-            clip=True,
-        ).sort(by="group")
+        dtype = data_fhs.datatype(label)
+        if dtype == "bedpe_selfident":
+            df = data_fhs.query(
+                label, chrom, st, end, to_relative=to_relative
+            ).with_columns(group=pl.lit(0))
+        else:
+            df = data_fhs.split(
+                label,
+                chrom,
+                st,
+                end,
+                by=mode,
+                to_relative=to_relative,
+                rle=rle,
+            ).sort(by="group")
+
+            if to_relative:
+                df = clip_df(df, 0, end - st)
+            else:
+                df = clip_df(df, st, end)
+
         if prop:
             total_original_prop += prop
 
@@ -67,11 +80,11 @@ def draw_cenplot(
                 continue
             props.append(prop)
         else:
-            # Overlap ignored if expanded. Force to take space.
+            # Overlap ignored if expanded. Force to take space by adding 1 offset.
             if not prop:
                 prev_label, prev_idx, prev_prop = track_params[i - 1]
                 prop = prev_prop
-                idx = idx + 1
+                idx_offset += 1
 
             # Split by all or a set limit.
             if track_settings["limit"] == "All":
@@ -80,14 +93,17 @@ def draw_cenplot(
                 limit = min(track_settings["limit"], df["group"].n_unique())
 
             split_indices = []
-            for split_idx in range(limit + 1):
+            # limit is 1-based
+            for i in range(limit):
                 props.append(prop)
-                split_indices.append(idx + split_idx + idx_offset)
-
-            idx_offset += limit
+                split_indices.append(idx + i + idx_offset)
+            # So we need to subtract
+            idx_offset += limit - 1
             indices[label] = (split_indices, df)
 
-    logger.debug(f"Generating subplot with {len(props)} rows. Indices are: {indices}")
+    logger.debug(
+        f"Generating subplot with {len(props)} rows. Props are {props} and indices are: {indices}"
+    )
 
     fig: go._figure.Figure = make_subplots(
         rows=len(props),
@@ -96,12 +112,23 @@ def draw_cenplot(
         row_heights=props,
         horizontal_spacing=0,
     )
+    # Set range to start and end so legend axis ticks reach plot.
+    if xlim:
+        xrange = xlim
+    elif to_relative:
+        xrange = (0, end - st)
+    else:
+        xrange = (st, end)
 
     # Adjust height
     style = {"height": cfg["general"]["selected_cen"]["height"]}
     if isinstance(cfg["general"]["selected_cen"]["height"], int):
         ht_adj_ratio = sum(props) / total_original_prop
-        style["height"] = cfg["general"]["selected_cen"]["height"] * ht_adj_ratio
+        new_height = cfg["general"]["selected_cen"]["height"] * ht_adj_ratio
+        style["height"] = new_height
+        logger.debug(
+            f"Updated height from {cfg['general']['selected_cen']['height']} to {new_height}"
+        )
 
     idx_yaxis_titles = {}
     for label, (indices, df) in indices.items():
@@ -109,8 +136,8 @@ def draw_cenplot(
         options = data_fhs.options(label)
         dfs_groups = list(df.group_by(["group"], maintain_order=True))
         # https://plotly.com/python/reference/layout/xaxis/
-        update_xaxis_kwargs = options.get("xaxis_kwargs")
-        update_yaxis_kwargs = options.get("yaxis_kwargs")
+        update_xaxis_kwargs = options.get("xaxis_kwargs", {})
+        update_yaxis_kwargs = options.get("yaxis_kwargs", {})
 
         for i, track_idx in enumerate(indices):
             # Remove title text before updating axes args
@@ -121,31 +148,33 @@ def draw_cenplot(
 
             # Only plot first.
             if yaxis_title and not idx_yaxis_titles.get(track_idx):
+                if cfg["general"]["selected_cen"]["ytitle_pos"] == "left":
+                    annot_kwargs = {"x": 0.0, "xanchor": "right"}
+                elif cfg["general"]["selected_cen"]["ytitle_pos"] == "right":
+                    annot_kwargs = {"x": 1.0, "xanchor": "left"}
+                else:
+                    raise ValueError("Invalid position")
+
+                if cfg["general"]["selected_cen"].get("ytitle_borderpad"):
+                    annot_kwargs["borderpad"] = cfg["general"]["selected_cen"][
+                        "ytitle_borderpad"
+                    ]
+
                 fig.add_annotation(
-                    x=0,
                     y=0.5,
                     valign="middle",
                     xref="x domain",
                     axref="x domain",
                     yref="y domain",
                     ayref="y domain",
-                    xanchor="right",
                     yanchor="middle",
-                    borderpad=20,
                     text=yaxis_title,
                     showarrow=False,
                     row=track_idx,
                     col=1,
+                    **annot_kwargs,
                 )
                 idx_yaxis_titles[track_idx] = yaxis_title
-
-            # Set range to start and end so legend axis ticks reach plot.
-            fig.update_xaxes(
-                **update_xaxis_kwargs, range=(st, end), row=track_idx, col=1
-            )
-            fig.update_yaxes(
-                **update_yaxis_kwargs, row=track_idx, col=1, fixedrange=True
-            )
 
             try:
                 grp, df_grp = dfs_groups[i]
@@ -157,6 +186,10 @@ def draw_cenplot(
                     row=track_idx,
                     col=1,
                 )
+                fig.update_xaxes(
+                    **update_xaxis_kwargs, range=(st, end), row=track_idx, col=1
+                )
+                fig.update_yaxes(**update_yaxis_kwargs, row=track_idx, col=1)
                 logger.debug(
                     f"Finished adding empty track for {label} on track {track_idx}"
                 )
@@ -177,15 +210,26 @@ def draw_cenplot(
             elif dtype == "bedstrand":
                 add_bedstrand_track(df_grp, fig, row=track_idx, col=1)
             elif dtype == "bedpe_selfident":
-                add_ident_track(df_grp, fig, row=track_idx, col=1)
+                add_heatmap_track(df_grp, fig, row=track_idx, col=1)
             else:
                 logger.debug(
                     f"Ignoring {label} (Group {grp}) of type {dtype} at index of {track_idx}"
                 )
 
+            # constrain domain to prevent plotly from extending beyond data
+            fig.update_xaxes(
+                **update_xaxis_kwargs,
+                constrain="range",
+                range=xrange,
+                row=track_idx,
+                col=1,
+            )
+            fig.update_yaxes(**update_yaxis_kwargs, row=track_idx, col=1)
+
             logger.debug(f"Finished adding {label} (Group {grp}) on track {track_idx}")
 
     fig.update_layout(
+        autosize=True,
         template="simple_white",
         xaxis={"showgrid": False},
         yaxis={"showgrid": False},

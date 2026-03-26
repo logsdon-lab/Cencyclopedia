@@ -33,7 +33,13 @@ def add_image_to_figure(
     xaxis_kwargs = {"visible": False} | xaxis_kwargs
     yaxis_kwargs = {"visible": False} | yaxis_kwargs
     fig.update_xaxes(range=[0, img_width], **xaxis_kwargs)
-    fig.update_yaxes(scaleanchor="x", range=[-img_height, 0], **yaxis_kwargs)
+    fig.update_yaxes(
+        scaleanchor="x",
+        range=[-img_height, 0],
+        constrain="domain",
+        constraintoward="top",
+        **yaxis_kwargs,
+    )
 
     # Add image
     fig.add_layout_image(

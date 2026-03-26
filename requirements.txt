@@ -1,5 +1,4 @@
 polars
-censtats
 matplotlib
 plotly
 dash==4.0.0
@@ -8,5 +7,4 @@ pyyaml
 loguru
 pillow
 dash_bootstrap_components
-cenplot
 gunicorn

@@ -13,6 +13,17 @@ from cencyclopedia.components.err_msg import modal_body_content
 
 
 @callback(
+    Output("collapse-howto-selected-cen", "is_open"),
+    [Input("btn-collapse-howto-selected-cen", "n_clicks")],
+    [State("collapse-howto-selected-cen", "is_open")],
+)
+def toggle_howto_selected_cen(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
+@callback(
     Output("fig-selected-cen", "figure"),
     Output("fig-selected-cen", "style"),
     Output("body-err-msg", "children"),

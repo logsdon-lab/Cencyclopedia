@@ -18,6 +18,17 @@ from cencyclopedia.io.common import get_regions
 
 
 @callback(
+    Output("collapse-howto-tree", "is_open"),
+    [Input("btn-collapse-howto-tree", "n_clicks")],
+    [State("collapse-howto-tree", "is_open")],
+)
+def toggle_howto_tree_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
+@callback(
     Output("rng-itv-selected_cens", "value"),
     Output("rng-itv-selected_cens", "min"),
     Output("rng-itv-selected_cens", "max"),
@@ -131,7 +142,7 @@ def draw_main_content_page(
                 figure=fig,
                 id="fig-cens-tree",
                 responsive=True,
-                config={"displaylogo": False},
+                config={"displaylogo": False, "displayModeBar": True},
             ),
             fig_tree_legend=create_tree_legend_figure(),
             rangeslider_selected_cen=rangeslider_selected_cen(

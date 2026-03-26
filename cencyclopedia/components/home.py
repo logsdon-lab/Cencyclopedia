@@ -72,6 +72,8 @@ def home_page():
             html.Hr(),
             dcc.Markdown("""
                 We thank an anonymous reviewer for suggesting we build this interactive centromere visualization tool.
+
+                And [Zikun Yang](https://github.com/Zikun-Yang) in the [Mao Lab](https://www.yafmao.org/) at Shanghai Jiao Tong University for providing code to efficiently plot the self-identity heatmap.
             """),
             html.H4("Cite"),
             html.Hr(),
