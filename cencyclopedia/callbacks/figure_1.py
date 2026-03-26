@@ -4,12 +4,15 @@ import dash
 import polars as pl
 import plotly.graph_objs as go
 
+from PIL import Image
 from copy import deepcopy
 from typing import Any
 from loguru import logger
-from dash import Input, Output, callback, ctx, State
+from dash import Input, Output, callback, ctx, State, get_asset_url
 from cencyclopedia.plot.cen import draw_cenplot
 from cencyclopedia.plot.common import add_empty_track
+from cencyclopedia.plot.figure_1 import draw_fig1
+from cencyclopedia.io.figure_1 import read_figure_1_bbox_data
 
 
 @callback(
@@ -21,6 +24,25 @@ def toggle_howto_fig1_collapse(n, is_open):
     if n:
         return not is_open
     return is_open
+
+
+@callback(
+    Output("fig-1-home", "figure"),
+    # Not actually updating. Will load once.
+    Input("cfg", "data"),
+    State("regions", "data"),
+)
+def draw_figure_1(cfg: dict[str, Any], regions: str):
+    df_fig1_data = read_figure_1_bbox_data(cfg)
+    df_regions = pl.scan_csv(regions).collect()
+
+    # Add population and sex
+    df_fig1_data = df_fig1_data.join(
+        df_regions.select("chrom", "population", "sex", "color"),
+        on="chrom",
+        how="left",
+    )
+    return draw_fig1(Image.open(get_asset_url("Figure1.png")), df_fig1_data)
 
 
 # Return chm13 and other.
@@ -75,19 +97,9 @@ def draw_selected_cen_home_figure(
     fig_chm13_cfg["general"]["selected_cen"]["lmargin"] = 0
     fig_chm13_cfg["general"]["selected_cen"]["rmargin"] = 100
 
-    length_selected_cen = itv_selected_cen[2] - itv_selected_cen[1]
+    fig, _ = draw_cenplot(itv_selected_cen, None, fig_cfg, to_relative=True)
     if itv_chm13:
-        length_chm13 = itv_chm13[2] - itv_chm13[1]
-        xlim = (0, max(length_selected_cen, length_chm13))
-    else:
-        xlim = (0, length_selected_cen)
-
-    fig, _ = draw_cenplot(itv_selected_cen, None, fig_cfg, to_relative=True, xlim=xlim)
-
-    if itv_chm13:
-        fig_chm13, _ = draw_cenplot(
-            itv_chm13, None, fig_chm13_cfg, to_relative=True, xlim=xlim
-        )
+        fig_chm13, _ = draw_cenplot(itv_chm13, None, fig_chm13_cfg, to_relative=True)
     else:
         fig_chm13 = go._figure.Figure()
         add_empty_track(fig_chm13, xlim=[0, 1])

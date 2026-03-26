@@ -142,7 +142,7 @@ def draw_main_content_page(
                 figure=fig,
                 id="fig-cens-tree",
                 responsive=True,
-                config={"displaylogo": False},
+                config={"displaylogo": False, "displayModeBar": True},
             ),
             fig_tree_legend=create_tree_legend_figure(),
             rangeslider_selected_cen=rangeslider_selected_cen(

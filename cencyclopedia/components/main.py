@@ -105,7 +105,6 @@ def main_content(
                     dbc.Col(
                         [
                             row_title_with_help("Tree", "btn-collapse-howto-tree"),
-                            html.Hr(),
                             collapse_help(
                                 """
                                 1. Each centromere haplotype on this figure is clickable.
@@ -137,7 +136,6 @@ def main_content(
                             row_title_with_help(
                                 "Tracks", "btn-collapse-howto-selected-cen"
                             ),
-                            html.Hr(),
                             collapse_help(
                                 """
                                 ### General

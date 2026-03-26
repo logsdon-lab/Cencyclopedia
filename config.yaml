@@ -3,10 +3,13 @@ general:
     bboxes: assets/Figure1_chrom_bboxes.csv
     order: assets/Figure1_order.csv
     use_data:
+    - "MEI"
     - "CDR"
     - "CpG Methylation"
     - "Satellite Structure"
     - "Alpha-satellite HORs"
+    - "Local Self-Identity"
+    - "Alpha-satellite HOR array orientation"
     - "Self-Identity"
   tree:
     # Tree height
@@ -143,7 +146,7 @@ data:
     path: data/all_local_self_identity.bed.gz
     position: relative
     type: bed_localselfident
-    prop: 0.01
+    prop: 0.02
     options:
       rle: false
       xaxis_kwargs:

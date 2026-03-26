@@ -112,6 +112,13 @@ def draw_cenplot(
         row_heights=props,
         horizontal_spacing=0,
     )
+    # Set range to start and end so legend axis ticks reach plot.
+    if xlim:
+        xrange = xlim
+    elif to_relative:
+        xrange = (0, end - st)
+    else:
+        xrange = (st, end)
 
     # Adjust height
     style = {"height": cfg["general"]["selected_cen"]["height"]}
@@ -209,18 +216,10 @@ def draw_cenplot(
                     f"Ignoring {label} (Group {grp}) of type {dtype} at index of {track_idx}"
                 )
 
-            # Set range to start and end so legend axis ticks reach plot.
-            if xlim:
-                xrange = xlim
-            elif to_relative:
-                xrange = (0, end - st)
-            else:
-                xrange = (st, end)
-
             # constrain domain to prevent plotly from extending beyond data
             fig.update_xaxes(
                 **update_xaxis_kwargs,
-                constrain="domain",
+                constrain="range",
                 range=xrange,
                 row=track_idx,
                 col=1,
@@ -230,6 +229,7 @@ def draw_cenplot(
             logger.debug(f"Finished adding {label} (Group {grp}) on track {track_idx}")
 
     fig.update_layout(
+        autosize=True,
         template="simple_white",
         xaxis={"showgrid": False},
         yaxis={"showgrid": False},
