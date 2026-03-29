@@ -1,4 +1,7 @@
 general:
+  chrom_navlink:
+    bboxes: assets/Chromosomes.bboxes.csv
+    colors: assets/Chromosomes.colors.csv
   fig_1:
     bboxes: assets/Figure1_chrom_bboxes.csv
     order: assets/Figure1_order.csv
@@ -183,6 +186,7 @@ data:
     options:
         rle: false
         xaxis_kwargs:
+          title_text: "Genomic Position"
           showline: true
         yaxis_kwargs:
           showline: false

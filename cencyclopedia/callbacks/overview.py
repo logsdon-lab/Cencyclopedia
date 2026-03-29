@@ -10,7 +10,7 @@ from typing import Any
 from loguru import logger
 from dash import Input, Output, callback, ctx, State, get_asset_url
 from cencyclopedia.plot.cen import draw_cenplot
-from cencyclopedia.plot.common import add_empty_track
+from cencyclopedia.plot.common import add_empty_figure
 from cencyclopedia.plot.figure_1 import draw_fig1
 from cencyclopedia.io.figure_1 import read_figure_1_bbox_data
 
@@ -90,19 +90,19 @@ def draw_selected_cen_home_figure(
     fig_cfg = deepcopy(cfg)
     fig_cfg["general"]["selected_cen"]["ytitle_pos"] = "right"
     fig_cfg["general"]["selected_cen"]["lmargin"] = 0
-    fig_cfg["general"]["selected_cen"]["rmargin"] = 100
+    fig_cfg["general"]["selected_cen"]["rmargin"] = 140
 
     fig_chm13_cfg = deepcopy(cfg)
     fig_chm13_cfg["general"]["selected_cen"]["ytitle_pos"] = "right"
     fig_chm13_cfg["general"]["selected_cen"]["lmargin"] = 0
-    fig_chm13_cfg["general"]["selected_cen"]["rmargin"] = 100
+    fig_chm13_cfg["general"]["selected_cen"]["rmargin"] = 140
 
     fig, _ = draw_cenplot(itv_selected_cen, None, fig_cfg, to_relative=True)
     if itv_chm13:
         fig_chm13, _ = draw_cenplot(itv_chm13, None, fig_chm13_cfg, to_relative=True)
     else:
         fig_chm13 = go._figure.Figure()
-        add_empty_track(fig_chm13, xlim=[0, 1])
+        add_empty_figure(fig_chm13, xlim=[0, 1])
 
     return fig, fig_chm13, label_chm13_chrom
 

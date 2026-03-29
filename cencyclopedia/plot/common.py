@@ -17,7 +17,7 @@ class BedTrackSettings(TypedDict):
 DEFAULT_SETTINGS: BedTrackSettings = {"mode": DEFAULT_MODE, "limit": DEFAULT_LIMIT}
 
 
-def add_empty_track(fig: go._figure.Figure, xlim: tuple[int, int], **kwargs):
+def add_empty_figure(fig: go._figure.Figure, xlim: tuple[int, int], **kwargs):
     fig.add_trace(
         go.Scatter(x=xlim, y=[0, 0], mode="markers", marker_opacity=0),
         **kwargs,

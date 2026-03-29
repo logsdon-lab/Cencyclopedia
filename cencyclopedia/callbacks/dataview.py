@@ -2,12 +2,13 @@ import dash
 
 from typing import Any
 from loguru import logger
-from dash import dcc, Input, Output, callback, dash_table, State, html
+from dash import dcc, Input, Output, callback, dash_table, State, html, ctx
 
 from cencyclopedia.io.data import Data
 from cencyclopedia.plot.common import (
     BedTrackSettings,
     DEFAULT_SETTINGS,
+    DEFAULT_MODE,
     TrackMode,
     TrackLimit,
 )
@@ -22,7 +23,7 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
     Input("rd-bed-expand-tracks-mode", "value"),
 )
 def disable_update_while_original(mode: str) -> bool:
-    return mode == "Original"
+    return mode == DEFAULT_MODE
 
 
 @callback(
@@ -125,15 +126,26 @@ def reset_bed_tracks_settings(
 @callback(
     Output("download-data", "data"),
     Input("btn-download-data", "n_clicks"),
-    Input("data-label-tabs", "active_tab"),
-    Input("itv-selected-cen", "data"),
+    State("data-label-tabs", "active_tab"),
+    State("itv-selected-cen", "data"),
     State("cfg", "data"),
     prevent_initial_call=True,
 )
 def download_data(
-    _n_clicks: int, data_label: str, itv_selected_cen: tuple[str, int, int], cfg: str
-):
+    n_clicks: int | None,
+    data_label: str,
+    itv_selected_cen: tuple[str, int, int],
+    cfg: dict[str, Any],
+) -> dash._callback.NoUpdate | dict[str, Any]:
+    logger.debug(f"Download triggered: {ctx.triggered}")
+    if not n_clicks:
+        return dash.no_update
     chrom, st, end = itv_selected_cen
     data_fhs = Data.new(cfg["data"])
-    df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
-    return dcc.send_string(df.write_csv, f"{data_label}.csv")
+    df = data_fhs.query(data_label, chrom, st, end, to_relative=False).rename(
+        {"chrom": "#chrom"}
+    )
+    outfname = f"{chrom}_{st}_{end}_{data_label.replace(' ', '_')}.bed.gz"
+    return dcc.send_bytes(
+        lambda x: df.write_csv(x, separator="\t", compression="gzip"), outfname
+    )

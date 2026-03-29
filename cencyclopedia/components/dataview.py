@@ -25,7 +25,7 @@ def dataview_tab(
                                 dbc.Button(
                                     "Update",
                                     id="btn-bed-update-tracks",
-                                    disabled=True or all_disabled,
+                                    disabled=True,
                                 )
                             ),
                             dbc.Row(
@@ -33,7 +33,7 @@ def dataview_tab(
                                     "Reset",
                                     id="btn-bed-reset-tracks",
                                     color="danger",
-                                    disabled=False or all_disabled,
+                                    disabled=False,
                                 )
                             ),
                         ],
@@ -41,7 +41,7 @@ def dataview_tab(
                     ),
                     dbc.Col(
                         [
-                            dbc.Label("View By"),
+                            dbc.Label("Expand By"),
                             dbc.RadioItems(
                                 ALL_MODES,
                                 value=track_settings["mode"],
@@ -58,7 +58,7 @@ def dataview_tab(
                                 value=track_settings["limit"],
                                 options=["All", *range(1, DEFAULT_TRACK_LIMIT + 1)],
                                 searchable=True,
-                                disabled=False or all_disabled,
+                                disabled=False,
                                 id="dropdown-bed-expand-tracks-limit",
                                 placeholder="Select a limit to the number of tracks",
                             ),
@@ -68,10 +68,12 @@ def dataview_tab(
             ),
         ]
     )
-    return html.Div(
+    components = []
+    if not all_disabled:
+        components.extend([div_expand, html.Br()])
+
+    components.extend(
         [
-            div_expand,
-            html.Br(),
             html.H3("Data"),
             html.Hr(),
             html.Div(
@@ -88,3 +90,4 @@ def dataview_tab(
             ),
         ]
     )
+    return html.Div(components)

@@ -9,7 +9,7 @@ from cencyclopedia.io.data import Data
 from cencyclopedia.io.common import clip_df
 from cencyclopedia.plot.common import (
     BedTrackSettings,
-    add_empty_track,
+    add_empty_figure,
     DEFAULT_SETTINGS,
 )
 from cencyclopedia.plot.ident import add_heatmap_track
@@ -113,7 +113,7 @@ def draw_cenplot(
         shared_xaxes=True,
         row_heights=props,
         horizontal_spacing=0,
-        vertical_spacing=min(0.01, 1 / (len(props) - 1)),
+        # vertical_spacing=min(0.01, 1 / (len(props) - 1)),
     )
     # Set range to start and end so legend axis ticks reach plot.
     if xlim:
@@ -141,15 +141,37 @@ def draw_cenplot(
         # https://plotly.com/python/reference/layout/xaxis/
         update_xaxis_kwargs = options.get("xaxis_kwargs", {})
         update_yaxis_kwargs = options.get("yaxis_kwargs", {})
+        n_groups = len(dfs_groups)
 
         for i, track_idx in enumerate(indices):
+            try:
+                grp, df_grp = dfs_groups[i]
+                grp = grp[0]
+                if "name" in df_grp.columns:
+                    name = df_grp["name"][0]
+                else:
+                    name = None
+            except IndexError:
+                dtype = None
+                grp = None
+                name = None
+
             # Remove title text before updating axes args
             try:
                 yaxis_title = update_yaxis_kwargs.pop("title_text")
             except KeyError:
                 yaxis_title = None
 
-            # Only plot first.
+            # If multiple groups, add group label to title
+            if n_groups > 1:
+                if yaxis_title and name:
+                    yaxis_title = f"{yaxis_title}<br>{name}"
+                elif name:
+                    yaxis_title = str(name)
+                else:
+                    yaxis_title = None
+
+            # Only plot if no other existing title at track idx.
             if yaxis_title and not idx_yaxis_titles.get(track_idx):
                 if cfg["general"]["selected_cen"]["ytitle_pos"] == "left":
                     annot_kwargs = {"x": 0.0, "xanchor": "right"}
@@ -177,26 +199,8 @@ def draw_cenplot(
                     col=1,
                     **annot_kwargs,
                 )
-                idx_yaxis_titles[track_idx] = yaxis_title
-
-            try:
-                grp, df_grp = dfs_groups[i]
-                grp = grp[0]
-            except IndexError:
-                add_empty_track(
-                    fig,
-                    xlim=(st, end),
-                    row=track_idx,
-                    col=1,
-                )
-                fig.update_xaxes(
-                    **update_xaxis_kwargs, range=(st, end), row=track_idx, col=1
-                )
-                fig.update_yaxes(**update_yaxis_kwargs, row=track_idx, col=1)
-                logger.debug(
-                    f"Finished adding empty track for {label} on track {track_idx}"
-                )
-                continue
+            # Store yaxis title
+            idx_yaxis_titles[track_idx] = yaxis_title
 
             if dtype == "bed" or dtype == "bed_localselfident":
                 add_bed_track(
@@ -214,6 +218,13 @@ def draw_cenplot(
                 add_bedstrand_track(df_grp, fig, row=track_idx, col=1)
             elif dtype == "bedpe_selfident":
                 add_heatmap_track(df_grp, fig, row=track_idx, col=1)
+            elif dtype is None:
+                add_empty_figure(
+                    fig,
+                    xlim=(st, end),
+                    row=track_idx,
+                    col=1,
+                )
             else:
                 logger.debug(
                     f"Ignoring {label} (Group {grp}) of type {dtype} at index of {track_idx}"

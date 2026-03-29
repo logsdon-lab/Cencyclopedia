@@ -3,6 +3,8 @@ import dash_bootstrap_components as dbc
 
 from typing import Any
 from dash import dcc, html
+from cencyclopedia.components.tree import CHROMS
+from cencyclopedia.components.tree import split_layout
 from cencyclopedia.io.figure_1 import read_figure_1_bbox_data
 from cencyclopedia.components.help import row_title_with_help, collapse_help
 
@@ -26,8 +28,7 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
         .select("chrom", "chrom_st", "chrom_end")
         .row(0)
     )
-
-    return html.Div(
+    layout_overview = html.Div(
         [
             # Home selected cen
             dcc.Store(id="itv-selected-cen-home", data=selected_cen),
@@ -128,4 +129,8 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                 ]
             ),
         ]
+    )
+    return split_layout(
+        content=layout_overview,
+        chrom_names=CHROMS.keys(),
     )

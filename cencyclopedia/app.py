@@ -5,16 +5,17 @@ import dash_bootstrap_components as dbc
 from dash import Dash
 from cencyclopedia.io.regions import read_or_write_regions
 from cencyclopedia.components.main import main_page
-from cencyclopedia.callbacks.main_page import *
+from cencyclopedia.callbacks.main import *
+from cencyclopedia.callbacks.tree import *
 from cencyclopedia.callbacks.selected_cen import *
 from cencyclopedia.callbacks.dataview import *
-from cencyclopedia.callbacks.figure_1 import *
+from cencyclopedia.callbacks.overview import *
+from cencyclopedia.callbacks.home import *
 
 with open("config.yaml", "rb") as fh:
     cfg = yaml.safe_load(fh)
     regions = "data/samples.csv.gz"
-    df_regions = read_or_write_regions(cfg, regions=regions)
-    chrom_names = df_regions["chrom_name"].unique().sort().to_list()
+    _ = read_or_write_regions(cfg, regions=regions)
 
 app = Dash(
     __name__,
@@ -25,7 +26,6 @@ app = Dash(
 )
 app.layout = main_page(
     regions=regions,
-    chrom_names=df_regions["chrom_name"].unique().sort().to_list(),
     cfg=cfg,
 )
 server = app.server
