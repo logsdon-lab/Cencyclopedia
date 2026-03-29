@@ -20,27 +20,27 @@ general:
     width: 7
     # Midpoint of tree. Defaults to half of the image.
     xmidpt:
-      chr13: 4000
-      chr14: 4000
-      chr15: 4030
-      chr21: 4160
-      chr22: 4160
+      chr13: 2000
+      chr14: 2000
+      chr15: 2015
+      chr21: 2080
+      chr22: 2080
       default: null
     # Starting y-position of first centromere in tree
     ystart:
-      chr13: 601
-      chr14: 601
-      chr15: 601
-      chr21: 601
-      chr22: 601
-      default: 608
+      chr13: 301
+      chr14: 301
+      chr15: 301
+      chr21: 301
+      chr22: 301
+      default: 304
     # Offset in y-position to reach next centromere
     # Applied to both acro and other chromosomes
     yoffset:
-      default: 77
+      default: 38.5
   selected_cen:
     # Selected centromere height
-    height: 800
+    height: 400
     # Centromere plot width (x / 12)
     width: 5
     # y-axis title position. left or right. Should also adjust margins below to accomodate.
@@ -48,7 +48,7 @@ general:
     # y-axis title borderpad pad
     ytitle_borderpad: 20
     # Left, right, bottom, and top margin of selected cen plot
-    lmargin: 100
+    lmargin: 140
     rmargin: 0
     bmargin: 0
     tmargin: 0
@@ -65,14 +65,14 @@ data:
     # bed, bedgraph, bedstrand, bed_localselfident
     type: bed
     # Proportion
-    prop: 0.01
+    prop: 0.02
     options:
       # Run-length encode same names
       rle: false
       # Shape of marker (tri or rect)
       shape: tri
       # Slop record for marker. Data remains same.
-      bp_slop: 10000
+      bp_slop: 50000
       # Plotly axes keyword arguments
       # https://plotly.com/python/reference/layout/xaxis/
       # https://plotly.com/python/reference/layout/yaxis/
@@ -111,8 +111,8 @@ data:
         ticks: ""
         showline: false
       yaxis_kwargs:
-        title_text: "CpG<br>Methylation"
-        showline: false
+        range: [0.0, 1.0]
+        title_text: "CpG Methylation"
   "Satellite Structure":
     path: data/all_RM_satellite_annotation.bed.gz
     position: relative
@@ -124,7 +124,7 @@ data:
         ticks: ""
         showline: false
       yaxis_kwargs:
-        title_text: "Satellite<br>Structure"
+        title_text: "Satellite Structure"
         showticklabels: false
         ticks: ""
         showline: false
@@ -140,7 +140,7 @@ data:
         ticks: ""
         showline: false
       yaxis_kwargs:
-        title_text: "α-satellite<br>HOR"
+        title_text: "α-satellite HORs"
         showticklabels: false
         ticks: ""
         showline: false
@@ -155,7 +155,7 @@ data:
         ticks: ""
         showline: false
       yaxis_kwargs:
-        title_text: "Local<br>Self-Identity"
+        title_text: "Local Self-Identity"
         showticklabels: false
         ticks: ""
         showline: false
@@ -170,7 +170,7 @@ data:
         ticks: ""
         showline: false
       yaxis_kwargs:
-        title_text: "α-satellite<br>HOR strand"
+        title_text: "α-satellite HOR strand"
         showticklabels: false
         ticks: ""
         showline: false
@@ -183,7 +183,7 @@ data:
     options:
         rle: false
         xaxis_kwargs:
-          showline: false
+          showline: true
         yaxis_kwargs:
           showline: false
           showticklabels: false

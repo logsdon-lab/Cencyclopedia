@@ -5,7 +5,7 @@ from dash import html, dcc
 from cencyclopedia.io.data import Data
 from cencyclopedia.components.help import row_title_with_help, collapse_help
 from cencyclopedia.components.err_msg import modal_error_message
-from cencyclopedia.plot.common import default_bed_track_settings
+from cencyclopedia.plot.common import DEFAULT_SETTINGS
 
 
 SIDEBAR_STYLE = {
@@ -16,9 +16,41 @@ SIDEBAR_STYLE = {
     "width": "16rem",
     "padding": "2rem 1rem",
     "background-color": "#f8f9fa",
+    "overflow": "scroll",
+    # Hide scrollbar
+    "scrollbar-width": "none",
 }
 CONTENT_STYLE = {
     "padding": "2rem 10rem",
+    "overflow": "scroll",
+    # Hide scrollbar
+    "scrollbar-width": "none",
+}
+CHROMS = {
+    "chr1": "Chromosome 1",
+    "chr2": "Chromosome 2",
+    "chr3": "Chromosome 3",
+    "chr4": "Chromosome 4",
+    "chr5": "Chromosome 5",
+    "chr6": "Chromosome 6",
+    "chr7": "Chromosome 7",
+    "chr8": "Chromosome 8",
+    "chr9": "Chromosome 9",
+    "chr10": "Chromosome 10",
+    "chr11": "Chromosome 11",
+    "chr12": "Chromosome 12",
+    "chr13": "Chromosome 13",
+    "chr14": "Chromosome 14",
+    "chr15": "Chromosome 15",
+    "chr16": "Chromosome 16",
+    "chr17": "Chromosome 17",
+    "chr18": "Chromosome 18",
+    "chr19": "Chromosome 19",
+    "chr20": "Chromosome 20",
+    "chr21": "Chromosome 21",
+    "chr22": "Chromosome 22",
+    "chrX": "Chromosome X",
+    "chrY": "Chromosome Y",
 }
 
 
@@ -38,49 +70,9 @@ def dataview_selected_cen(labels: list[str], active_tab: str | None = None) -> h
     )
 
 
-def rangeslider_selected_cen(
-    dropdown: dcc.Dropdown, min: int, max: int, value: list[int]
-) -> html.Div:
-    return html.Div(
-        [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [dbc.Label("Contig"), dropdown],
-                        width=6,
-                    ),
-                    dbc.Col(
-                        [
-                            dbc.Label("Position"),
-                            dcc.RangeSlider(
-                                min=min,
-                                max=max,
-                                value=value,
-                                allowCross=False,
-                                id="rng-itv-selected_cens",
-                            ),
-                        ],
-                        width=4,
-                    ),
-                    dbc.Col(
-                        [
-                            html.Br(),
-                            dbc.Button(
-                                "Reset", id="btn-reset-itv-selected-cen", color="danger"
-                            ),
-                        ],
-                        width=2,
-                    ),
-                ]
-            )
-        ]
-    )
-
-
 def main_content(
     fig_tree: dcc.Graph,
-    fig_tree_legend: dcc.Graph,
-    rangeslider_selected_cen: html.Div,
+    dropdown: dcc.Dropdown,
     dataview_selected_cen: html.Div,
     cfg: dict[str, Any],
 ):
@@ -91,7 +83,9 @@ def main_content(
                 [
                     dbc.Col(
                         [
-                            row_title_with_help("Tree", "btn-collapse-howto-tree"),
+                            row_title_with_help(
+                                "Phylogenetic Tree", "btn-collapse-howto-tree"
+                            ),
                             collapse_help(
                                 """
                                 1. Each centromere haplotype on this figure is clickable.
@@ -99,29 +93,30 @@ def main_content(
                                 2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
                                 3. To move around the image, use the **"Pan"** option.
                                 4. To reset the image, click the **"Reset axes"** icon.
-                                5. To display the figure legend, click anywhere in the top-most part of the image.
                                 """,
                                 "collapse-howto-tree",
                             ),
-                            html.Br(),
                             fig_tree,
-                            dbc.Popover(
-                                [fig_tree_legend],
-                                id="popup-fig-cens-tree-legend",
-                                target="fig-cens-tree",
-                                body=True,
-                                hide_arrow=True,
-                                placement="left",
-                                trigger="legacy",
-                            ),
                         ],
                         width=cfg["general"]["tree"]["width"],
                         style={"height": cfg["general"]["tree"]["height"]},
                     ),
                     dbc.Col(
                         [
-                            row_title_with_help(
-                                "Tracks", "btn-collapse-howto-selected-cen"
+                            dbc.Row(
+                                [
+                                    dbc.Col(dropdown, width=11),
+                                    dbc.Col(
+                                        dbc.Button(
+                                            "Help",
+                                            id="btn-collapse-howto-selected-cen",
+                                            size="sm",
+                                            color="secondary",
+                                            n_clicks=0,
+                                        ),
+                                        width=1,
+                                    ),
+                                ]
                             ),
                             collapse_help(
                                 """
@@ -133,16 +128,16 @@ def main_content(
                                     3. Drag along the track with **"Pan"** to move to a new position.
                                 3. Hover over individual annotations to get a short description.
 
-                                ### Expand
-                                To expand BED tracks, use the "Expand Tracks" section. The following modes are possible:
-                                * Original
+                                ### View
+                                To view BED tracks, use the "View By" section. The following modes are possible:
+                                * Condensed
                                     * Default.
                                 * Length
                                     * Show the largest annotation at the top.
                                 * Frequency
                                     * Show the most frequent annotation at the top.
-                                * Coverage
-                                    * Show the annotation covering the largest portion of the region.
+                                * Proportion
+                                    * Show the annotation covering the largest proportion of the region.
 
                                 Once set, click **"Update"** to replot.
                                 * *"All"* or a set number up to 50 can be drawn at a time.
@@ -152,7 +147,6 @@ def main_content(
                                 """,
                                 "collapse-howto-selected-cen",
                             ),
-                            rangeslider_selected_cen,
                             html.Br(),
                             dbc.Spinner(
                                 dcc.Graph(
@@ -166,7 +160,6 @@ def main_content(
                                     },
                                 )
                             ),
-                            html.Br(),
                             dataview_selected_cen,
                         ],
                         width=cfg["general"]["selected_cen"]["width"],
@@ -192,7 +185,7 @@ def main_page(
                     dbc.NavLink("Overview", href="/overview", active="exact"),
                     html.Hr(),
                     *[
-                        dbc.NavLink(chrom, href=f"/{chrom}", active="exact")
+                        dbc.NavLink(CHROMS[chrom], href=f"/{chrom}", active="exact")
                         for chrom in chrom_names
                     ],
                 ],
@@ -218,7 +211,7 @@ def main_page(
             # Individual track settings
             dcc.Store(
                 id="bed-track-settings",
-                data={dtype: default_bed_track_settings() for dtype in datatypes},
+                data={dtype: DEFAULT_SETTINGS for dtype in datatypes},
             ),
             dcc.Location(id="url", refresh=False),
             dbc.Row(

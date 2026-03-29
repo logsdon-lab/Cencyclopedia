@@ -2,13 +2,19 @@ import plotly.graph_objs as go
 from typing import Literal, TypedDict
 
 
+DEFAULT_MODE = "Condensed"
+ALL_MODES = ["Condensed", "Proportion", "Frequency", "Length"]
+DEFAULT_LIMIT = "All"
+TrackMode = Literal["Condensed", "Proportion", "Frequency", "Length"]
+TrackLimit = int | Literal["All"]
+
+
 class BedTrackSettings(TypedDict):
-    mode: Literal["Original", "Length", "Frequency", "Coverage"]
-    limit: int | Literal["All"]
+    mode: TrackMode
+    limit: TrackLimit
 
 
-def default_bed_track_settings() -> BedTrackSettings:
-    return {"mode": "Original", "limit": "All"}
+DEFAULT_SETTINGS: BedTrackSettings = {"mode": DEFAULT_MODE, "limit": DEFAULT_LIMIT}
 
 
 def add_empty_track(fig: go._figure.Figure, xlim: tuple[int, int], **kwargs):

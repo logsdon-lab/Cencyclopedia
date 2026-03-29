@@ -77,7 +77,7 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                             dbc.Col(
                                 [
                                     dbc.Alert(
-                                        "No two centromeres are identical! While reference genomes like CHM13 and CHM1 provide useful insight into centromere variation, "
+                                        "While reference genomes like CHM13 and CHM1 provide useful insight into centromere variation, "
                                         "they only represent a fraction of human centromere variation. "
                                         "Click the figure on the left to see how centromeres vary genetically and epigenetically in the human population."
                                     ),

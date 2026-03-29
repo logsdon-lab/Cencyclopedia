@@ -10,7 +10,7 @@ from cencyclopedia.io.common import clip_df
 from cencyclopedia.plot.common import (
     BedTrackSettings,
     add_empty_track,
-    default_bed_track_settings,
+    DEFAULT_SETTINGS,
 )
 from cencyclopedia.plot.ident import add_heatmap_track
 from cencyclopedia.plot.bed import (
@@ -20,6 +20,8 @@ from cencyclopedia.plot.bed import (
 )
 
 
+# TODO: Cache plots
+# https://stackoverflow.com/questions/63611740/how-to-persist-state-of-plotly-graph-in-dash-app
 def draw_cenplot(
     itv_selected_cen: tuple[str, int, int] | None,
     bed_track_settings: dict[str, BedTrackSettings] | None,
@@ -46,7 +48,7 @@ def draw_cenplot(
     # Update index based on if want to expand
     idx_offset = 0
     for i, (label, idx, prop) in enumerate(track_params):
-        track_settings = bed_track_settings.get(label, default_bed_track_settings())
+        track_settings = bed_track_settings.get(label, DEFAULT_SETTINGS)
         mode = track_settings["mode"]
         # Whether to run-length encode
         rle = data_fhs.options(label).get("rle", True)
@@ -74,7 +76,7 @@ def draw_cenplot(
         if prop:
             total_original_prop += prop
 
-        if mode == "Original":
+        if mode == "Condensed":
             indices[label] = ([idx + idx_offset], df)
             if not prop:
                 continue
@@ -111,6 +113,7 @@ def draw_cenplot(
         shared_xaxes=True,
         row_heights=props,
         horizontal_spacing=0,
+        vertical_spacing=min(0.01, 1 / (len(props) - 1)),
     )
     # Set range to start and end so legend axis ticks reach plot.
     if xlim:

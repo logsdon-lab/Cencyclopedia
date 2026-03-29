@@ -1,12 +1,16 @@
-import sys
 import dash
 
-from typing import Any, Literal
+from typing import Any
 from loguru import logger
-from dash import Input, Output, callback, dash_table, State, html
+from dash import dcc, Input, Output, callback, dash_table, State, html
 
 from cencyclopedia.io.data import Data
-from cencyclopedia.plot.common import BedTrackSettings, default_bed_track_settings
+from cencyclopedia.plot.common import (
+    BedTrackSettings,
+    DEFAULT_SETTINGS,
+    TrackMode,
+    TrackLimit,
+)
 from cencyclopedia.components.dataview import dataview_tab
 
 
@@ -19,34 +23,6 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
 )
 def disable_update_while_original(mode: str) -> bool:
     return mode == "Original"
-
-
-@callback(
-    Output("itv-selected-cen", "data"),
-    Input("fig-selected-cen", "relayoutData"),
-    State("itv-selected-cen", "data"),
-)
-def update_selected_cen_coords_from_zoom_info(
-    zoom_info: dict[str, Any] | None, selected_cen: tuple[str, int, int] | None
-) -> dash._callback.NoUpdate | tuple[str, int, int]:
-    if not selected_cen or not zoom_info or "xaxis.range[0]" not in zoom_info:
-        return dash.no_update
-
-    # Get coordinates from zoom level.
-    logger.debug(f"Zoom info: {zoom_info}")
-    st, end = sys.maxsize, 0
-    for key, val in zoom_info.items():
-        if not key.startswith("xaxis"):
-            continue
-        val = round(val)
-        st = min(st, val)
-        end = max(end, val)
-
-    prev_chrom, prev_st, prev_end = selected_cen
-    logger.debug(
-        f"Updated start and end coordinates from {prev_chrom}:{prev_st}-{prev_end} to {prev_chrom}:{st}-{end}."
-    )
-    return prev_chrom, st, end
 
 
 @callback(
@@ -129,14 +105,14 @@ def reset_bed_tracks_settings(
     tuple[dash._callback.NoUpdate, dash._callback.NoUpdate, dash._callback.NoUpdate]
     | tuple[
         dict[str, BedTrackSettings],
-        Literal["Coverage", "Frequency", "Length", "Original"],
-        Literal["All"] | int,
+        TrackMode,
+        TrackLimit,
     ]
 ):
     if not n_clicks:
         return dash.no_update, dash.no_update, dash.no_update
 
-    default_settings = default_bed_track_settings()
+    default_settings = DEFAULT_SETTINGS
     bed_tracks_settings[data_label] = default_settings
     logger.debug("Reset expand tracks.")
     return (
@@ -144,3 +120,20 @@ def reset_bed_tracks_settings(
         default_settings["mode"],
         default_settings["limit"],
     )
+
+
+@callback(
+    Output("download-data", "data"),
+    Input("btn-download-data", "n_clicks"),
+    Input("data-label-tabs", "active_tab"),
+    Input("itv-selected-cen", "data"),
+    State("cfg", "data"),
+    prevent_initial_call=True,
+)
+def download_data(
+    _n_clicks: int, data_label: str, itv_selected_cen: tuple[str, int, int], cfg: str
+):
+    chrom, st, end = itv_selected_cen
+    data_fhs = Data.new(cfg["data"])
+    df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
+    return dcc.send_string(df.write_csv, f"{data_label}.csv")

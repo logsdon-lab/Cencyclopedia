@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 
 from dash import html, dash_table, dcc
-from cencyclopedia.plot.common import BedTrackSettings
+from cencyclopedia.plot.common import BedTrackSettings, ALL_MODES
 
 
 DEFAULT_TRACK_LIMIT = 50
@@ -41,15 +41,15 @@ def dataview_tab(
                     ),
                     dbc.Col(
                         [
-                            dbc.Label("Expand Tracks"),
+                            dbc.Label("View By"),
                             dbc.RadioItems(
-                                ["Original", "Length", "Frequency", "Coverage"],
+                                ALL_MODES,
                                 value=track_settings["mode"],
                                 inline=True,
                                 id="rd-bed-expand-tracks-mode",
                             ),
                         ],
-                        width=2,
+                        width=3,
                     ),
                     dbc.Col(
                         [
@@ -75,7 +75,11 @@ def dataview_tab(
             html.H3("Data"),
             html.Hr(),
             html.Div(
-                data_table,
+                [
+                    data_table,
+                    dbc.Button("Download", id="btn-download-data"),
+                    dcc.Download(id="download-data"),
+                ],
                 style={
                     "overflow": "scroll",
                     # Hide scrollbar
