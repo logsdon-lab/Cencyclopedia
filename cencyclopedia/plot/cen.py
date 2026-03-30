@@ -113,7 +113,7 @@ def draw_cenplot(
         shared_xaxes=True,
         row_heights=props,
         horizontal_spacing=0,
-        # vertical_spacing=min(0.01, 1 / (len(props) - 1)),
+        vertical_spacing=cfg["general"]["selected_cen"].get("vertical_spacing"),
     )
     # Set range to start and end so legend axis ticks reach plot.
     if xlim:
@@ -233,7 +233,7 @@ def draw_cenplot(
             # constrain domain to prevent plotly from extending beyond data
             fig.update_xaxes(
                 **update_xaxis_kwargs,
-                constrain="range",
+                constrain="domain",
                 range=xrange,
                 row=track_idx,
                 col=1,

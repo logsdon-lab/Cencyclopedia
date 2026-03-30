@@ -132,8 +132,8 @@ def tree_layout(
                                     3. Drag along the track with **"Pan"** to move to a new position.
                                 3. Hover over individual annotations to get a short description.
 
-                                ### View
-                                To view BED tracks, use the "View By" section. The following modes are possible:
+                                ### Mode
+                                To view BED tracks, use the "Mode" section. The following modes are possible:
                                 * Condensed
                                     * Default.
                                 * Length
@@ -143,9 +143,11 @@ def tree_layout(
                                 * Proportion
                                     * Show the annotation covering the largest proportion of the region at the top.
 
+                                ### Update
                                 Once set, click **"Update"** to replot.
                                 * *"All"* or a set number up to 50 can be drawn at a time.
 
+                                ### Reset
                                 To reset the tracks for a give data type to its default. Click the **"Reset"** button.
                                 * This is only done for that data type.
                                 """,

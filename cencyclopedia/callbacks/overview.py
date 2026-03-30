@@ -91,11 +91,13 @@ def draw_selected_cen_home_figure(
     fig_cfg["general"]["selected_cen"]["ytitle_pos"] = "right"
     fig_cfg["general"]["selected_cen"]["lmargin"] = 0
     fig_cfg["general"]["selected_cen"]["rmargin"] = 140
+    fig_cfg["general"]["selected_cen"]["vertical_spacing"] = 0
 
     fig_chm13_cfg = deepcopy(cfg)
     fig_chm13_cfg["general"]["selected_cen"]["ytitle_pos"] = "right"
     fig_chm13_cfg["general"]["selected_cen"]["lmargin"] = 0
     fig_chm13_cfg["general"]["selected_cen"]["rmargin"] = 140
+    fig_chm13_cfg["general"]["selected_cen"]["vertical_spacing"] = 0
 
     fig, _ = draw_cenplot(itv_selected_cen, None, fig_cfg, to_relative=True)
     if itv_chm13:

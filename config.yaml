@@ -6,7 +6,7 @@ general:
     bboxes: assets/Figure1_chrom_bboxes.csv
     order: assets/Figure1_order.csv
     height_figure: 100vh
-    height_cens: 50vh
+    height_cens: 34vh
     use_data:
     - "MEI"
     - "CDR"
@@ -55,6 +55,7 @@ general:
     rmargin: 0
     bmargin: 0
     tmargin: 0
+    vertical_spacing: null
     # Selected tab for data view.
     default_data_tab: "Alpha-satellite HORs"
 # Tracks
@@ -173,7 +174,7 @@ data:
         ticks: ""
         showline: false
       yaxis_kwargs:
-        title_text: "α-satellite HOR strand"
+        title_text: "Orientation"
         showticklabels: false
         ticks: ""
         showline: false

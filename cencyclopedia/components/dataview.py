@@ -41,7 +41,7 @@ def dataview_tab(
                     ),
                     dbc.Col(
                         [
-                            dbc.Label("Expand By"),
+                            dbc.Label("Mode"),
                             dbc.RadioItems(
                                 ALL_MODES,
                                 value=track_settings["mode"],
