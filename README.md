@@ -5,7 +5,7 @@ Interactive centromere catalog.
   <tr>
     <td>
       <figure>
-        <img src="docs/home.png">
+        <img src="docs/overview.png">
         <br>
         <figcaption>Centromere haplotypes</figcaption>
       </figure>
@@ -21,6 +21,12 @@ Interactive centromere catalog.
 </table>
 
 ## Getting Started
+Clone repo.
+```bash
+git clone git@github.com:logsdon-lab/Cencyclopedia.git
+cd Cencyclopedia
+```
+
 Setup dependencies. Requires Python >= 3.12.
 ```bash
 python -m venv venv
