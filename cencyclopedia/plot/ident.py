@@ -51,7 +51,7 @@ def add_heatmap_track(
     fig: go._figure.Figure,
     row: int,
     col: int,
-    zmin: float = 70.0,
+    zmin: float = 0.0,
     zmax: float = 100.0,
     colorscale: list[tuple[float, str]] | None = None,
     flip_y: bool = True,
@@ -71,7 +71,7 @@ def add_heatmap_track(
     col : int
         Subplot col number (1-indexed) where the heatmap should be added.
     min_value : float
-        Min identity.
+        Min identity. Must match first value in colorscale.
     max_value : float
         Max identity.
     colorscale : list[tuple[float, str]]
@@ -188,9 +188,7 @@ def add_heatmap_track(
             zmin=zmin,
             zmax=zmax,
             showscale=False,
-            # Can assign bg color but worthwhile?
-            # hoverlabel=dict(bgcolor=),
-            hovertemplate="Position: %{x}<br>Identity: %{z}%<extra></extra>",
+            hovertemplate="Position: %{x}<br>Y: %{y}<br>Identity: %{z}%<extra></extra>",
             colorbar=dict(
                 orientation="h",  # horizontal
                 x=0.5,

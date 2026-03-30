@@ -4,7 +4,6 @@ import plotly.graph_objs as go
 
 from PIL import Image
 from typing import Any
-from dash import dcc, get_asset_url
 from collections import deque
 from itertools import islice
 
@@ -75,7 +74,6 @@ def create_tree_figure(
                 y=[y0, y1, y1, y0, y0],
                 fill="toself",
                 fillcolor=color,
-                # opacity=0.1,
                 opacity=0,
                 # Add customdata for click.
                 customdata=[chrom],
@@ -97,26 +95,3 @@ def create_tree_figure(
         modebar_remove=["select2d", "lasso2d"],
     )
     return fig
-
-
-def create_tree_legend_figure():
-    fig = add_image_to_figure(
-        Image.open(get_asset_url("VerticalLegend.png")),
-        go._figure.Figure(),
-        # Image.open(get_asset_url("HorizontalLegend.png")), go._figure.Figure()
-    )
-    fig.update_layout(
-        showlegend=False,
-        template="simple_white",
-        xaxis={"showgrid": False, "fixedrange": True},
-        yaxis={"showgrid": False, "fixedrange": True},
-        margin=dict(l=0, r=0, b=0, t=0),
-        modebar_remove=["select2d", "lasso2d"],
-    )
-    return dcc.Graph(
-        figure=fig,
-        id="fig-cens-tree-legend",
-        responsive=True,
-        config={"displaylogo": False},
-        # style={"height": "15vh"},
-    )

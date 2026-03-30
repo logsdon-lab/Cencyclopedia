@@ -12,9 +12,10 @@ def row_title_with_help(title: str, button_id: str, button_width: int = 1):
                     dbc.Col(html.H3(title), width=title_width),
                     dbc.Col(
                         dbc.Button(
-                            "?",
+                            "Help",
                             id=button_id,
                             size="sm",
+                            color="secondary",
                             n_clicks=0,
                         ),
                         width=button_width,

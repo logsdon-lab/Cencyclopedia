@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 
 from dash import html, dash_table, dcc
-from cencyclopedia.plot.common import BedTrackSettings
+from cencyclopedia.plot.common import BedTrackSettings, ALL_MODES
 
 
 DEFAULT_TRACK_LIMIT = 50
@@ -25,7 +25,7 @@ def dataview_tab(
                                 dbc.Button(
                                     "Update",
                                     id="btn-bed-update-tracks",
-                                    disabled=True or all_disabled,
+                                    disabled=True,
                                 )
                             ),
                             dbc.Row(
@@ -33,7 +33,7 @@ def dataview_tab(
                                     "Reset",
                                     id="btn-bed-reset-tracks",
                                     color="danger",
-                                    disabled=False or all_disabled,
+                                    disabled=False,
                                 )
                             ),
                         ],
@@ -41,15 +41,15 @@ def dataview_tab(
                     ),
                     dbc.Col(
                         [
-                            dbc.Label("Expand Tracks"),
+                            dbc.Label("Expand By"),
                             dbc.RadioItems(
-                                ["Original", "Length", "Frequency", "Coverage"],
+                                ALL_MODES,
                                 value=track_settings["mode"],
                                 inline=True,
                                 id="rd-bed-expand-tracks-mode",
                             ),
                         ],
-                        width=2,
+                        width=3,
                     ),
                     dbc.Col(
                         [
@@ -58,7 +58,7 @@ def dataview_tab(
                                 value=track_settings["limit"],
                                 options=["All", *range(1, DEFAULT_TRACK_LIMIT + 1)],
                                 searchable=True,
-                                disabled=False or all_disabled,
+                                disabled=False,
                                 id="dropdown-bed-expand-tracks-limit",
                                 placeholder="Select a limit to the number of tracks",
                             ),
@@ -68,14 +68,20 @@ def dataview_tab(
             ),
         ]
     )
-    return html.Div(
+    components = []
+    if not all_disabled:
+        components.extend([div_expand, html.Br()])
+
+    components.extend(
         [
-            div_expand,
-            html.Br(),
             html.H3("Data"),
             html.Hr(),
             html.Div(
-                data_table,
+                [
+                    data_table,
+                    dbc.Button("Download", id="btn-download-data"),
+                    dcc.Download(id="download-data"),
+                ],
                 style={
                     "overflow": "scroll",
                     # Hide scrollbar
@@ -84,3 +90,4 @@ def dataview_tab(
             ),
         ]
     )
+    return html.Div(components)

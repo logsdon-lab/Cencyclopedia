@@ -29,7 +29,6 @@ def draw_fig1(img: Image, df_fig1_bboxes: pl.DataFrame) -> go._figure.Figure:
             fill="toself",
             fillcolor=row["color"],
             opacity=0,
-            # opacity=0.1,
             customdata=[chrom],
             hoverlabel=dict(bgcolor=row["color"], font_color="white"),
             line=dict(color=row["color"]),

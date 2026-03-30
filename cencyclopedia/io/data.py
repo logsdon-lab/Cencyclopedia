@@ -6,6 +6,8 @@ import polars as pl
 from loguru import logger
 from typing import Callable, Self, Any, Literal, Iterator, NamedTuple
 
+from cencyclopedia.plot.common import TrackMode
+
 from .bed import (
     to_relative_coords_bed,
     read_bed9_row,
@@ -161,7 +163,7 @@ class Data(NamedTuple):
         chrom_st: int | None,
         chrom_end: int | None,
         *,
-        by: Literal["Original", "Length", "Frequency", "Coverage"],
+        by: TrackMode,
         rle: bool = True,
         to_relative: bool = True,
     ):
@@ -190,7 +192,7 @@ class Data(NamedTuple):
                 .drop("count")
             )
             df_final = df.join(df_name_order, on="name", how="left")
-        elif by == "Coverage":
+        elif by == "Proportion":
             df_name_order = (
                 df.group_by(["name"])
                 .agg(length=(pl.col("chrom_end") - pl.col("chrom_st")).sum())
