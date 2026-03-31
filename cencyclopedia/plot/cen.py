@@ -221,7 +221,7 @@ def draw_cenplot(
             elif dtype is None:
                 add_empty_figure(
                     fig,
-                    xlim=(st, end),
+                    xlim=xrange,
                     row=track_idx,
                     col=1,
                 )
