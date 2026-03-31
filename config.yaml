@@ -55,7 +55,8 @@ general:
     rmargin: 0
     bmargin: 0
     tmargin: 0
-    vertical_spacing: null
+    # 0.0 for autosize
+    vertical_spacing: 0.0
     # Selected tab for data view.
     default_data_tab: "Alpha-satellite HORs"
 # Tracks

@@ -76,7 +76,7 @@ def home_page(cfg: dict[str, Any]):
             html.H3(
                 "Cencyclopedia is an interactive visualization tool that allows you to investigate "
                 "the sequence, structure, and epigenetic landscape, and evolutionary relationships "
-                "among hhuman centromeres.",
+                "among human centromeres.",
                 style={"text-align": "center"},
             ),
             html.Hr(),

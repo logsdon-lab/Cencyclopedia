@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 
-from dash import html, dcc
+from dash import html
 
 
 def row_title_with_help(title: str, button_id: str, button_width: int = 1):
@@ -27,9 +27,14 @@ def row_title_with_help(title: str, button_id: str, button_width: int = 1):
     )
 
 
-def collapse_help(markdown: str, collapse_id: str):
-    return dbc.Collapse(
-        dbc.Card(dbc.CardBody(dcc.Markdown(markdown))),
-        id=collapse_id,
-        is_open=False,
+def popover(header: str, body, target: str):
+    return dbc.Popover(
+        [
+            dbc.PopoverHeader(header),
+            dbc.PopoverBody(body),
+        ],
+        target=target,
+        placement="auto",
+        trigger="click",
+        style={"max-width": "400px"},
     )

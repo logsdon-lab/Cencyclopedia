@@ -9,7 +9,7 @@ from dash import dcc, html, get_asset_url
 from cencyclopedia.plot.tree import create_tree_figure
 from cencyclopedia.components.home import create_logo
 from cencyclopedia.components.err_msg import modal_error_message
-from cencyclopedia.components.help import row_title_with_help, collapse_help
+from cencyclopedia.components.help import row_title_with_help, popover
 
 
 SIDEBAR_STYLE = {
@@ -75,14 +75,19 @@ def dataview_selected_cen(labels: list[str], active_tab: str | None = None) -> h
 
 
 def tree_layout(
+    selected_cen: tuple[str, int, int],
     fig_tree: dcc.Graph,
     dropdown: dcc.Dropdown,
     dataview_selected_cen: html.Div,
     cfg: dict[str, Any],
 ):
+    selected_cen_height = cfg["general"]["selected_cen"]["height"]
+    selected_cen_vspacing = cfg["general"]["selected_cen"]["vertical_spacing"]
     return html.Div(
         [
             modal_error_message(),
+            # Interval for selected centromere
+            dcc.Store(id="itv-selected-cen", data=selected_cen),
             dbc.Row(
                 [
                     dbc.Col(
@@ -90,15 +95,18 @@ def tree_layout(
                             row_title_with_help(
                                 "Phylogenetic Tree", "btn-collapse-howto-tree"
                             ),
-                            collapse_help(
-                                """
-                                1. Each centromere haplotype on this figure is clickable.
-                                    * Hovering over each centromere displays the contig name, superpopulation, and sex.
-                                2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
-                                3. To move around the image, use the **"Pan"** option.
-                                4. To reset the image, click the **"Reset axes"** icon.
-                                """,
-                                "collapse-howto-tree",
+                            popover(
+                                header="Help",
+                                body=dcc.Markdown(
+                                    """
+                                    1. Each centromere haplotype on this figure is clickable.
+                                        * Hovering over each centromere displays the contig name, superpopulation, and sex.
+                                    2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
+                                    3. To move around the image, use the **"Pan"** option.
+                                    4. To reset the image, click the **"Reset axes"** icon.
+                                    """
+                                ),
+                                target="btn-collapse-howto-tree",
                             ),
                             fig_tree,
                         ],
@@ -109,49 +117,91 @@ def tree_layout(
                         [
                             dbc.Row(
                                 [
-                                    dbc.Col(dropdown, width=11),
+                                    dbc.Col(dropdown, width=10),
                                     dbc.Col(
-                                        dbc.Button(
-                                            "Help",
-                                            id="btn-collapse-howto-selected-cen",
-                                            size="sm",
-                                            color="secondary",
-                                            n_clicks=0,
-                                        ),
-                                        width=1,
+                                        [
+                                            dbc.ButtonGroup(
+                                                [
+                                                    dbc.Button(
+                                                        "Help",
+                                                        id="btn-collapse-howto-selected-cen",
+                                                        size="sm",
+                                                        color="secondary",
+                                                        n_clicks=0,
+                                                    ),
+                                                    dbc.Button(
+                                                        "Layout",
+                                                        id="btn-popup-layout-selected-cen",
+                                                        size="sm",
+                                                        n_clicks=0,
+                                                    ),
+                                                ]
+                                            ),
+                                            popover(
+                                                header="Help",
+                                                target="btn-collapse-howto-selected-cen",
+                                                body=dcc.Markdown(
+                                                    """
+                                                    ### General
+                                                    1. Select a contig from the dropdown. Contigs are ordered in the same order as the tree.
+                                                    2. There are multiple ways to adjust position in the displayed plot:
+                                                        1. Adjust the slider. Click the **"Reset"** button to reset to the original coordinates.
+                                                        2. Zoom in using the **"Zoom"** icon.
+                                                        3. Drag along the track with **"Pan"** to move to a new position.
+                                                    3. Hover over individual annotations to get a short description.
+
+                                                    ### Mode
+                                                    To view BED tracks, use the "Mode" section. The following modes are possible:
+                                                    * Condensed
+                                                        * Default.
+                                                    * Length
+                                                        * Show the largest annotation at the top.
+                                                    * Frequency
+                                                        * Show the most frequent annotation at the top.
+                                                    * Proportion
+                                                        * Show the annotation covering the largest proportion of the region at the top.
+
+                                                    ### Update
+                                                    Once set, click **"Update"** to replot.
+                                                    * *"All"* or a set number up to 50 can be drawn at a time.
+
+                                                    ### Reset
+                                                    To reset the tracks for a give data type to its default. Click the **"Reset"** button.
+                                                    * This is only done for that data type.
+                                                    """
+                                                ),
+                                            ),
+                                            popover(
+                                                header="Layout",
+                                                body=[
+                                                    dbc.Label("Height"),
+                                                    dbc.Input(
+                                                        id="input-selected-cen-height",
+                                                        value=selected_cen_height,
+                                                    ),
+                                                    html.Br(),
+                                                    dbc.Label("Vertical spacing"),
+                                                    dbc.Input(
+                                                        id="input-selected-cen-vertical-spacing",
+                                                        min=0.0,
+                                                        value=selected_cen_vspacing
+                                                        if selected_cen_vspacing
+                                                        else 0.0,
+                                                    ),
+                                                    html.Br(),
+                                                    dbc.Button(
+                                                        "Update",
+                                                        id="btn-update-selected-cen-layout",
+                                                        size="sm",
+                                                        n_clicks=0,
+                                                    ),
+                                                ],
+                                                target="btn-popup-layout-selected-cen",
+                                            ),
+                                        ],
+                                        width=2,
                                     ),
                                 ]
-                            ),
-                            collapse_help(
-                                """
-                                ### General
-                                1. Select a contig from the dropdown. Contigs are ordered in the same order as the tree.
-                                2. There are multiple ways to adjust position in the displayed plot:
-                                    1. Adjust the slider. Click the **"Reset"** button to reset to the original coordinates.
-                                    2. Zoom in using the **"Zoom"** icon.
-                                    3. Drag along the track with **"Pan"** to move to a new position.
-                                3. Hover over individual annotations to get a short description.
-
-                                ### Mode
-                                To view BED tracks, use the "Mode" section. The following modes are possible:
-                                * Condensed
-                                    * Default.
-                                * Length
-                                    * Show the largest annotation at the top.
-                                * Frequency
-                                    * Show the most frequent annotation at the top.
-                                * Proportion
-                                    * Show the annotation covering the largest proportion of the region at the top.
-
-                                ### Update
-                                Once set, click **"Update"** to replot.
-                                * *"All"* or a set number up to 50 can be drawn at a time.
-
-                                ### Reset
-                                To reset the tracks for a give data type to its default. Click the **"Reset"** button.
-                                * This is only done for that data type.
-                                """,
-                                "collapse-howto-selected-cen",
                             ),
                             html.Br(),
                             dbc.Spinner(
@@ -208,6 +258,7 @@ def tree_page(
 
     layout = split_layout(
         content=tree_layout(
+            selected_cen=itv_selected_cen,
             fig_tree=dcc.Graph(
                 id="fig-cens-tree",
                 figure=fig,
@@ -228,7 +279,7 @@ def tree_page(
         ),
         chrom_names=CHROMS.keys(),
     )
-    return layout, itv_selected_cen
+    return layout
 
 
 def split_layout(content: html.Div, chrom_names: list[str]) -> dbc.Row:

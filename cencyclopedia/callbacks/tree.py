@@ -7,17 +7,6 @@ from dash import Input, Output, callback, State, ctx
 
 
 @callback(
-    Output("collapse-howto-tree", "is_open"),
-    [Input("btn-collapse-howto-tree", "n_clicks")],
-    [State("collapse-howto-tree", "is_open")],
-)
-def toggle_howto_tree_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
-
-@callback(
     Output("itv-selected-cen", "data", allow_duplicate=True),
     # Need to reset to None or will trigger in future invocations.
     Output("btn-reset-itv-selected-cen", "n_clicks"),

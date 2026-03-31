@@ -16,17 +16,6 @@ from cencyclopedia.io.figure_1 import read_figure_1_bbox_data
 
 
 @callback(
-    Output("collapse-howto-fig1", "is_open"),
-    [Input("btn-collapse-howto-fig1", "n_clicks")],
-    [State("collapse-howto-fig1", "is_open")],
-)
-def toggle_howto_fig1_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
-
-@callback(
     Output("fig-1-home", "figure"),
     # Not actually updating. Will load once.
     Input("cfg", "data"),

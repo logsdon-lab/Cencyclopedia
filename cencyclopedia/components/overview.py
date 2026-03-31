@@ -6,7 +6,7 @@ from dash import dcc, html
 from cencyclopedia.components.tree import CHROMS
 from cencyclopedia.components.tree import split_layout
 from cencyclopedia.io.figure_1 import read_figure_1_bbox_data
-from cencyclopedia.components.help import row_title_with_help, collapse_help
+from cencyclopedia.components.help import row_title_with_help, popover
 
 
 def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "chr8"):
@@ -48,15 +48,18 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                         Sequence, structure, methylation pattern, local sequence identity, and haplotype frequency of 2,156 completely assembled centromeres from CHM13, CHM1, and 65 diverse human genomes.
                                         """
                                     ),
-                                    collapse_help(
-                                        """
-                                    1. Each centromere haplotype on this figure is clickable.
-                                        * Hovering over each centromere displays the contig, superpopulation and sex.
-                                    2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
-                                    3. To move around the image, use the **"Pan"** option.
-                                    4. To reset the image, click the **"Reset axes"**.
-                                    """,
-                                        "collapse-howto-fig1",
+                                    popover(
+                                        header="Help",
+                                        body=dcc.Markdown(
+                                            """
+                                            1. Each centromere haplotype on this figure is clickable.
+                                                * Hovering over each centromere displays the contig, superpopulation and sex.
+                                            2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
+                                            3. To move around the image, use the **"Pan"** option.
+                                            4. To reset the image, click the **"Reset axes"**.
+                                            """
+                                        ),
+                                        target="btn-collapse-howto-fig1",
                                     ),
                                     dbc.Spinner(
                                         dcc.Graph(

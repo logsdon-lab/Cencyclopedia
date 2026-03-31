@@ -4,6 +4,7 @@ import plotly.graph_objs as go
 
 from typing import Any
 from loguru import logger
+from copy import deepcopy
 from dash import Input, Output, callback, ctx, State, dcc
 from dash.exceptions import PreventUpdate
 
@@ -13,14 +14,29 @@ from cencyclopedia.components.err_msg import modal_body_content
 
 
 @callback(
-    Output("collapse-howto-selected-cen", "is_open"),
-    [Input("btn-collapse-howto-selected-cen", "n_clicks")],
-    [State("collapse-howto-selected-cen", "is_open")],
+    Output("selected-cen-height", "data"),
+    Output("selected-cen-vspacing", "data"),
+    Input("btn-update-selected-cen-layout", "n_clicks"),
+    State("input-selected-cen-height", "value"),
+    State("input-selected-cen-vertical-spacing", "value"),
 )
-def toggle_howto_selected_cen(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+def update_selected_cen_layout_params(
+    n_clicks: int | None,
+    new_height: str,
+    new_vspace: float | str,  # idk
+):
+    if not n_clicks or not new_vspace or not new_height:
+        return dash.no_update, dash.no_update
+    try:
+        new_height = float(new_height)
+    except Exception:
+        new_height = new_height
+
+    if new_vspace == 0.0:
+        new_vspace = None
+    else:
+        new_vspace = float(new_vspace)
+    return new_height, new_vspace
 
 
 @callback(
@@ -29,16 +45,20 @@ def toggle_howto_selected_cen(n, is_open):
     Output("body-err-msg", "children"),
     Output("modal-err-msg", "is_open"),
     Input("itv-selected-cen", "data"),
+    Input("selected-cen-height", "data"),
+    Input("selected-cen-vspacing", "data"),
     Input("bed-track-settings", "data"),
     State("cfg", "data"),
-    prevent_initial_call="initial_duplicate",
 )
 def draw_selected_cen_figure(
     itv_selected_cen: tuple[str, int, int] | None,
+    selected_cen_height: str,
+    selected_cen_vspacing: str,
     bed_track_settings: dict[str, BedTrackSettings],
     cfg: dict[str, Any],
 ) -> tuple[
     go._figure.Figure,
+    dict[str, Any],
     dcc.Markdown | dash._callback.NoUpdate,
     bool | dash._callback.NoUpdate,
 ]:
@@ -46,6 +66,11 @@ def draw_selected_cen_figure(
     if not itv_selected_cen:
         raise PreventUpdate
     try:
+        cfg = deepcopy(cfg)
+        # Set user/default height.
+        cfg["general"]["selected_cen"]["height"] = selected_cen_height
+        cfg["general"]["selected_cen"]["vertical_spacing"] = selected_cen_vspacing
+        # Draw plot and update height if expanded.
         fig, style = draw_cenplot(itv_selected_cen, bed_track_settings, cfg)
     except Exception as err:
         return dash.no_update, dash.no_update, modal_body_content(str(err)), True

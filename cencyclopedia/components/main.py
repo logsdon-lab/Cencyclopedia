@@ -14,6 +14,8 @@ def main_page(
     # Data
     data = Data.new(cfg["data"])
     datatypes = list(data.labels)
+    selected_cen_height = cfg["general"]["selected_cen"]["height"]
+    selected_cen_vspacing = cfg["general"]["selected_cen"]["vertical_spacing"]
     return html.Div(
         [
             # Regions
@@ -22,13 +24,17 @@ def main_page(
             dcc.Store(id="cfg", data=cfg),
             # Datatypes provided
             dcc.Store(id="datatypes", data=datatypes),
-            # Interval for selected centromere
-            dcc.Store(id="itv-selected-cen", data=None),
+            # Store selected cen layout params. We need these to persist if user clicks to different chromosome.
+            # Height
+            dcc.Store(id="selected-cen-height", data=selected_cen_height),
+            # Vertical spacing
+            dcc.Store(id="selected-cen-vspacing", data=selected_cen_vspacing),
             # Individual track settings
             dcc.Store(
                 id="bed-track-settings",
-                data={dtype: DEFAULT_SETTINGS for dtype in datatypes},
+                data={dtype: DEFAULT_SETTINGS for dtype in cfg["data"].keys()},
             ),
+            # URL (/, overview, chr?)
             dcc.Location(id="url", refresh=False),
             dbc.Row(home_page(cfg), id="main-content"),
         ],

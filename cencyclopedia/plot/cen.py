@@ -242,7 +242,11 @@ def draw_cenplot(
 
             logger.debug(f"Finished adding {label} (Group {grp}) on track {track_idx}")
 
+    fig.update_xaxes(title_font_family="Arial")
+    fig.update_yaxes(title_font_family="Arial")
     fig.update_layout(
+        font_family="Arial",
+        title_font_family="Arial",
         autosize=True,
         template="simple_white",
         xaxis={"showgrid": False},

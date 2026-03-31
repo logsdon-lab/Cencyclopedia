@@ -8,12 +8,10 @@ from cencyclopedia.components.tree import tree_page
 
 @callback(
     Output("main-content", "children"),
-    Output("itv-selected-cen", "data", allow_duplicate=True),
     Input("url", "pathname"),
     State("regions", "data"),
     State("cfg", "data"),
     State("datatypes", "data"),
-    prevent_initial_call="initial_duplicate",
 )
 def draw_main_content_page(
     pathname: str,
@@ -23,9 +21,8 @@ def draw_main_content_page(
 ):
     page = pathname.strip("/")
     if not page:
-        return home_page(cfg), None
+        return home_page(cfg)
     elif page == "overview":
-        return overview_page(regions, cfg), None
+        return overview_page(regions, cfg)
     else:
-        content, itv_selected_cen = tree_page(page, dtypes, regions, cfg)
-        return content, itv_selected_cen
+        return tree_page(page, dtypes, regions, cfg)

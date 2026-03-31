@@ -20,10 +20,15 @@ EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
 
 @callback(
     Output("btn-bed-update-tracks", "disabled"),
+    Input("data-label-tabs", "active_tab"),
     Input("rd-bed-expand-tracks-mode", "value"),
+    State("bed-track-settings", "data"),
 )
-def disable_update_while_original(mode: str) -> bool:
-    return mode == DEFAULT_MODE
+def disable_update_while_original(
+    data_label: str, mode: str, expand_tracks: dict[str, BedTrackSettings]
+) -> bool:
+    track_settings = expand_tracks[data_label]
+    return mode == DEFAULT_MODE and track_settings.get("mode") == DEFAULT_MODE
 
 
 @callback(
