@@ -36,11 +36,9 @@ def main_page(
             ),
             # URL (/, all, chr?)
             dcc.Location(id="url", refresh=False),
-            dbc.Row(home_page(cfg), id="main-content"),
-        ],
-        style={
-            "overflow": "scroll",
-            # Hide scrollbar
-            "scrollbar-width": "none",
-        },
+            dbc.Row(
+                home_page(cfg),
+                id="main-content",
+            ),
+        ]
     )
