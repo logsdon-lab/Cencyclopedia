@@ -184,6 +184,7 @@ def tree_layout(
                                                     dbc.Input(
                                                         id="input-selected-cen-vertical-spacing",
                                                         min=0.0,
+                                                        placeholder="Set 0.0 to autosize.",
                                                         value=selected_cen_vspacing
                                                         if selected_cen_vspacing
                                                         else 0.0,
@@ -289,7 +290,7 @@ def split_layout(content: html.Div, chrom_names: list[str]) -> dbc.Row:
             html.Hr(),
             dbc.Nav(
                 [
-                    dbc.NavLink("Overview", href="/overview", active="exact"),
+                    dbc.NavLink("All", href="/all", active="exact"),
                     *[
                         dbc.NavLink(CHROMS[chrom], href=f"/{chrom}", active="exact")
                         for chrom in chrom_names

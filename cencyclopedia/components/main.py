@@ -34,7 +34,7 @@ def main_page(
                 id="bed-track-settings",
                 data={dtype: DEFAULT_SETTINGS for dtype in cfg["data"].keys()},
             ),
-            # URL (/, overview, chr?)
+            # URL (/, all, chr?)
             dcc.Location(id="url", refresh=False),
             dbc.Row(home_page(cfg), id="main-content"),
         ],

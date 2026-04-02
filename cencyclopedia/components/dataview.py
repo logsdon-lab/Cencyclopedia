@@ -21,26 +21,6 @@ def dataview_tab(
                 [
                     dbc.Col(
                         [
-                            dbc.Row(
-                                dbc.Button(
-                                    "Update",
-                                    id="btn-bed-update-tracks",
-                                    disabled=True,
-                                )
-                            ),
-                            dbc.Row(
-                                dbc.Button(
-                                    "Reset",
-                                    id="btn-bed-reset-tracks",
-                                    color="danger",
-                                    disabled=False,
-                                )
-                            ),
-                        ],
-                        width=2,
-                    ),
-                    dbc.Col(
-                        [
                             dbc.Label("Mode"),
                             dbc.RadioItems(
                                 ALL_MODES,
@@ -61,6 +41,22 @@ def dataview_tab(
                                 disabled=False,
                                 id="dropdown-bed-expand-tracks-limit",
                                 placeholder="Select a limit to the number of tracks",
+                            ),
+                            html.Br(),
+                            dbc.ButtonGroup(
+                                [
+                                    dbc.Button(
+                                        "Update",
+                                        id="btn-bed-update-tracks",
+                                        disabled=True,
+                                    ),
+                                    dbc.Button(
+                                        "Reset",
+                                        id="btn-bed-reset-tracks",
+                                        color="danger",
+                                        disabled=False,
+                                    ),
+                                ]
                             ),
                         ]
                     ),

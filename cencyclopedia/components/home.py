@@ -21,12 +21,9 @@ def create_chromosome_navlink(cfg: dict[str, Any]) -> go._figure.Figure:
         Image.open(get_asset_url("Chromosomes.png")), fig=go._figure.Figure()
     )
     df_bboxes = pl.read_csv(cfg["general"]["chrom_navlink"]["bboxes"])
-    df_colors = pl.read_csv(cfg["general"]["chrom_navlink"]["colors"])
-    df_bbox_colors = df_bboxes.join(df_colors, on="chrom_name", how="left")
 
-    for row in df_bbox_colors.iter_rows(named=True):
+    for row in df_bboxes.iter_rows(named=True):
         chrom_name = row["chrom_name"]
-        color = row["color"]
         x0, x1 = row["xpos_st"], row["xpos_end"]
         y0, y1 = -row["ypos_st"], -row["ypos_end"]
         # Add rect [x_left_bottom, x_left_top, x_right_bottom, x_right_top, x_left_bottom]
@@ -34,10 +31,9 @@ def create_chromosome_navlink(cfg: dict[str, Any]) -> go._figure.Figure:
         fig.add_scatter(
             x=[x0, x0, x1, x1, x0],
             y=[y0, y1, y1, y0, y0],
-            fillcolor=color,
+            fillcolor="#FFFFFF",
             fill="toself",
-            line=dict(color=color),
-            opacity=0.3,
+            opacity=0.0,
             customdata=[chrom_name],
             name=chrom_name,
             mode="lines+text",
@@ -72,11 +68,11 @@ def home_page(cfg: dict[str, Any]):
             # Home selected cen
             create_logo(),
             html.Br(),
-            # html.H1("What is Cencyclopedia?", style={"text-align": "center"}),
-            html.H3(
-                "Cencyclopedia is an interactive visualization tool that allows you to investigate "
-                "the sequence, structure, and epigenetic landscape, and evolutionary relationships "
-                "among human centromeres.",
+            dcc.Markdown(
+                """
+                ### Cencyclopedia is an interactive visualization tool that allows you to investigate
+                ### the sequence, structure, and epigenetic landscape, and evolutionary relationships among human centromeres
+                """,
                 style={"text-align": "center"},
             ),
             html.Hr(),

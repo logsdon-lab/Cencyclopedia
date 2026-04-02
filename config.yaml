@@ -1,7 +1,6 @@
 general:
   chrom_navlink:
     bboxes: assets/Chromosomes.bboxes.csv
-    colors: assets/Chromosomes.colors.csv
   fig_1:
     bboxes: assets/Figure1_chrom_bboxes.csv
     order: assets/Figure1_order.csv
@@ -56,7 +55,7 @@ general:
     bmargin: 0
     tmargin: 0
     # 0.0 for autosize
-    vertical_spacing: 0.0
+    vertical_spacing: 0.005
     # Selected tab for data view.
     default_data_tab: "Alpha-satellite HORs"
 # Tracks

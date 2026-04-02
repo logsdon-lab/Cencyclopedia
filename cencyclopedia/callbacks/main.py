@@ -1,3 +1,4 @@
+from loguru import logger
 from typing import Any
 from dash import Input, Output, callback, State
 
@@ -20,9 +21,10 @@ def draw_main_content_page(
     dtypes: list[str],
 ):
     page = pathname.strip("/")
+    logger.debug(f"On url {page}.")
     if not page:
         return home_page(cfg)
-    elif page == "overview":
+    elif page == "all":
         return overview_page(regions, cfg)
     else:
         return tree_page(page, dtypes, regions, cfg)
