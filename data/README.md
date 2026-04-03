@@ -36,6 +36,11 @@ On UPenn LPC, run `update_all_data.sh`.
 bash update_all_data.sh
 ```
 
+ModDotPlot takes a while so is done separately with `update_moddotplot.sh`.
+```bash
+bash update_moddotplot.sh
+```
+
 # Sample metadata:
 ```bash
 # Add CHMs and special HPRC chr22 cases
