@@ -49,12 +49,12 @@ def create_chromosome_navlink(cfg: dict[str, Any]) -> go._figure.Figure:
     return fig
 
 
-def create_logo(height: str = "50vh"):
+def create_logo(width: str = "8rem"):
     img = Image.open(get_asset_url("logo.png"))
     return html.Img(
         src=img,
         style={
-            "height": height,
+            "width": width,
             "display": "block",
             "margin-left": "auto",
             "margin-right": "auto",
@@ -66,7 +66,7 @@ def home_page(cfg: dict[str, Any]):
     return html.Div(
         [
             # Home selected cen
-            create_logo(),
+            create_logo(width="30%"),
             html.Br(),
             dcc.Markdown(
                 """

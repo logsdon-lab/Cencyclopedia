@@ -17,7 +17,7 @@ SIDEBAR_STYLE = {
     "top": 0,
     "left": 0,
     "bottom": 0,
-    "width": "16rem",
+    "width": "12rem",
     "padding": "2rem 1rem",
     "background-color": "#f8f9fa",
     "overflow": "scroll",
@@ -25,7 +25,10 @@ SIDEBAR_STYLE = {
     "scrollbar-width": "none",
 }
 CONTENT_STYLE = {
-    "padding": "2rem 10rem",
+    "padding-top": "2rem",
+    "padding-bottom": "2rem",
+    "padding-left": "7rem",
+    "padding-right": "8rem",
     "overflow": "scroll",
     # Hide scrollbar
     "scrollbar-width": "none",
@@ -286,7 +289,7 @@ def tree_page(
 def split_layout(content: html.Div, chrom_names: list[str]) -> dbc.Row:
     sidebar = html.Div(
         [
-            dbc.NavLink(create_logo(height="10vh"), href="/", active="exact"),
+            dbc.NavLink(create_logo(width="8rem"), href="/", active="exact"),
             html.Hr(),
             dbc.Nav(
                 [
