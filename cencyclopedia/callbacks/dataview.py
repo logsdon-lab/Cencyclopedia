@@ -4,7 +4,7 @@ from typing import Any
 from loguru import logger
 from dash import dcc, Input, Output, callback, dash_table, State, html, ctx
 
-from cencyclopedia.io.data import Data
+from cencyclopedia.io.data import Data, EXPANDABLE_DATA_TYPES
 from cencyclopedia.plot.common import (
     BedTrackSettings,
     DEFAULT_SETTINGS,
@@ -13,9 +13,6 @@ from cencyclopedia.plot.common import (
     TrackLimit,
 )
 from cencyclopedia.components.dataview import dataview_tab
-
-
-EXPANDABLE_DTYPES = set(("bed", "bedstrand"))
 
 
 @callback(
@@ -63,7 +60,7 @@ def draw_dataview_tab(
     )
     # Use defaults.
     track_settings = expand_tracks[data_label]
-    disabled = data_fhs.datatype(data_label) not in EXPANDABLE_DTYPES
+    disabled = data_fhs.datatype(data_label) not in EXPANDABLE_DATA_TYPES
     return dataview_tab(
         data_table=data_table, track_settings=track_settings, all_disabled=disabled
     )
@@ -147,9 +144,11 @@ def download_data(
         return dash.no_update
     chrom, st, end = itv_selected_cen
     data_fhs = Data.new(cfg["data"])
-    df = data_fhs.query(data_label, chrom, st, end, to_relative=False).rename(
-        {"chrom": "#chrom"}
-    )
+    df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
+    # Rename so works in IGV
+    first_col = df.columns[0]
+    df = df.rename({first_col: f"#{first_col}"})
+
     outfname = f"{chrom}_{st}_{end}_{data_label.replace(' ', '_')}.bed.gz"
     return dcc.send_bytes(
         lambda x: df.write_csv(x, separator="\t", compression="gzip"), outfname

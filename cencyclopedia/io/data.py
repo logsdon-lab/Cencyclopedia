@@ -24,6 +24,13 @@ from .bedpe import (
     to_relative_coords_bedpe_selfident,
 )
 
+DATA_TYPES = ["bed", "bedgraph", "bedstrand", "bedpe_selfident", "bed_localselfident"]
+EXPANDABLE_DATA_TYPES = set(("bed", "bedstrand", "bed_localselfident"))
+
+DataType = Literal[
+    "bed", "bedgraph", "bedstrand", "bedpe_selfident", "bed_localselfident"
+]
+
 
 class Data(NamedTuple):
     fhs: dict[str, pysam.TabixFile | pathlib.Path]
@@ -48,11 +55,7 @@ class Data(NamedTuple):
     def options(self, label: str) -> dict[str, Any]:
         return self.cfg[label].get("options", {})
 
-    def datatype(
-        self, label: str
-    ) -> Literal[
-        "bed", "bedgraph", "bedstrand", "bedpe_selfident", "bed_localselfident"
-    ]:
+    def datatype(self, label: str) -> DataType:
         return self.cfg[label]["type"]
 
     @property
