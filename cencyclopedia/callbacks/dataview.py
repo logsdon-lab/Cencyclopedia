@@ -1,4 +1,5 @@
 import dash
+import polars as pl
 
 from typing import Any
 from loguru import logger
@@ -47,10 +48,21 @@ def draw_dataview_tab(
     chrom, st, end = itv_selected_cen
     data_fhs = Data.new(cfg["data"])
     df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
+    replace_colnames: dict[str, str] = data_fhs.options(data_label).get(
+        "replace_colnames", {}
+    )
     data_table = dash_table.DataTable(
         id=f"data-{data_label}",
         data=list(df.iter_rows(named=True)),
-        columns=[{"name": i, "id": i, "selectable": True} for i in df.columns],
+        columns=[
+            {
+                # Get replacement name, otherwise keep same.
+                "name": replace_colnames.get(i, i),
+                "id": i,
+                "selectable": True,
+            }
+            for i in df.columns
+        ],
         page_size=5,
         column_selectable="single",
         sort_action="native",
@@ -145,9 +157,20 @@ def download_data(
     chrom, st, end = itv_selected_cen
     data_fhs = Data.new(cfg["data"])
     df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
-    # Rename so works in IGV
+    if not isinstance(df, pl.DataFrame):
+        return dash.no_update
+
+    # Rename if replacement colnames provided.
+    replace_colnames: dict[str, str] | None = data_fhs.options(data_label).get(
+        "replace_colnames"
+    )
+    if replace_colnames:
+        df = df.rename(replace_colnames, strict=False)
+
     first_col = df.columns[0]
-    df = df.rename({first_col: f"#{first_col}"})
+    # Assume bed-like and is chrom. Add # to start so works in IGV
+    if not first_col.startswith("#"):
+        df = df.rename({first_col: f"#{first_col}"})
 
     outfname = f"{chrom}_{st}_{end}_{data_label.replace(' ', '_')}.bed.gz"
     return dcc.send_bytes(

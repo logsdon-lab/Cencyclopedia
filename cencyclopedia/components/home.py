@@ -98,7 +98,7 @@ def home_page(cfg: dict[str, Any]):
                                 * [Keisuke K. Oshima](https://github.com/koisland) ([Logsdon Lab](https://www.logsdonlab.com/))
                                 * [Zikun Yang](https://github.com/Zikun-Yang) ([Mao Lab](https://www.yafmao.org/))
 
-                                We thank an anonymous reviewer for suggesting we build this interactive centromere visualization tool.
+                                We thank the anonymous reviewer who suggested we build this interactive centromere visualization tool.
                             """),
                         ]
                     ),
@@ -107,7 +107,7 @@ def home_page(cfg: dict[str, Any]):
                             html.H3("Citation"),
                             html.Hr(),
                             dcc.Markdown("""
-                                *Gao S, Oshima KK, Chuang SC, Loftus M, Montanari A, Gordon DS, Human Genome Structural Variation Consortium, Human Pangenome Reference Consortium, Hsieh P, Konkel MK, Ventura M, Logsdon GA. A global view of human centromere variation and evolution. bioRxiv. 2025. p. 2025.12.09.693231. [doi:10.64898/2025.12.09.693231](https://doi.org/10.64898/2025.12.09.693231)*
+                                Gao S, Oshima KK, Chuang SC, Loftus M, Montanari A, Gordon DS, Human Genome Structural Variation Consortium, Human Pangenome Reference Consortium, Hsieh P, Konkel MK, Ventura M, Logsdon GA. A global view of human centromere variation and evolution. *bioRxiv*. 2025. p. 2025.12.09.693231. [doi:10.64898/2025.12.09.693231](https://doi.org/10.64898/2025.12.09.693231)
                             """),
                         ]
                     ),

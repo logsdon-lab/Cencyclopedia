@@ -8,9 +8,10 @@ general:
     height_cens: 34vh
     use_data:
     - "MEI"
+    - "Spacer"
     - "CDR"
     - "CpG Methylation"
-    - "Satellite Structure"
+    - "Structure"
     - "Alpha-satellite HORs"
     - "Local Self-Identity"
     - "Alpha-satellite HOR array orientation"
@@ -71,6 +72,13 @@ data:
     # Proportion
     prop: 0.02
     options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "MEI"
+        color: "Color"
+        score: "Score"
       # Run-length encode same names
       rle: false
       # Shape of marker (tri or rect)
@@ -85,7 +93,20 @@ data:
         showline: false
       yaxis_kwargs:
         # Title text converted to annotation since plotly does not support rotated titles
-        title_text: MEIs
+        title_text: MEI(s)
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "Spacer":
+    position: relative
+    type: spacer
+    prop: 0.02
+    options:
+      xaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
         showticklabels: false
         ticks: ""
         showline: false
@@ -95,12 +116,19 @@ data:
     type: bed
     prop: 0.01
     options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "CDR"
+        color: "Color"
+        score: "Score"
       rle: false
       xaxis_kwargs:
         ticks: ""
         showline: false
       yaxis_kwargs:
-        title_text: CDRs
+        title_text: CDR(s)
         showticklabels: false
         ticks: ""
         showline: false
@@ -110,25 +138,37 @@ data:
     type: bedgraph
     prop: 0.1
     options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Average CpG Methylation"
       rle: false
       xaxis_kwargs:
         ticks: ""
         showline: false
       yaxis_kwargs:
         range: [0.0, 1.0]
-        title_text: "CpG Methylation"
-  "Satellite Structure":
+        title_text: "CpG<br>Methylation"
+  "Structure":
     path: data/all_RM_satellite_annotation.bed.gz
     position: relative
     type: bed
     prop: 0.05
     options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Structure"
+        color: "Color"
+        score: "Score"
       rle: false
       xaxis_kwargs:
         ticks: ""
         showline: false
       yaxis_kwargs:
-        title_text: "Satellite Structure"
+        title_text: "Structure"
         showticklabels: false
         ticks: ""
         showline: false
@@ -139,6 +179,13 @@ data:
     type: bed
     # prop: 0.05
     options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "α-satellite HOR"
+        color: "Color"
+        score: "Monomers"
       rle: false
       xaxis_kwargs:
         ticks: ""
@@ -154,6 +201,13 @@ data:
     type: bed_localselfident
     prop: 0.02
     options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Identity Range"
+        color: "Color"
+        score: "Percent Identity"
       rle: false
       xaxis_kwargs:
         ticks: ""
@@ -169,6 +223,13 @@ data:
     type: bedstrand
     prop: 0.02
     options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Strand"
+        color: "Color"
+        score: "Score"
       rle: false
       xaxis_kwargs:
         ticks: ""
@@ -185,15 +246,23 @@ data:
     type: bedpe_selfident
     prop: 0.5
     options:
-        rle: false
-        xaxis_kwargs:
-          title_text: "Genomic Position"
-          showline: true
-        yaxis_kwargs:
-          showline: false
-          showticklabels: false
-          ticks: ""
-          title_text: Self-Identity
+      replace_colnames:
+        qry: "Query Contig"
+        qry_st: "Query Start"
+        qry_end: "Query End"
+        ref: "Reference Contig"
+        ref_st: "Reference Start"
+        ref_end: "Reference End"
+        percent_identity_by_events: "Percent Identity"
+      rle: false
+      xaxis_kwargs:
+        title_text: "Genomic Position"
+        showline: true
+      yaxis_kwargs:
+        showline: false
+        showticklabels: false
+        ticks: ""
+        title_text: Self-Identity
 regions: data/all_array.bed.gz
 clades: data/clades.tsv.gz
 sample_metadata: data/sample_metadata.tsv.gz

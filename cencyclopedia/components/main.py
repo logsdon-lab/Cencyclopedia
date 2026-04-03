@@ -32,7 +32,11 @@ def main_page(
             # Individual track settings
             dcc.Store(
                 id="bed-track-settings",
-                data={dtype: DEFAULT_SETTINGS for dtype in cfg["data"].keys()},
+                data={
+                    dtype: DEFAULT_SETTINGS
+                    for dtype, dcfg in cfg["data"].items()
+                    if dcfg["type"] != "spacer"
+                },
             ),
             # URL (/, all, chr?)
             dcc.Location(id="url", refresh=False),

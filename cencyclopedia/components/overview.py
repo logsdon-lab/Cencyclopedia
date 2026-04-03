@@ -80,6 +80,21 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                             ),
                             dbc.Col(
                                 [
+                                    # Nest divs so same level as above header.
+                                    html.Div(
+                                        [
+                                            dbc.Row(
+                                                dbc.Col(
+                                                    [
+                                                        html.H3(
+                                                            "Centromere Comparison"
+                                                        ),
+                                                    ]
+                                                )
+                                            ),
+                                            html.Hr(),
+                                        ]
+                                    ),
                                     dbc.Alert(
                                         "While reference genomes like CHM13 and CHM1 provide useful insight into centromere variation, "
                                         "they only represent a fraction of human centromere variation. "

@@ -41,7 +41,7 @@ def draw_cenplot(
 
     props = []
     total_original_prop = 0.0
-    indices: dict[str, tuple[list[int], pl.DataFrame]] = {}
+    indices: dict[str, tuple[list[int], pl.DataFrame | None]] = {}
 
     # Add additional rows if expand. If overlap, must ignore.
     track_params = list(data_fhs.track_params)
@@ -54,9 +54,11 @@ def draw_cenplot(
         rle = data_fhs.options(label).get("rle", True)
         dtype = data_fhs.datatype(label)
         if dtype == "bedpe_selfident":
-            df = data_fhs.query(
-                label, chrom, st, end, to_relative=to_relative
-            ).with_columns(group=pl.lit(0))
+            df = data_fhs.query(label, chrom, st, end, to_relative=to_relative)
+            assert isinstance(df, pl.DataFrame)
+            df = df.with_columns(group=pl.lit(0))
+        elif not dtype:
+            df = None
         else:
             df = data_fhs.split(
                 label,
@@ -66,7 +68,10 @@ def draw_cenplot(
                 by=mode,
                 to_relative=to_relative,
                 rle=rle,
-            ).sort(by="group")
+            )
+            assert isinstance(df, pl.DataFrame)
+
+            df = df.sort(by="group")
 
             if to_relative:
                 df = clip_df(df, 0, end - st)
@@ -82,6 +87,9 @@ def draw_cenplot(
                 continue
             props.append(prop)
         else:
+            if not isinstance(df, pl.DataFrame):
+                continue
+
             # Overlap ignored if expanded. Force to take space by adding 1 offset.
             if not prop:
                 prev_label, prev_idx, prev_prop = track_params[i - 1]
@@ -137,7 +145,12 @@ def draw_cenplot(
     for label, (indices, df) in indices.items():
         dtype = data_fhs.datatype(label)
         options = data_fhs.options(label)
-        dfs_groups = list(df.group_by(["group"], maintain_order=True))
+        if isinstance(df, pl.DataFrame):
+            dfs_groups: list[tuple[tuple[Any, ...], pl.DataFrame]] = list(
+                df.group_by(["group"], maintain_order=True)
+            )
+        else:
+            dfs_groups = []
         # https://plotly.com/python/reference/layout/xaxis/
         update_xaxis_kwargs = options.get("xaxis_kwargs", {})
         update_yaxis_kwargs = options.get("yaxis_kwargs", {})
@@ -211,9 +224,17 @@ def draw_cenplot(
                     shape=options.get("shape", "rect"),
                     invert=options.get("invert", True),
                     bp_slop=options.get("bp_slop", 0),
+                    # Replace score label in hovertext if provided in replace_colnames
+                    score_label=options.get("replace_colnames").get("score"),
                 )
             elif dtype == "bedgraph":
-                add_bedgraph_track(df_grp, fig, row=track_idx, col=1)
+                add_bedgraph_track(
+                    df_grp,
+                    fig,
+                    row=track_idx,
+                    col=1,
+                    name_label=options.get("replace_colnames").get("name"),
+                )
             elif dtype == "bedstrand":
                 add_bedstrand_track(df_grp, fig, row=track_idx, col=1)
             elif dtype == "bedpe_selfident":

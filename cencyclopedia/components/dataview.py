@@ -74,6 +74,7 @@ def dataview_tab(
             html.Div(
                 [
                     data_table,
+                    html.Br(),
                     dbc.Button("Download", id="btn-download-data"),
                     dcc.Download(id="download-data"),
                 ],

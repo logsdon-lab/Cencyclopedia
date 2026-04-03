@@ -24,7 +24,6 @@ from .bedpe import (
     to_relative_coords_bedpe_selfident,
 )
 
-DATA_TYPES = ["bed", "bedgraph", "bedstrand", "bedpe_selfident", "bed_localselfident"]
 EXPANDABLE_DATA_TYPES = set(("bed", "bedstrand", "bed_localselfident"))
 
 DataType = Literal[
@@ -33,34 +32,40 @@ DataType = Literal[
 
 
 class Data(NamedTuple):
-    fhs: dict[str, pysam.TabixFile | pathlib.Path]
+    fhs: dict[str, pysam.TabixFile | pathlib.Path | None]
     cfg: dict[str, Any]
 
     def new(cfg: dict[str, Any]) -> Self:
         fhs = {}
         cfgs = {}
         for label, trk_info in cfg.items():
-            path = trk_info["path"]
-            if os.path.isfile(path):
+            cfgs[label] = trk_info
+            path = trk_info.get("path")
+            if not path:
+                fhs[label] = None
+            elif os.path.isfile(path):
                 fhs[label] = pysam.TabixFile(trk_info["path"])
             elif os.path.isdir(path):
                 fhs[label] = pathlib.Path(path)
             else:
                 logger.debug(f"Invalid file type for {path}")
                 continue
-            cfgs[label] = trk_info
 
         return Data(fhs=fhs, cfg=cfgs)
 
     def options(self, label: str) -> dict[str, Any]:
         return self.cfg[label].get("options", {})
 
-    def datatype(self, label: str) -> DataType:
-        return self.cfg[label]["type"]
+    def datatype(self, label: str) -> DataType | None:
+        dtype = self.cfg[label]["type"]
+        return self.cfg[label]["type"] if dtype != "spacer" else None
 
     @property
     def labels(self) -> Iterator[str]:
-        return self.fhs.keys()
+        for lbl in self.fhs.keys():
+            if self.cfg[lbl]["type"] == "spacer":
+                continue
+            yield lbl
 
     @property
     def track_params(self) -> Iterator[tuple[str, int, float | None]]:
@@ -78,7 +83,7 @@ class Data(NamedTuple):
         end: int | None = None,
         *,
         to_relative: bool = True,
-    ) -> pl.DataFrame:
+    ) -> pl.DataFrame | None:
         """
         # Arguments
         * `label`
@@ -89,7 +94,9 @@ class Data(NamedTuple):
         parser: pysam.asBed | pysam.asTuple = pysam.asBed()
         to_relative_fn = lambda df: to_relative_coords_bed(df, st)
         finalizer_fn: Callable[[pl.DataFrame], pl.DataFrame] | None = None
-        if self.cfg[label]["type"] == "bed9":
+        if self.cfg[label]["type"] == "spacer":
+            return None
+        elif self.cfg[label]["type"] == "bed9":
             read_fn = read_bed9_row
             schema = BED_SCHEMA
         elif self.cfg[label]["type"] == "bedstrand":
@@ -169,7 +176,7 @@ class Data(NamedTuple):
         by: TrackMode,
         rle: bool = True,
         to_relative: bool = True,
-    ):
+    ) -> pl.DataFrame | None:
         df = self.query(
             label,
             chrom,
@@ -177,6 +184,9 @@ class Data(NamedTuple):
             chrom_end,
             to_relative=to_relative,
         )
+        if not isinstance(df, pl.DataFrame):
+            return None
+
         if by == "Length":
             df_name_order = (
                 df.group_by(["name"])
