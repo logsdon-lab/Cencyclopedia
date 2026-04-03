@@ -25,11 +25,10 @@ def dataview_tab(
                             dbc.RadioItems(
                                 ALL_MODES,
                                 value=track_settings["mode"],
-                                inline=True,
                                 id="rd-bed-expand-tracks-mode",
                             ),
                         ],
-                        width=3,
+                        width=2,
                     ),
                     dbc.Col(
                         [

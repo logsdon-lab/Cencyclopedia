@@ -118,61 +118,54 @@ def tree_layout(
                     ),
                     dbc.Col(
                         [
+                            row_title_with_help(
+                                "Individual centromere",
+                                "btn-collapse-howto-selected-cen",
+                            ),
+                            popover(
+                                header="Help",
+                                target="btn-collapse-howto-selected-cen",
+                                body=dcc.Markdown(
+                                    """
+                                    ### General
+                                    1. Select a contig from the dropdown. Contigs are ordered in the same order as the tree.
+                                    2. There are multiple ways to adjust position in the displayed plot:
+                                        1. Adjust the slider. Click the **"Reset"** button to reset to the original coordinates.
+                                        2. Zoom in using the **"Zoom"** icon.
+                                        3. Drag along the track with **"Pan"** to move to a new position.
+                                    3. Hover over individual annotations to get a short description.
+
+                                    ### Mode
+                                    To view BED tracks, use the "Mode" section. The following modes are possible:
+                                    * Condensed
+                                        * Default.
+                                    * Length
+                                        * Show the largest annotation at the top.
+                                    * Frequency
+                                        * Show the most frequent annotation at the top.
+                                    * Proportion
+                                        * Show the annotation covering the largest proportion of the region at the top.
+
+                                    ### Update
+                                    Once set, click **"Update"** to replot.
+                                    * *"All"* or a set number up to 50 can be drawn at a time.
+
+                                    ### Reset
+                                    To reset the tracks for a give data type to its default. Click the **"Reset"** button.
+                                    * This is only done for that data type.
+                                    """
+                                ),
+                            ),
                             dbc.Row(
                                 [
-                                    dbc.Col(dropdown, width=10),
+                                    dbc.Col(dropdown, width=11),
                                     dbc.Col(
                                         [
-                                            dbc.ButtonGroup(
-                                                [
-                                                    dbc.Button(
-                                                        "Help",
-                                                        id="btn-collapse-howto-selected-cen",
-                                                        size="sm",
-                                                        color="secondary",
-                                                        n_clicks=0,
-                                                    ),
-                                                    dbc.Button(
-                                                        "Layout",
-                                                        id="btn-popup-layout-selected-cen",
-                                                        size="sm",
-                                                        n_clicks=0,
-                                                    ),
-                                                ]
-                                            ),
-                                            popover(
-                                                header="Help",
-                                                target="btn-collapse-howto-selected-cen",
-                                                body=dcc.Markdown(
-                                                    """
-                                                    ### General
-                                                    1. Select a contig from the dropdown. Contigs are ordered in the same order as the tree.
-                                                    2. There are multiple ways to adjust position in the displayed plot:
-                                                        1. Adjust the slider. Click the **"Reset"** button to reset to the original coordinates.
-                                                        2. Zoom in using the **"Zoom"** icon.
-                                                        3. Drag along the track with **"Pan"** to move to a new position.
-                                                    3. Hover over individual annotations to get a short description.
-
-                                                    ### Mode
-                                                    To view BED tracks, use the "Mode" section. The following modes are possible:
-                                                    * Condensed
-                                                        * Default.
-                                                    * Length
-                                                        * Show the largest annotation at the top.
-                                                    * Frequency
-                                                        * Show the most frequent annotation at the top.
-                                                    * Proportion
-                                                        * Show the annotation covering the largest proportion of the region at the top.
-
-                                                    ### Update
-                                                    Once set, click **"Update"** to replot.
-                                                    * *"All"* or a set number up to 50 can be drawn at a time.
-
-                                                    ### Reset
-                                                    To reset the tracks for a give data type to its default. Click the **"Reset"** button.
-                                                    * This is only done for that data type.
-                                                    """
-                                                ),
+                                            dbc.Button(
+                                                "Layout",
+                                                id="btn-popup-layout-selected-cen",
+                                                size="sm",
+                                                n_clicks=0,
                                             ),
                                             popover(
                                                 header="Layout",
@@ -203,7 +196,7 @@ def tree_layout(
                                                 target="btn-popup-layout-selected-cen",
                                             ),
                                         ],
-                                        width=2,
+                                        width=1,
                                     ),
                                 ]
                             ),
