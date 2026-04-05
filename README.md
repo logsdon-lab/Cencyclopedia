@@ -47,7 +47,7 @@ gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'
 Then, open [`127.0.0.1:8050`](http://127.0.0.1:8050) in browser.
 
 #### Data viewer only
-To view just the centromere and dataviewer, create a copy of the configfile, `config.yaml:general.mode`.
+To view just the centromere and dataviewer, create a copy of the config file.
 ```bash
 cp config.yaml config_single.yaml
 ```
