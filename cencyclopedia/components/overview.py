@@ -95,7 +95,7 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                             html.Hr(),
                                         ]
                                     ),
-                                    dbc.Alert(
+                                    dcc.Markdown(
                                         "While reference genomes like CHM13 and CHM1 provide useful insight into centromere variation, "
                                         "they only represent a fraction of human centromere variation. "
                                         "Click the figure on the left to see how centromeres vary genetically and epigenetically in the human population."

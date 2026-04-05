@@ -28,7 +28,7 @@ def dataview_tab(
                                 id="rd-bed-expand-tracks-mode",
                             ),
                         ],
-                        width=2,
+                        width=3,
                     ),
                     dbc.Col(
                         [

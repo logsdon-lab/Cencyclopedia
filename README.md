@@ -34,6 +34,8 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
+## Browser
+View in your browser at https://cencyclopedia.com.
 
 ## Run locally
 ### Python

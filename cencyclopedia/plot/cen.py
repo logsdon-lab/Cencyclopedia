@@ -255,9 +255,9 @@ def draw_cenplot(
             fig.update_xaxes(
                 **update_xaxis_kwargs,
                 constrain="domain",
+                range=xrange,
                 row=track_idx,
                 col=1,
-                autorange=True,
             )
             fig.update_yaxes(**update_yaxis_kwargs, row=track_idx, col=1)
 
@@ -280,5 +280,7 @@ def draw_cenplot(
         ),
         modebar_remove=["select2d", "lasso2d"],
     )
+    with open("test.txt", "wt") as fh:
+        print(fig, file=fh)
 
     return fig, style
