@@ -16,4 +16,4 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8050
 # gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'
-CMD ["gunicorn", "-b", "0.0.0.0:8050", "'cencyclopedia.app:server()'"]
+CMD ["gunicorn", "-b", "0.0.0.0:8050", "cencyclopedia.app:server()"]
