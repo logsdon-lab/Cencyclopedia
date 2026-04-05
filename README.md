@@ -41,10 +41,32 @@ View in your browser at https://cencyclopedia.com.
 ### Python
 Set up app locally. Data is stored in repo.
 ```bash
-python -m cencyclopedia.app
+gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'
 ```
 
 Then, open [`127.0.0.1:8050`](http://127.0.0.1:8050) in browser.
+
+#### Data viewer only
+To view just the centromere and dataviewer, create a copy of the configfile, `config.yaml:general.mode`.
+```bash
+cp config.yaml config_single.yaml
+```
+
+Modify `general.mode`, `general.output_regions`, and `general.selected_cen.height`.
+```yaml
+general:
+  mode: single
+  output_regions: data/bed_single.csv.gz
+  selected_cen:
+    height: 800
+    vertical_spacing: 0.0
+```
+
+Then rerun pointing to the new configfile.
+```bash
+export CENCYCLOPEDIA_CONFIG="config_single.yaml"
+gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'
+```
 
 ### Docker
 Build the container and run app exposed on port 8050.

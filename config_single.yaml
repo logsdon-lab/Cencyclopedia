@@ -2,63 +2,14 @@ general:
   # Title of app
   title: Cencyclopedia
   # Mode to run {all, single}
-  mode: all
+  mode: single
   # Output regions
-  output_regions: data/bed.csv.gz
+  output_regions: data/bed_single.csv.gz
   # Regions bedfile
   regions: data/all_array.bed.gz
-  # Clades (all)
-  clades: data/clades.tsv.gz
-  # Sample metadata (all)
-  sample_metadata: data/sample_metadata.tsv.gz
-  # Population colors (all)
-  population_colors: data/all_population_colors.tsv
-  # Other settings
-  chrom_navlink:
-    bboxes: assets/Chromosomes.bboxes.csv
-  fig_1:
-    bboxes: assets/Figure1_chrom_bboxes.csv
-    order: assets/Figure1_order.csv
-    height_figure: 100vh
-    height_cens: 34vh
-    use_data:
-    - "MEI"
-    - "Spacer"
-    - "CDR"
-    - "CpG Methylation"
-    - "Structure"
-    - "Alpha-satellite HORs"
-    - "Local Self-Identity"
-    - "Alpha-satellite HOR array orientation"
-    - "Self-Identity"
-  tree:
-    # Tree height
-    height: 200vh
-    # Tree width (x / 12)
-    width: 7
-    # Midpoint of tree. Defaults to half of the image.
-    xmidpt:
-      chr13: 2000
-      chr14: 2000
-      chr15: 2015
-      chr21: 2080
-      chr22: 2080
-      default: null
-    # Starting y-position of first centromere in tree
-    ystart:
-      chr13: 301
-      chr14: 301
-      chr15: 301
-      chr21: 301
-      chr22: 301
-      default: 304
-    # Offset in y-position to reach next centromere
-    # Applied to both acro and other chromosomes
-    yoffset:
-      default: 38.5
   selected_cen:
     # Selected centromere height
-    height: 400
+    height: 800
     # Centromere plot width (x / 12)
     width: 5
     # y-axis title position. left or right. Should also adjust margins below to accomodate.
@@ -71,7 +22,7 @@ general:
     bmargin: 0
     tmargin: 0
     # 0.0 for autosize
-    vertical_spacing: 0.005
+    vertical_spacing: 0.0
     # Selected tab for data view.
     default_data_tab: "Alpha-satellite HORs"
 # Tracks

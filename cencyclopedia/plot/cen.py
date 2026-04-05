@@ -280,7 +280,4 @@ def draw_cenplot(
         ),
         modebar_remove=["select2d", "lasso2d"],
     )
-    with open("test.txt", "wt") as fh:
-        print(fig, file=fh)
-
     return fig, style
