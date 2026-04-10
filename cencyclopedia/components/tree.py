@@ -103,7 +103,7 @@ def tree_layout(
                                 body=dcc.Markdown(
                                     """
                                     1. Each centromere haplotype on this figure is clickable.
-                                        * Hovering over each centromere displays the contig name, superpopulation, and sex.
+                                        * Hovering over each centromere displays the contig name, continental group, and sex.
                                     2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
                                     3. To move around the image, use the **"Pan"** option.
                                     4. To reset the image, click the **"Reset axes"** icon.

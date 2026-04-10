@@ -38,8 +38,8 @@ def create_tree_figure(
         chrom_name = df["chrom_name"][0]
         colors = df["color"].to_list()
         descs = [
-            f"Population: {pop}<br>Sex: {sex}"
-            for pop, sex in df.select("population", "sex").iter_rows()
+            f"Continental Group: {pop}<br>Sex: {sex}"
+            for pop, sex in df.select("continental_group", "sex").iter_rows()
         ]
         # Set img midpt and yst based on chromosome name.
         img_midpt = cfg["general"]["tree"]["xmidpt"].get(chrom_name, default_midpt)
@@ -66,7 +66,7 @@ def create_tree_figure(
             x, y, chroms, colors, descs, strict=True
         ):
             desc = f"Contig: {chrom}<br>{desc}"
-            # Color by population
+            # Color by continental group
             # Add rect [x_left_bottom, x_left_top, x_right_bottom, x_right_top, x_left_bottom]
             #          [y_left_bottom, y_left_top, y_right_top, y_right_bottom, y_left_bottom]
             fig.add_scatter(

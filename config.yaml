@@ -11,8 +11,8 @@ general:
   clades: data/clades.tsv.gz
   # Sample metadata (all)
   sample_metadata: data/sample_metadata.tsv.gz
-  # Population colors (all)
-  population_colors: data/all_population_colors.tsv
+  # Continental_group colors (all)
+  continental_group_colors: data/all_continental_group_colors.tsv
   # Other settings
   chrom_navlink:
     bboxes: assets/Chromosomes.bboxes.csv

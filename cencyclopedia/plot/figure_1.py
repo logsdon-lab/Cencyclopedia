@@ -12,9 +12,7 @@ def draw_fig1(img: Image, df_fig1_bboxes: pl.DataFrame) -> go._figure.Figure:
     # Figure 1 bboxes around centromeres
     for row in df_fig1_bboxes.iter_rows(named=True):
         chrom = row["chrom"]
-        desc = (
-            f"Contig: {chrom}<br>Population: {row['population']}<br>Sex: {row['sex']}"
-        )
+        desc = f"Contig: {chrom}<br>Continental Group: {row['continental_group']}<br>Sex: {row['sex']}"
         # ChrY CHM1 has none so skip
         if not row["ypos_st"]:
             continue

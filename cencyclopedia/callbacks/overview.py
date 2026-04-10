@@ -25,9 +25,9 @@ def draw_figure_1(cfg: dict[str, Any], regions: str):
     df_fig1_data = read_figure_1_bbox_data(cfg)
     df_regions = pl.scan_csv(regions).collect()
 
-    # Add population and sex
+    # Add continental group and sex
     df_fig1_data = df_fig1_data.join(
-        df_regions.select("chrom", "population", "sex", "color"),
+        df_regions.select("chrom", "continental_group", "sex", "color"),
         on="chrom",
         how="left",
     )

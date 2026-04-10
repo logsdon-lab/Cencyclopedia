@@ -1,5 +1,4 @@
 polars
-matplotlib
 plotly
 dash==4.0.0
 pysam

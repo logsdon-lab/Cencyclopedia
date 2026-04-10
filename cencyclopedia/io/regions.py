@@ -25,7 +25,7 @@ def read_or_write_regions(
                 cfg["general"]["regions"],
                 cfg["general"]["clades"],
                 cfg["general"]["sample_metadata"],
-                cfg["general"]["population_colors"],
+                cfg["general"]["continental_group_colors"],
             )
 
         with gzip.open(regions, "wb") as fh:
@@ -39,7 +39,7 @@ def read_or_write_regions(
 
 
 def read_regions_from_data(
-    regions: str, clades: str, sample_metadata: str, population_colors: str
+    regions: str, clades: str, sample_metadata: str, continental_group_colors: str
 ) -> pl.DataFrame:
     df_regions = (
         pl.read_csv(
@@ -62,22 +62,22 @@ def read_regions_from_data(
         .with_columns(mtch=pl.col("chrom").str.extract_groups(RGX_SM_CHROM))
         .unnest("mtch")
     )
-    df_populations = pl.read_csv(
-        population_colors,
+    df_continental_groups = pl.read_csv(
+        continental_group_colors,
         separator="\t",
         has_header=False,
-        new_columns=["population", "color"],
+        new_columns=["continental_group", "color"],
     )
     df_metadata = pl.read_csv(
         sample_metadata,
         separator="\t",
         has_header=False,
-        new_columns=["sample", "population", "sex"],
+        new_columns=["sample", "continental_group", "sex"],
     )
     df_final_regions = (
         df_regions.join(df_clades, on=["chrom", "sample", "chrom_name"])
         .join(df_metadata, on="sample")
-        .join(df_populations, on="population")
+        .join(df_continental_groups, on="continental_group")
         .cast({"chrom_name": pl.Enum(CHROM_NAMES)})
     )
 

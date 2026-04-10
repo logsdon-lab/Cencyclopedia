@@ -13,9 +13,9 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
     df_fig1_data = read_figure_1_bbox_data(cfg)
     df_regions = pl.scan_csv(regions).collect()
 
-    # Add population and sex
+    # Add continental group and sex
     df_fig1_data = df_fig1_data.join(
-        df_regions.select("chrom", "population", "sex", "color"),
+        df_regions.select("chrom", "continental_group", "sex", "color"),
         on="chrom",
         how="left",
     )
@@ -53,7 +53,7 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                         body=dcc.Markdown(
                                             """
                                             1. Each centromere haplotype on this figure is clickable.
-                                                * Hovering over each centromere displays the contig, superpopulation and sex.
+                                                * Hovering over each centromere displays the contig, continental group and sex.
                                             2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
                                             3. To move around the image, use the **"Pan"** option.
                                             4. To reset the image, click the **"Reset axes"**.
