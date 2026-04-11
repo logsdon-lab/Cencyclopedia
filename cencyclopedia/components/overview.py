@@ -39,7 +39,7 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                             dbc.Col(
                                 [
                                     row_title_with_help(
-                                        "Centromere Haplotypes",
+                                        "Centromere haplotypes",
                                         "btn-collapse-howto-fig1",
                                         button_width=1,
                                     ),
@@ -87,7 +87,7 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                                 dbc.Col(
                                                     [
                                                         html.H3(
-                                                            "Centromere Comparison"
+                                                            "Centromere comparison"
                                                         ),
                                                     ]
                                                 )

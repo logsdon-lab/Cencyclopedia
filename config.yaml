@@ -25,12 +25,12 @@ general:
     - "MEI"
     - "Spacer"
     - "CDR"
-    - "CpG Methylation"
+    - "CpG methylation"
     - "Structure"
     - "Alpha-satellite HORs"
-    - "Local Self-Identity"
+    - "Local self-identity"
     - "Alpha-satellite HOR array orientation"
-    - "Self-Identity"
+    - "Self-identity"
   tree:
     # Tree height
     height: 200vh
@@ -147,7 +147,7 @@ data:
         showticklabels: false
         ticks: ""
         showline: false
-  "CpG Methylation":
+  "CpG methylation":
     path: data/all_CpG_methyl.bedgraph.gz
     position: relative
     type: bedgraph
@@ -157,14 +157,14 @@ data:
         chrom: "Contig"
         chrom_st: "Start"
         chrom_end: "End"
-        name: "Average CpG Methylation"
+        name: "Average CpG methylation"
       rle: false
       xaxis_kwargs:
         ticks: ""
         showline: false
       yaxis_kwargs:
         range: [0.0, 1.0]
-        title_text: "CpG<br>Methylation"
+        title_text: "CpG<br>methylation"
   "Structure":
     path: data/all_RM_satellite_annotation.bed.gz
     position: relative
@@ -210,7 +210,7 @@ data:
         showticklabels: false
         ticks: ""
         showline: false
-  "Local Self-Identity":
+  "Local self-identity":
     path: data/all_local_self_identity.bed.gz
     position: relative
     type: bed_localselfident
@@ -220,15 +220,15 @@ data:
         chrom: "Contig"
         chrom_st: "Start"
         chrom_end: "End"
-        name: "Identity Range"
+        name: "Identity range"
         color: "Color"
-        score: "Percent Identity"
+        score: "Percent identity"
       rle: false
       xaxis_kwargs:
         ticks: ""
         showline: false
       yaxis_kwargs:
-        title_text: "Local Self-Identity"
+        title_text: "Local self-identity"
         showticklabels: false
         ticks: ""
         showline: false
@@ -254,7 +254,7 @@ data:
         showticklabels: false
         ticks: ""
         showline: false
-  "Self-Identity":
+  "Self-identity":
     # If dir, will expect ${dir}/${contig}.bed.gz
     path: data/ModDotPlot/
     position: relative
@@ -262,19 +262,19 @@ data:
     prop: 0.5
     options:
       replace_colnames:
-        qry: "Query Contig"
-        qry_st: "Query Start"
-        qry_end: "Query End"
-        ref: "Reference Contig"
-        ref_st: "Reference Start"
-        ref_end: "Reference End"
-        percent_identity_by_events: "Percent Identity"
+        qry: "Query contig"
+        qry_st: "Query start"
+        qry_end: "Query end"
+        ref: "Reference contig"
+        ref_st: "Reference start"
+        ref_end: "Reference end"
+        percent_identity_by_events: "Percent identity"
       rle: false
       xaxis_kwargs:
-        title_text: "Genomic Position"
+        title_text: "Genomic position"
         showline: true
       yaxis_kwargs:
         showline: false
         showticklabels: false
         ticks: ""
-        title_text: Self-Identity
+        title_text: Self-identity

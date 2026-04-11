@@ -38,7 +38,7 @@ def create_tree_figure(
         chrom_name = df["chrom_name"][0]
         colors = df["color"].to_list()
         descs = [
-            f"Continental Group: {pop}<br>Sex: {sex}"
+            f"Continental group: {pop}<br>Sex: {sex}"
             for pop, sex in df.select("continental_group", "sex").iter_rows()
         ]
         # Set img midpt and yst based on chromosome name.

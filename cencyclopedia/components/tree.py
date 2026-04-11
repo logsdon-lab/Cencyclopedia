@@ -96,7 +96,7 @@ def tree_layout(
                     dbc.Col(
                         [
                             row_title_with_help(
-                                "Phylogenetic Tree", "btn-collapse-howto-tree"
+                                "Phylogenetic tree", "btn-collapse-howto-tree"
                             ),
                             popover(
                                 header="Help",
