@@ -15,7 +15,7 @@ awk -v OFS="\t"  '{
     };
     name="cdr_"chroms[chrom[1]]
     print chrom[1], $2, $3, name
-}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/all_cdrs_revised.0309.working.sort.bed \
+}' /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/all_cdrs_revised.0413.working.sort.bed \
     <(grep -P "HG00235_chr22_HG00235#1|HG00639_chr22_HG00639#1" /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/add_two_chr22_HPRC/all_cdrs.bed) | \
 sort -k1,1 -k2,2n | \
 bgzip > ${WD}/all_cdrs.bed.gz
