@@ -68,11 +68,12 @@ def home_page(cfg: dict[str, Any]):
             # Home selected cen
             create_logo(width="30%"),
             html.Br(),
-            dcc.Markdown(
-                """
-                ### Cencyclopedia is an interactive visualization tool that allows you to investigate
-                ### the sequence, structure, and epigenetic landscape, and evolutionary relationships among human centromeres
-                """,
+            html.H3(
+                [
+                    "Cencyclopedia is an interactive visualization tool that allows you to investigate",
+                    html.Br(),
+                    "the sequence, structure, epigenetic landscape, and evolutionary relationships among human centromeres",
+                ],
                 style={"text-align": "center"},
             ),
             html.Hr(),
