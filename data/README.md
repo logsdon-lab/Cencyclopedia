@@ -1,5 +1,6 @@
 # Data:
-HGSVC
+
+## HGSVC
 ```
 HOR annotation: /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/HOR
 RM annotation: /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/RM
@@ -14,7 +15,7 @@ Live Array length: /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_anno
 ```
 * `/project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/README.md`
 
-HPRC
+Also add HPRC cases.
 ```
 RM:
 /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/add_two_chr22_HPRC/RM/all_cens_chr22.annotation.fa.out
@@ -33,12 +34,12 @@ None
 ## Script
 On UPenn LPC, run `update_all_data.sh`.
 ```bash
-bash update_all_data.sh
+bash hgsvc/update_all_data.sh
 ```
 
 ModDotPlot takes a while so is done separately with `update_moddotplot.sh`.
 ```bash
-bash update_moddotplot.sh
+bash hgsvc/update_moddotplot.sh
 ```
 
 # Sample metadata:
@@ -46,7 +47,7 @@ bash update_moddotplot.sh
 # Add CHMs and special HPRC chr22 cases
 cat /project/logsdon_shared/project_archive/HGSVC3/non-redundant_centromeres/sample_populations_sex.tsv \
     <(printf "chm13\tEUR\tN\nchm1\tEUR\tN\nHG00235\tEUR\tF\nHG00639\tAMR\tF\n") | \
-gzip > data/sample_metadata.tsv.gz
+gzip > data/hgsvc/sample_metadata.tsv.gz
 ```
 
 # Clades:
@@ -56,5 +57,5 @@ awk -v FS="\t" -v OFS="\t" -v RS='\r\n' '{
     match(name, "(_|.)(p|q).xls", arms);
     print $1, $2, arms[2]
 }' $(realpath /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/tree_clade/clades/chr*.xls) | \
-gzip > data/clades.tsv.gz
+gzip > data/hgsvc/clades.tsv.gz
 ```

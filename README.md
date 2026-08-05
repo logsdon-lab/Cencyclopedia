@@ -27,11 +27,9 @@ git clone git@github.com:logsdon-lab/Cencyclopedia.git
 cd Cencyclopedia
 ```
 
-Setup dependencies. Requires Python >= 3.12.
+Setup dependencies using `pixi`.
 ```bash
-python -m venv venv
-source venv/bin/activate
-python -m pip install -r requirements.txt
+pixi install
 ```
 
 ## Browser
@@ -41,7 +39,7 @@ View in your browser at https://cencyclopedia.com.
 ### Python
 Set up app locally. Data is stored in repo.
 ```bash
-gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'
+pixi run local
 ```
 
 Then, open [`127.0.0.1:8050`](http://127.0.0.1:8050) in browser.
@@ -56,7 +54,7 @@ Modify `general.mode`, `general.output_regions`, and `general.selected_cen.heigh
 ```yaml
 general:
   mode: single
-  output_regions: data/bed_single.csv.gz
+  output_regions: data/hgsvc/bed_single.csv.gz
   selected_cen:
     height: 800
     vertical_spacing: 0.0
@@ -65,7 +63,7 @@ general:
 Then rerun pointing to the new configfile.
 ```bash
 export CENCYCLOPEDIA_CONFIG="config_single.yaml"
-gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'
+pixi run local
 ```
 
 ### Docker

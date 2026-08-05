@@ -2,4 +2,6 @@ __pycache__
 *.html
 .ruff_cache
 .mypy_cache
-venv
+venv# pixi environments
+.pixi/*
+!.pixi/config.toml

@@ -1,0 +1,35 @@
+[project]
+authors = [{name = "Keith", email = "koisland@pm.me"}]
+name = "Cencyclopedia"
+description = "Centromere interactive viewer."
+license = {text = "MIT License"}
+requires-python = ">=3.12"
+readme = "README.md"
+version = "0.0.1"
+dependencies = ["polars>=1.43.2,<2", "plotly>=6.9.0,<7", "dash==4.0.0", "pyyaml>=6.0.3,<7", "loguru>=0.7.3,<0.8", "pillow>=12.3.0,<13", "dash-bootstrap-components>=2.0.4,<3", "gunicorn>=26.0.0,<27", "numpy>=2.5.1,<3"]
+
+[project.urls]
+Homepage = "https://github.com/logsdon-lab/Cencyclopedia"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.hatchling.packages.find]
+include = ["cencyclopedia*"]
+exclude = ["docs*", "test*"]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[tool.pixi.dependencies]
+python = ">=3.12"
+pip = "*"
+ruff = "*"
+
+[tool.pixi.pypi-dependencies]
+cencyclopedia = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+local = "gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'"

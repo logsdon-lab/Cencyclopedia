@@ -4,21 +4,21 @@ general:
   # Mode to run {all, single}
   mode: all
   # Output regions
-  output_regions: data/bed.csv.gz
+  output_regions: data/hgsvc/bed.csv.gz
   # Regions bedfile
-  regions: data/all_array.bed.gz
+  regions: data/hgsvc/all_array.bed.gz
   # Clades (all)
-  clades: data/clades.tsv.gz
+  clades: data/hgsvc/clades.tsv.gz
   # Sample metadata (all)
-  sample_metadata: data/sample_metadata.tsv.gz
+  sample_metadata: data/hgsvc/sample_metadata.tsv.gz
   # Continental_group colors (all)
-  continental_group_colors: data/all_continental_group_colors.tsv
+  continental_group_colors: data/hgsvc/all_continental_group_colors.tsv
   # Other settings
   chrom_navlink:
-    bboxes: assets/Chromosomes.bboxes.csv
+    bboxes: assets/hgsvc/Chromosomes.bboxes.csv
   fig_1:
-    bboxes: assets/Figure1_chrom_bboxes.csv
-    order: assets/Figure1_order.csv
+    bboxes: assets/hgsvc/Figure1_chrom_bboxes.csv
+    order: assets/hgsvc/Figure1_order.csv
     height_figure: 100vh
     height_cens: 34vh
     use_data:
@@ -79,7 +79,7 @@ data:
   # Unique label
   "MEI":
     # Path to bgzipped bed file
-    path: data/all_MEI.bed.gz
+    path: data/hgsvc/all_MEI.bed.gz
     # Relative or overlap
     position: relative
     # bed, bedgraph, bedstrand, bed_localselfident
@@ -126,7 +126,7 @@ data:
         ticks: ""
         showline: false
   "CDR":
-    path: data/all_cdrs.bed.gz
+    path: data/hgsvc/all_cdrs.bed.gz
     position: relative
     type: bed
     prop: 0.01
@@ -148,7 +148,7 @@ data:
         ticks: ""
         showline: false
   "CpG methylation":
-    path: data/all_CpG_methyl.bedgraph.gz
+    path: data/hgsvc/all_CpG_methyl.bedgraph.gz
     position: relative
     type: bedgraph
     prop: 0.1
@@ -166,7 +166,7 @@ data:
         range: [0.0, 1.0]
         title_text: "CpG<br>methylation"
   "Structure":
-    path: data/all_RM_satellite_annotation.bed.gz
+    path: data/hgsvc/all_RM_satellite_annotation.bed.gz
     position: relative
     type: bed
     prop: 0.05
@@ -188,7 +188,7 @@ data:
         ticks: ""
         showline: false
   "Alpha-satellite HORs":
-    path: data/all_AS-HOR_stv_row.bed.gz
+    path: data/hgsvc/all_AS-HOR_stv_row.bed.gz
     # position: relative
     position: overlap
     type: bed
@@ -211,7 +211,7 @@ data:
         ticks: ""
         showline: false
   "Local self-identity":
-    path: data/all_local_self_identity.bed.gz
+    path: data/hgsvc/all_local_self_identity.bed.gz
     position: relative
     type: bed_localselfident
     prop: 0.02
@@ -233,7 +233,7 @@ data:
         ticks: ""
         showline: false
   "Alpha-satellite HOR array orientation":
-    path: data/all_AS-HOR_stv_row_strand.bed.gz
+    path: data/hgsvc/all_AS-HOR_stv_row_strand.bed.gz
     position: relative
     type: bedstrand
     prop: 0.02
@@ -256,7 +256,7 @@ data:
         showline: false
   "Self-identity":
     # If dir, will expect ${dir}/${contig}.bed.gz
-    path: data/ModDotPlot/
+    path: data/hgsvc/ModDotPlot/
     position: relative
     type: bedpe_selfident
     prop: 0.5
