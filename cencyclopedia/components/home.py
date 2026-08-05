@@ -18,7 +18,8 @@ HOME_PAGE_STYLE = {
 
 def create_chromosome_navlink(cfg: dict[str, Any]) -> go._figure.Figure:
     fig = add_image_to_figure(
-        Image.open(get_asset_url("Chromosomes.png")), fig=go._figure.Figure()
+        Image.open(cfg["general"]["chrom_navlink"]["chromosomes_img"]),
+        fig=go._figure.Figure(),
     )
     df_bboxes = pl.read_csv(cfg["general"]["chrom_navlink"]["bboxes"])
 

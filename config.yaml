@@ -15,6 +15,7 @@ general:
   continental_group_colors: data/hgsvc/all_continental_group_colors.tsv
   # Other settings
   chrom_navlink:
+    chromosomes_img: assets/hgsvc/Chromosomes.png
     bboxes: assets/hgsvc/Chromosomes.bboxes.csv
   fig_1:
     bboxes: assets/hgsvc/Figure1_chrom_bboxes.csv
@@ -32,6 +33,7 @@ general:
     - "Alpha-satellite HOR array orientation"
     - "Self-identity"
   tree:
+    input_dir: assets/hgsvc
     # Tree height
     height: 200vh
     # Tree width (x / 12)
