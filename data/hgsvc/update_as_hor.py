@@ -1,6 +1,6 @@
 import sys
 import polars as pl
-from cenplot.lib.io.bed_hor import read_bed_hor
+from cenplot.lib.io.bed_hor import read_bed_hor  # pyright: ignore
 
 (
     read_bed_hor(sys.argv[1], live_only=False)

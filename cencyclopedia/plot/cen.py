@@ -37,7 +37,7 @@ def draw_cenplot(
 
     chrom, st, end = itv_selected_cen
     # Open tabix file handles
-    data_fhs = Data.new(cfg["data"])
+    data_fhs = Data(cfg["data"])
 
     props = []
     total_original_prop = 0.0
@@ -142,7 +142,7 @@ def draw_cenplot(
         )
 
     idx_yaxis_titles = {}
-    for label, (indices, df) in indices.items():
+    for label, (lst_indices, df) in indices.items():
         dtype = data_fhs.datatype(label)
         options = data_fhs.options(label)
         if isinstance(df, pl.DataFrame):
@@ -156,7 +156,7 @@ def draw_cenplot(
         update_yaxis_kwargs = options.get("yaxis_kwargs", {})
         n_groups = len(dfs_groups)
 
-        for i, track_idx in enumerate(indices):
+        for i, track_idx in enumerate(lst_indices):
             try:
                 grp, df_grp = dfs_groups[i]
                 grp = grp[0]
@@ -165,6 +165,7 @@ def draw_cenplot(
                 else:
                     name = None
             except IndexError:
+                df_grp = pl.DataFrame()
                 dtype = None
                 grp = None
                 name = None
@@ -225,7 +226,7 @@ def draw_cenplot(
                     invert=options.get("invert", True),
                     bp_slop=options.get("bp_slop", 0),
                     # Replace score label in hovertext if provided in replace_colnames
-                    score_label=options.get("replace_colnames").get("score"),
+                    score_label=options.get("replace_colnames", {}).get("score"),
                 )
             elif dtype == "bedgraph":
                 add_bedgraph_track(
@@ -233,7 +234,7 @@ def draw_cenplot(
                     fig,
                     row=track_idx,
                     col=1,
-                    name_label=options.get("replace_colnames").get("name"),
+                    name_label=options.get("replace_colnames", {}).get("name"),
                 )
             elif dtype == "bedstrand":
                 add_bedstrand_track(df_grp, fig, row=track_idx, col=1)

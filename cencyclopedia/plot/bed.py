@@ -43,7 +43,7 @@ def add_bed_track(
 ):
     if not score_label:
         score_label = "score"
-    invert = -1 if invert else 1
+    invert_adj = -1 if invert else 1
     for grp, df in (
         df_bed.with_columns(length=pl.col("chrom_end") - pl.col("chrom_st"))
         .sort(by="length", descending=True)
@@ -66,7 +66,7 @@ def add_bed_track(
             if shape == "tri":
                 midpt = slop_st + (slop_length / 2)
                 x.extend([slop_st, midpt, slop_end, slop_st, None])
-                y.extend([0, 1 * invert, 0, 0, None])
+                y.extend([0, 1 * invert_adj, 0, 0, None])
                 custom_data.extend((hoverdata for _ in range(5)))
             else:
                 x.extend([slop_st, slop_end, slop_end, slop_st, slop_st, None])

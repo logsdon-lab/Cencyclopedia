@@ -45,7 +45,7 @@ def draw_figure_1(cfg: dict[str, Any], regions: str):
     prevent_initial_call="initial_duplicate",
 )
 def draw_selected_cen_home_figure(
-    itv_selected_cen: tuple[str, int, int] | None,
+    itv_selected_cen: tuple[str, int, int],
     cfg: dict[str, Any],
     regions: str,
 ):
@@ -82,12 +82,20 @@ def draw_selected_cen_home_figure(
     fig_chm13_cfg = deepcopy(cfg)
     fig_chm13_cfg["general"]["selected_cen"]["vertical_spacing"] = 0.01
 
-    fig, _ = draw_cenplot(itv_selected_cen, None, fig_cfg, to_relative=True)
+    fig_res = draw_cenplot(itv_selected_cen, None, fig_cfg, to_relative=True)
+    if not fig_res:
+        return dash.no_update
+
+    fig, _ = fig_res
+
     if itv_chm13:
-        fig_chm13, _ = draw_cenplot(itv_chm13, None, fig_chm13_cfg, to_relative=True)
+        fig_chm13_res = draw_cenplot(itv_chm13, None, fig_chm13_cfg, to_relative=True)
+        if not fig_chm13_res:
+            return dash.no_update
+        fig_chm13, _ = fig_chm13_res
     else:
         fig_chm13 = go._figure.Figure()
-        add_empty_figure(fig_chm13, xlim=[0, 1])
+        add_empty_figure(fig_chm13, xlim=(0, 1))
 
     return fig, fig_chm13, label_chm13_chrom
 
@@ -102,10 +110,7 @@ def draw_selected_cen_home_figure(
 def update_selected_cen_home(
     click_data: dict[str, Any] | None,
     regions: str,
-) -> (
-    tuple[tuple[str, int, int], str]
-    | tuple[dash._callback.NoUpdate, dash._callback.NoUpdate]
-):
+) -> tuple[tuple[str, int, int], str] | tuple[dash.NoUpdate, dash.NoUpdate]:
     logger.debug(f"Click (home) update context: {ctx.triggered}")
     if not click_data:
         return dash.no_update, dash.no_update

@@ -53,7 +53,7 @@ def create_chromosome_navlink(cfg: dict[str, Any]) -> go._figure.Figure:
 def create_logo(width: str = "8rem"):
     img = Image.open(get_asset_url("logo.png"))
     return html.Img(
-        src=img,
+        src=img,  # pyright: ignore
         style={
             "width": width,
             "display": "block",

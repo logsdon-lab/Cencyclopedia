@@ -3,7 +3,8 @@ import polars as pl
 
 from typing import Any
 from loguru import logger
-from dash import dcc, Input, Output, callback, dash_table, State, html, ctx
+from dash import Input, Output, callback, dash_table, State, html, ctx
+from dash.dcc.express import send_bytes
 
 from cencyclopedia.io.data import Data, EXPANDABLE_DATA_TYPES
 from cencyclopedia.plot.common import (
@@ -41,19 +42,22 @@ def draw_dataview_tab(
     itv_selected_cen: tuple[str, int, int] | None,
     cfg: dict[str, Any],
     expand_tracks: dict[str, BedTrackSettings],
-) -> html.Div:
+) -> html.Div | dash.NoUpdate:
     if not itv_selected_cen:
         return dash.no_update
 
     chrom, st, end = itv_selected_cen
-    data_fhs = Data.new(cfg["data"])
+    data_fhs = Data(cfg["data"])
     df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
+    if not isinstance(df, pl.DataFrame):
+        return dash.no_update
+
     replace_colnames: dict[str, str] = data_fhs.options(data_label).get(
         "replace_colnames", {}
     )
     data_table = dash_table.DataTable(
         id=f"data-{data_label}",
-        data=list(df.iter_rows(named=True)),
+        data=list(df.iter_rows(named=True)),  # pyright: ignore
         columns=[
             {
                 # Get replacement name, otherwise keep same.
@@ -90,10 +94,10 @@ def draw_dataview_tab(
 def update_bed_tracks_settings(
     n_clicks: int | None,
     data_label: str,
-    mode: str,
-    limit: int,
+    mode: TrackMode,
+    limit: TrackLimit,
     bed_tracks_settings: dict[str, BedTrackSettings],
-) -> dash._callback.NoUpdate | dict[str, BedTrackSettings]:
+) -> dash.NoUpdate | dict[str, BedTrackSettings]:
     # Don't update tracks to avoid rerender if not stale.
     if not n_clicks:
         return dash.no_update
@@ -117,7 +121,7 @@ def reset_bed_tracks_settings(
     data_label: str,
     bed_tracks_settings: dict[str, BedTrackSettings],
 ) -> (
-    tuple[dash._callback.NoUpdate, dash._callback.NoUpdate, dash._callback.NoUpdate]
+    tuple[dash.NoUpdate, dash.NoUpdate, dash.NoUpdate]
     | tuple[
         dict[str, BedTrackSettings],
         TrackMode,
@@ -150,12 +154,12 @@ def download_data(
     data_label: str,
     itv_selected_cen: tuple[str, int, int],
     cfg: dict[str, Any],
-) -> dash._callback.NoUpdate | dict[str, Any]:
+) -> dash.NoUpdate | dict[str, Any]:
     logger.debug(f"Download triggered: {ctx.triggered}")
     if not n_clicks:
         return dash.no_update
     chrom, st, end = itv_selected_cen
-    data_fhs = Data.new(cfg["data"])
+    data_fhs = Data(cfg["data"])
     df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
     if not isinstance(df, pl.DataFrame):
         return dash.no_update
@@ -173,6 +177,6 @@ def download_data(
         df = df.rename({first_col: f"#{first_col}"})
 
     outfname = f"{chrom}_{st}_{end}_{data_label.replace(' ', '_')}.bed.gz"
-    return dcc.send_bytes(
+    return send_bytes(
         lambda x: df.write_csv(x, separator="\t", compression="gzip"), outfname
     )

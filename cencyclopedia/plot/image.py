@@ -1,5 +1,5 @@
 from typing import Any
-from PIL import Image
+from PIL.Image import Image
 import plotly.graph_objs as go
 
 

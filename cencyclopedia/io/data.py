@@ -4,7 +4,7 @@ import pathlib
 import polars as pl
 
 from loguru import logger
-from typing import Callable, Self, Any, Literal, Iterator, NamedTuple
+from typing import Callable, Any, Literal, Iterator
 
 from cencyclopedia.plot.common import TrackMode
 
@@ -31,27 +31,22 @@ DataType = Literal[
 ]
 
 
-class Data(NamedTuple):
-    fhs: dict[str, pysam.TabixFile | pathlib.Path | None]
-    cfg: dict[str, Any]
-
-    def new(cfg: dict[str, Any]) -> Self:
-        fhs = {}
-        cfgs = {}
+class Data:
+    def __init__(self, cfg: dict[str, Any]):
+        self.fhs = {}
+        self.cfg = {}
         for label, trk_info in cfg.items():
-            cfgs[label] = trk_info
+            self.cfg[label] = trk_info
             path = trk_info.get("path")
             if not path:
-                fhs[label] = None
+                self.fhs[label] = None
             elif os.path.isfile(path):
-                fhs[label] = pysam.TabixFile(trk_info["path"])
+                self.fhs[label] = pysam.TabixFile(trk_info["path"])
             elif os.path.isdir(path):
-                fhs[label] = pathlib.Path(path)
+                self.fhs[label] = pathlib.Path(path)
             else:
                 logger.debug(f"Invalid file type for {path}")
                 continue
-
-        return Data(fhs=fhs, cfg=cfgs)
 
     def options(self, label: str) -> dict[str, Any]:
         return self.cfg[label].get("options", {})
@@ -110,7 +105,7 @@ class Data(NamedTuple):
                 self.cfg[label].get("ident_breakpoints")
             )
             read_fn = lambda rec: read_bed_local_selfident_row(
-                rec, breakpoints=breakpoints, colors=colors
+                rec, breakpoints=list(breakpoints), colors=list(colors)
             )
             schema = BED_SCHEMA
         elif self.cfg[label]["type"] == "bedpe_selfident":
@@ -140,7 +135,7 @@ class Data(NamedTuple):
                 fh = pysam.TabixFile(fname)
             except Exception as err:
                 raise RuntimeError(
-                    f"Error reading {fname} for {label} and {chrom}:{st}-{end}: {err}."
+                    f"Error reading {fh} for {label} and {chrom}:{st}-{end}: {err}."
                 )
         else:
             raise TypeError(

@@ -275,12 +275,12 @@ def tree_page(
             ),
             cfg=cfg,
         ),
-        chrom_names=CHROMS.keys(),
+        chrom_names=list(CHROMS.keys()),
     )
     return layout
 
 
-def split_layout(content: html.Div, chrom_names: list[str]) -> dbc.Row:
+def split_layout(content: html.Div, chrom_names: list[str]):
     sidebar = html.Div(
         [
             dbc.NavLink(create_logo(width="8rem"), href="/", active="exact"),

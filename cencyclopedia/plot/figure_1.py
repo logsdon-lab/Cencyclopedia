@@ -1,7 +1,7 @@
 import polars as pl
 import plotly.graph_objs as go
 
-from PIL import Image
+from PIL.Image import Image
 from cencyclopedia.plot.image import add_image_to_figure
 
 

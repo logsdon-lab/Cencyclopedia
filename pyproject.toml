@@ -27,9 +27,19 @@ platforms = ["linux-64"]
 python = ">=3.12"
 pip = "*"
 ruff = "*"
+basedpyright = "*"
 
 [tool.pixi.pypi-dependencies]
 cencyclopedia = { path = ".", editable = true }
 
+[tool.pyright]
+reportCallIssue = false
+typeCheckingMode = "standard"
+
+[tool.ruff]
+lint.ignore = ["F403", "E731"]
+
 [tool.pixi.tasks]
 local = "gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'"
+check = "basedpyright ."
+fmt = "ruff format ."

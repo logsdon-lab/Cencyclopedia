@@ -66,7 +66,7 @@ def read_bed_local_selfident_row(
     rec: tuple[str, str, str, str],
     breakpoints: list[float],
     colors: list[str],
-) -> tuple[str, int, int, float, str, int]:
+) -> tuple[str, int, int, str, str, float]:
     chrom, chrom_st, chrom_end, ident = rec
     chrom_st = int(chrom_st)
     chrom_end = int(chrom_end)
@@ -92,10 +92,10 @@ def read_bed_local_selfident_row(
 
 def to_relative_coords_bed(df: pl.DataFrame, min_st: int | None):
     if min_st:
-        min_st = pl.lit(min_st)
+        min_st_expr: pl.Expr = pl.lit(min_st)
     else:
-        min_st = pl.col("chrom_st").min().over("chrom")
+        min_st_expr = pl.col("chrom_st").min().over("chrom")
     return df.with_columns(
-        pl.col("chrom_st") - min_st,
-        pl.col("chrom_end") - min_st,
+        pl.col("chrom_st") - min_st_expr,
+        pl.col("chrom_end") - min_st_expr,
     )

@@ -29,7 +29,7 @@ def read_or_write_regions(
             )
 
         with gzip.open(regions, "wb") as fh:
-            df_regions.write_csv(fh)
+            df_regions.write_csv(fh)  # pyright: ignore
     else:
         df_regions = pl.read_csv(
             regions, schema_overrides={"chrom_name": pl.Enum(CHROM_NAMES)}

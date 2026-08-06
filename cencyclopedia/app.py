@@ -16,7 +16,7 @@ from cencyclopedia.callbacks.overview import *
 from cencyclopedia.callbacks.home import *
 
 
-def server():
+def get_server():
     configfile = os.environ.get("CENCYCLOPEDIA_CONFIG", "config.yaml")
     with open(configfile, "rb") as fh:
         cfg = yaml.safe_load(fh)
@@ -49,7 +49,7 @@ def server():
 
 
 if __name__ == "__main__":
-    server = server()
+    server = get_server()
     server.run(
         port=8050, host="0.0.0.0", debug=os.environ.get("DASH_DEBUG_MODE") == "True"
     )

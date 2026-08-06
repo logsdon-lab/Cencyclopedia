@@ -122,7 +122,7 @@ def cen_page(
     regions: str,
     cfg: dict[str, Any],
 ):
-    data = Data.new(cfg["data"])
+    data = Data(cfg["data"])
     datatypes = list(data.labels)
     df_regions = pl.scan_csv(regions).collect()
     all_chroms = df_regions["chrom"].to_list()
