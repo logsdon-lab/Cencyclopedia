@@ -20,6 +20,7 @@ general:
   fig_1:
     bboxes: assets/hgsvc/Figure1_chrom_bboxes.csv
     order: assets/hgsvc/Figure1_order.csv
+    figure_img: assets/hgsvc/Figure1.png
     height_figure: 100vh
     height_cens: 34vh
     use_data:

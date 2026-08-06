@@ -1,5 +1,3 @@
-# TODO: Lots of duplicate code. Difficult to separate with inputs. Need to
-
 import dash
 import polars as pl
 import plotly.graph_objs as go
@@ -8,7 +6,7 @@ from PIL import Image
 from copy import deepcopy
 from typing import Any
 from loguru import logger
-from dash import Input, Output, callback, ctx, State, get_asset_url
+from dash import Input, Output, callback, ctx, State
 from cencyclopedia.plot.cen import draw_cenplot
 from cencyclopedia.plot.common import add_empty_figure
 from cencyclopedia.plot.figure_1 import draw_fig1
@@ -31,7 +29,8 @@ def draw_figure_1(cfg: dict[str, Any], regions: str):
         on="chrom",
         how="left",
     )
-    return draw_fig1(Image.open(get_asset_url("Figure1.png")), df_fig1_data)
+    img = Image.open(cfg["general"]["fig_1"]["figure_img"])
+    return draw_fig1(img, df_fig1_data)
 
 
 # Return chm13 and other.
