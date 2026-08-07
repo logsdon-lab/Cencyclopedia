@@ -1,10 +1,13 @@
 import os
+import enum
 import pysam
 import pathlib
+import pybigtools
 import polars as pl
 
+from dataclasses import dataclass
 from loguru import logger
-from typing import Callable, Any, Literal, Iterator
+from typing import Callable, Any, Iterator
 
 from cencyclopedia.plot.common import TrackMode
 
@@ -24,11 +27,124 @@ from .bedpe import (
     to_relative_coords_bedpe_selfident,
 )
 
-EXPANDABLE_DATA_TYPES = set(("bed", "bedstrand", "bed_localselfident"))
+EXPANDABLE_DATA_TYPES = set(("bed", "bigbed", "bedstrand", "bed_localselfident"))
 
-DataType = Literal[
-    "bed", "bedgraph", "bedstrand", "bedpe_selfident", "bed_localselfident"
-]
+
+@dataclass
+class DataOpFunctions:
+    read_fn: Callable[[Any], Any]
+    to_relative_fn: Callable[[pl.DataFrame], pl.DataFrame]
+    finalizer_fn: Callable[[pl.DataFrame], pl.DataFrame] | None
+
+
+class DataType(enum.Enum):
+    NULL = "null"  # or spacer
+    BED9 = "bed"
+    BEDGRAPH = "bedgraph"
+    BIGWIG = "bigwig"
+    BIGBED = "bigbed"
+    BEDSTRAND = "bedstrand"
+    BEDPE_SELFIDENT = "bedpe_selfident"
+    BED_LOCALSELFIDENT = "bed_localselfident"
+
+    def get_extension(self) -> str | None:
+        if self == DataType.NULL:
+            return None
+        elif (
+            self == DataType.BED9
+            or self == DataType.BED_LOCALSELFIDENT
+            or self == DataType.BEDGRAPH
+            or self == DataType.BEDSTRAND
+        ):
+            return ".bed.gz"
+        elif self == DataType.BIGWIG:
+            return ".bw"
+        elif self == DataType.BIGBED:
+            return ".bb"
+        elif self == DataType.BEDPE_SELFIDENT:
+            # TODO: Should rename HGSVC data at some point and change this.
+            return ".bed.gz"
+        else:
+            raise ValueError(f"Invalid name. {self}")
+
+    def get_schema(self) -> dict[str, Any]:
+        if (
+            self == DataType.BED9
+            or self == DataType.BEDSTRAND
+            or self == DataType.BED_LOCALSELFIDENT
+            or self == DataType.BIGBED
+        ):
+            return BED_SCHEMA
+        elif self == DataType.BEDGRAPH or self == DataType.BIGWIG:
+            return BEDGRAPH_SCHEMA
+        elif self == DataType.NULL:
+            return {}
+        elif self == DataType.BEDPE_SELFIDENT:
+            return BEDPE_SCHEMA
+        else:
+            raise ValueError(f"Invalid name. {self}")
+
+    def get_pysam_parser(self) -> pysam.asBed | pysam.asTuple:
+        if self == DataType.BEDPE_SELFIDENT:
+            return pysam.asTuple()
+        else:
+            return pysam.asBed()
+
+    def get_read_fns(
+        self, cfg: dict[str, Any], st: int | None, end: int | None
+    ) -> DataOpFunctions | None:
+        # Convert to relative coordinates
+        to_relative_fn = lambda df: to_relative_coords_bed(df, st)
+
+        if self == DataType.NULL:
+            return None
+        elif self == DataType.BIGBED:
+            pass
+        elif self == DataType.BIGWIG:
+            pass
+        elif self == DataType.BED9:
+            return DataOpFunctions(
+                read_fn=read_bed9_row, to_relative_fn=to_relative_fn, finalizer_fn=None
+            )
+        elif self == DataType.BEDSTRAND:
+            return DataOpFunctions(
+                read_fn=read_bedstrand_row,
+                to_relative_fn=to_relative_fn,
+                finalizer_fn=None,
+            )
+        elif self == DataType.BEDGRAPH:
+            return DataOpFunctions(
+                read_fn=read_bedgraph_row,
+                to_relative_fn=to_relative_fn,
+                finalizer_fn=None,
+            )
+        elif self == DataType.BED_LOCALSELFIDENT:
+            breakpoints, colors = read_identity_breakpoints(
+                cfg.get("ident_breakpoints")
+            )
+            return DataOpFunctions(
+                read_fn=lambda rec: read_bed_local_selfident_row(
+                    rec, breakpoints=list(breakpoints), colors=list(colors)
+                ),
+                to_relative_fn=to_relative_fn,
+                finalizer_fn=None,
+            )
+        elif self == DataType.BEDPE_SELFIDENT:
+            breakpoints, colors = read_identity_breakpoints(
+                cfg.get("ident_breakpoints")
+            )
+            return DataOpFunctions(
+                read_fn=lambda rec: read_bedpe_selfident_row(
+                    rec,
+                ),
+                to_relative_fn=lambda df: to_relative_coords_bedpe_selfident(df, st),
+                finalizer_fn=lambda df: df.filter(
+                    pl.col("ref_st").is_between(st, end)
+                    & pl.col("ref_end").is_between(st, end)
+                ),
+            )
+        else:
+            raise ValueError(f"Invalid name. {self}")
 
 
 class Data:
@@ -37,11 +153,16 @@ class Data:
         self.cfg = {}
         for label, trk_info in cfg.items():
             self.cfg[label] = trk_info
+            typ = trk_info["type"]
+            is_bigfile = typ == "bigwig" or typ == "bigbed"
             path = trk_info.get("path")
             if not path:
                 self.fhs[label] = None
             elif os.path.isfile(path):
-                self.fhs[label] = pysam.TabixFile(trk_info["path"])
+                if is_bigfile:
+                    self.fhs[label] = pybigtools.open(trk_info["path"])
+                else:
+                    self.fhs[label] = pysam.TabixFile(trk_info["path"])
             elif os.path.isdir(path):
                 self.fhs[label] = pathlib.Path(path)
             else:
@@ -86,56 +207,35 @@ class Data:
         * `st`
         * `end`
         """
-        parser: pysam.asBed | pysam.asTuple = pysam.asBed()
-        to_relative_fn = lambda df: to_relative_coords_bed(df, st)
-        finalizer_fn: Callable[[pl.DataFrame], pl.DataFrame] | None = None
-        if self.cfg[label]["type"] == "spacer":
+        try:
+            dtype = DataType(self.cfg[label]["type"])
+        except Exception:
+            logger.info(f"Skipped {self.cfg[label]['type']}")
+            dtype = DataType.NULL
+
+        parser = dtype.get_pysam_parser()
+        schema = dtype.get_schema()
+        read_fns = dtype.get_read_fns(cfg=self.cfg[label], st=st, end=end)
+        # Spacer or invalid datatype
+        if not read_fns:
             return None
-        elif self.cfg[label]["type"] == "bed9":
-            read_fn = read_bed9_row
-            schema = BED_SCHEMA
-        elif self.cfg[label]["type"] == "bedstrand":
-            read_fn = read_bedstrand_row
-            schema = BED_SCHEMA
-        elif self.cfg[label]["type"] == "bedgraph":
-            read_fn = read_bedgraph_row
-            schema = BEDGRAPH_SCHEMA
-        elif self.cfg[label]["type"] == "bed_localselfident":
-            breakpoints, colors = read_identity_breakpoints(
-                self.cfg[label].get("ident_breakpoints")
-            )
-            read_fn = lambda rec: read_bed_local_selfident_row(
-                rec, breakpoints=list(breakpoints), colors=list(colors)
-            )
-            schema = BED_SCHEMA
-        elif self.cfg[label]["type"] == "bedpe_selfident":
-            parser = pysam.asTuple()
-            breakpoints, colors = read_identity_breakpoints(
-                self.cfg[label].get("ident_breakpoints")
-            )
-            read_fn = lambda rec: read_bedpe_selfident_row(
-                rec,
-            )
-            to_relative_fn = lambda df: to_relative_coords_bedpe_selfident(df, st)
-            finalizer_fn = lambda df: df.filter(
-                pl.col("ref_st").is_between(st, end)
-                & pl.col("ref_end").is_between(st, end)
-            )
-            schema = BEDPE_SCHEMA
-        else:
-            read_fn = read_bed9_row
-            schema = BED_SCHEMA
 
         fh = self.fhs[label]
         if isinstance(fh, pysam.TabixFile):
             fh = fh
+        elif isinstance(fh, pybigtools.BBIReader):
+            fh = fh
         elif isinstance(fh, pathlib.Path):
             try:
-                fname = fh.joinpath(f"{chrom}.bed.gz").as_posix()
-                fh = pysam.TabixFile(fname)
+                ext = dtype.get_extension()
+                path = fh.joinpath(f"{chrom}{ext}").as_posix()
+                if dtype == DataType.BIGWIG or dtype == DataType.BIGBED:
+                    fh = pybigtools.open(path)
+                else:
+                    fh = pysam.TabixFile(path)
             except Exception as err:
                 raise RuntimeError(
-                    f"Error reading {fh} for {label} and {chrom}:{st}-{end}: {err}."
+                    f"Error reading {fh} for {label} and {chrom}:{st}-{end}: {err}"
                 )
         else:
             raise TypeError(
@@ -144,22 +244,27 @@ class Data:
 
         try:
             logger.debug(f"Query {label} for {chrom}:{st}-{end}")
-            qry = fh.fetch(chrom, st, end, parser=parser)
+            if isinstance(fh, pysam.TabixFile):
+                qry = fh.fetch(chrom, st, end, parser=parser)
+            else:
+                qry = fh.values(chrom, st, end)
+                breakpoint()
+
             df = pl.DataFrame(
-                data=[read_fn(rec) for rec in qry],
+                data=[read_fns.read_fn(rec) for rec in qry],
                 orient="row",
                 schema=schema,
             )
-            if finalizer_fn:
-                df = finalizer_fn(df)
-        except ValueError as err:
+            if read_fns.finalizer_fn:
+                df = read_fns.finalizer_fn(df)
+        except Exception as err:
             logger.debug(f"Unable to query {label} for {chrom}:{st}-{end} ({err})")
-            return pl.DataFrame(schema=BED_SCHEMA)
+            return pl.DataFrame(schema=schema)
 
         if not to_relative:
             return df
         else:
-            return to_relative_fn(df)
+            return read_fns.to_relative_fn(df)
 
     def split(
         self,

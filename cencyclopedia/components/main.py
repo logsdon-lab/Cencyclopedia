@@ -38,7 +38,7 @@ def main_page(
                     if dcfg["type"] != "spacer"
                 },
             ),
-            # URL (/, all, chr?)
+            # URL (/, all, compare, chr?)
             dcc.Location(id="url", refresh=False),
             dbc.Row(
                 home_page(cfg),

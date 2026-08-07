@@ -1,6 +1,7 @@
 import os
 import sys
 import yaml
+import dash_uploader as du
 import dash_bootstrap_components as dbc
 
 from dash import Dash
@@ -8,6 +9,7 @@ from cencyclopedia.io.regions import read_or_write_regions
 from cencyclopedia.components.main import main_page
 from cencyclopedia.components.cen import cen_page
 
+from cencyclopedia.callbacks.compare import *
 from cencyclopedia.callbacks.main import *
 from cencyclopedia.callbacks.tree import *
 from cencyclopedia.callbacks.selected_cen import *
@@ -32,6 +34,8 @@ def server():
         assets_external_path=".",
         suppress_callback_exceptions=True,
     )
+    # Setup temporary dir for comparison
+    du.configure_upload(app, cfg["general"]["compare"]["tmp_dir"])
 
     if mode == "all":
         layout = main_page(

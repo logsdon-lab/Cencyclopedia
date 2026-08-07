@@ -5,6 +5,7 @@ from dash import Input, Output, callback, State
 from cencyclopedia.components.overview import overview_page
 from cencyclopedia.components.home import home_page
 from cencyclopedia.components.tree import tree_page
+from cencyclopedia.components.compare import compare_page
 
 
 @callback(
@@ -26,5 +27,7 @@ def draw_main_content_page(
         return home_page(cfg)
     elif page == "all":
         return overview_page(regions, cfg)
+    elif page == "compare":
+        return compare_page(cfg)
     else:
         return tree_page(page, dtypes, regions, cfg)

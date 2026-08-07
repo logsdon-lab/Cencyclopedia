@@ -81,6 +81,7 @@ def home_page(cfg: dict[str, Any]):
             html.Br(),
             html.H1("Start by picking a chromosome", style={"text-align": "center"}),
             html.Br(),
+            # all
             dbc.Row(
                 dcc.Graph(
                     figure=create_chromosome_navlink(cfg),
@@ -89,6 +90,18 @@ def home_page(cfg: dict[str, Any]):
                     config={"displayModeBar": False},
                 )
             ),
+            html.Br(),
+            html.Hr(),
+            html.Br(),
+            # compare
+            html.H1("Or load your own data", style={"text-align": "center"}),
+            html.Br(),
+            html.Div(
+                dbc.Button("Start", color="primary", href="compare"),
+                className="d-grid gap-2 col-6 mx-auto",
+            ),
+            html.Br(),
+            html.Hr(),
             html.Br(),
             dbc.Row(
                 [

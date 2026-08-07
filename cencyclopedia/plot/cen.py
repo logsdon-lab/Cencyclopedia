@@ -69,14 +69,13 @@ def draw_cenplot(
                 to_relative=to_relative,
                 rle=rle,
             )
-            assert isinstance(df, pl.DataFrame)
+            if isinstance(df, pl.DataFrame):
+                df = df.sort(by="group")
 
-            df = df.sort(by="group")
-
-            if to_relative:
-                df = clip_df(df, 0, end - st)
-            else:
-                df = clip_df(df, st, end)
+                if to_relative:
+                    df = clip_df(df, 0, end - st)
+                else:
+                    df = clip_df(df, st, end)
 
         if prop:
             total_original_prop += prop

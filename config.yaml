@@ -33,6 +33,8 @@ general:
     - "Local self-identity"
     - "Alpha-satellite HOR array orientation"
     - "Self-identity"
+  compare:
+    tmp_dir: /tmp/uploads
   tree:
     input_dir: assets/hgsvc
     # Tree height
