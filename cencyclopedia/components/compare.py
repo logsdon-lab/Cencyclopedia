@@ -38,14 +38,8 @@ def layout_regions() -> html.Div:
 def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
     return html.Div(
         [
-            html.H2("Data"),
+            html.H2("Upload"),
             html.Hr(),
-            dbc.Tabs(
-                [dbc.Tab(label=label, tab_id=label) for label in labels],
-                id="data-tabs",
-                active_tab=active_tab,
-            ),
-            html.Br(),
             du.Upload(
                 id="upload-data",
                 max_files=1,
@@ -57,7 +51,14 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
                 cancel_button=True,
                 disabled=True,
             ),
-            html.Div(id="data-settings-content"),
+            html.Br(),
+            dbc.Tabs(
+                [dbc.Tab(label=label, tab_id=label) for label in labels],
+                id="data-label-tabs",
+                active_tab=active_tab,
+            ),
+            html.Br(),
+            dbc.Spinner(html.Div(id="data-settings-content")),
         ]
     )
 
@@ -71,7 +72,7 @@ def layout_compare(labels: list[str], active_tab: str | None = None):
                 [
                     html.H2("Plot"),
                     html.Hr(),
-                    html.Div(id="figures-container"),
+                    dbc.Spinner(html.Div(id="figures-container")),
                 ],
                 width=6,
             ),
@@ -107,11 +108,7 @@ def compare_page(cfg):
             # Individual track settings
             dcc.Store(
                 id="bed-track-settings",
-                data={
-                    dtype: DEFAULT_SETTINGS
-                    for dtype, dcfg in uploaded_cfg["data"].items()
-                    if dcfg["type"] != "spacer"
-                },
+                data={tabs[0]: DEFAULT_SETTINGS},
             ),
             modal_error_message(),
             layout_compare(tabs, active_tab=tabs[0]),

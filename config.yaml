@@ -119,7 +119,7 @@ data:
         showline: false
   "Spacer":
     position: relative
-    type: spacer
+    type: null
     prop: 0.02
     options:
       xaxis_kwargs:

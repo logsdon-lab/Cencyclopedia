@@ -30,11 +30,27 @@ BEDPE_SCHEMA = {
 }
 
 
-def read_bedgraph_row(rec: Any):
+def into_hexcode(s: str) -> str:
+    # https://stackoverflow.com/a/3380739
+    if s.startswith("#"):
+        return s
+    else:
+        return "#%02x%02x%02x" % tuple(int(v) for v in s.split(","))
+
+
+def read_bedgraph_row(rec: Any) -> tuple[str, int, int, str]:
     return (rec.contig, rec.start, rec.end, rec.name)
 
 
-def read_bedstrand_row(rec: Any):
+def read_bigwig_row(rec: Any, chrom: str) -> tuple[str, int, int, int]:
+    try:
+        value = rec[2]
+    except IndexError:
+        value = 0
+    return (chrom, rec[0], rec[1], value)
+
+
+def read_bedstrand_row(rec: Any) -> tuple[str, int, int, str, str, int]:
     try:
         item_rgb = rec.itemRGB
     except KeyError:
@@ -46,13 +62,13 @@ def read_bedstrand_row(rec: Any):
     return (rec.contig, rec.start, rec.end, rec.strand, item_rgb, score)
 
 
-def read_bed9_row(rec: Any):
+def read_bed9_row(rec: Any) -> tuple[str, int, int, str, str, int]:
     try:
         name = rec.name
     except KeyError:
         name = "."
     try:
-        item_rgb = rec.itemRGB
+        item_rgb = into_hexcode(rec.itemRGB)
     except KeyError:
         item_rgb = "#000000"
     try:
@@ -60,6 +76,22 @@ def read_bed9_row(rec: Any):
     except KeyError:
         score = 0
     return (rec.contig, rec.start, rec.end, name, item_rgb, score)
+
+
+def read_bigbed_row(rec: Any, chrom: str) -> tuple[str, int, int, str, str, int]:
+    try:
+        name = rec[2]
+    except IndexError:
+        name = "."
+    try:
+        item_rgb = into_hexcode(rec[7])
+    except IndexError:
+        item_rgb = "#000000"
+    try:
+        score = rec[3]
+    except IndexError:
+        score = 0
+    return (chrom, rec[0], rec[1], name, item_rgb, score)
 
 
 def read_bed_local_selfident_row(
@@ -90,7 +122,7 @@ def read_bed_local_selfident_row(
     return (chrom, chrom_st, chrom_end, label, color, ident)
 
 
-def to_relative_coords_bed(df: pl.DataFrame, min_st: int | None):
+def to_relative_coords_bed(df: pl.DataFrame, min_st: int | None) -> pl.DataFrame:
     if min_st:
         min_st_expr: pl.Expr = pl.lit(min_st)
     else:

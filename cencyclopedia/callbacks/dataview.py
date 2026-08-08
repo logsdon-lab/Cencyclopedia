@@ -6,7 +6,7 @@ from loguru import logger
 from dash import Input, Output, callback, dash_table, State, html, ctx
 from dash.dcc.express import send_bytes
 
-from cencyclopedia.io.data import Data, EXPANDABLE_DATA_TYPES
+from cencyclopedia.io.data import Data
 from cencyclopedia.plot.common import (
     BedTrackSettings,
     DEFAULT_SETTINGS,
@@ -76,7 +76,8 @@ def draw_dataview_tab(
     )
     # Use defaults.
     track_settings = expand_tracks[data_label]
-    disabled = data_fhs.datatype(data_label) not in EXPANDABLE_DATA_TYPES
+    dtype = data_fhs.datatype(data_label)
+    disabled = not dtype.is_expandable() if dtype else True
     return dataview_tab(
         data_table=data_table, track_settings=track_settings, all_disabled=disabled
     )

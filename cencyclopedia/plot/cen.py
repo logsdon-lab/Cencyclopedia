@@ -29,11 +29,18 @@ def draw_cenplot(
     *,
     xlim: tuple[int, int] | None = None,
     to_relative: bool = False,
+    add_xaxis_kwargs: dict[str, Any] | None = None,
+    add_yaxis_kwargs: dict[str, Any] | None = None,
 ) -> tuple[go._figure.Figure, dict[str, Any]] | None:
     if not itv_selected_cen:
         return None
     if not bed_track_settings:
         bed_track_settings = {}
+
+    if not add_xaxis_kwargs:
+        add_xaxis_kwargs = {}
+    if not add_yaxis_kwargs:
+        add_yaxis_kwargs = {}
 
     chrom, st, end = itv_selected_cen
     # Open tabix file handles
@@ -151,8 +158,8 @@ def draw_cenplot(
         else:
             dfs_groups = []
         # https://plotly.com/python/reference/layout/xaxis/
-        update_xaxis_kwargs = options.get("xaxis_kwargs", {})
-        update_yaxis_kwargs = options.get("yaxis_kwargs", {})
+        update_xaxis_kwargs = options.get("xaxis_kwargs", {}) | add_xaxis_kwargs
+        update_yaxis_kwargs = options.get("yaxis_kwargs", {}) | add_yaxis_kwargs
         n_groups = len(dfs_groups)
 
         for i, track_idx in enumerate(lst_indices):
@@ -215,7 +222,7 @@ def draw_cenplot(
             # Store yaxis title
             idx_yaxis_titles[track_idx] = yaxis_title
 
-            if dtype == "bed" or dtype == "bed_localselfident":
+            if dtype == "bigbed" or dtype == "bed" or dtype == "bed_localselfident":
                 add_bed_track(
                     df_grp,
                     fig,
@@ -227,7 +234,7 @@ def draw_cenplot(
                     # Replace score label in hovertext if provided in replace_colnames
                     score_label=options.get("replace_colnames", {}).get("score"),
                 )
-            elif dtype == "bedgraph":
+            elif dtype == "bigwig" or dtype == "bedgraph":
                 add_bedgraph_track(
                     df_grp,
                     fig,

@@ -1,6 +1,9 @@
 import os
 import sys
 import yaml
+import shutil
+import atexit
+import tempfile
 import dash_uploader as du
 import dash_bootstrap_components as dbc
 
@@ -35,7 +38,16 @@ def server():
         suppress_callback_exceptions=True,
     )
     # Setup temporary dir for comparison
-    du.configure_upload(app, cfg["general"]["compare"]["tmp_dir"])
+    tmp_root_dir = cfg["general"]["compare"]["tmp_dir"]
+    os.makedirs(tmp_root_dir, exist_ok=True)
+    tmp_dir = tempfile.mkdtemp(dir=tmp_root_dir)
+    cfg["general"]["compare"]["tmp_dir"] = tmp_dir
+
+    # Configure temp dir.
+    du.configure_upload(app, tmp_dir)
+
+    # Always cleanup on exit
+    atexit.register(lambda: shutil.rmtree(tmp_dir))
 
     if mode == "all":
         layout = main_page(
