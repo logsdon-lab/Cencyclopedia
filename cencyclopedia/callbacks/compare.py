@@ -125,6 +125,7 @@ def draw_regions_datatable(
             for col in df.columns
         ],
         page_size=5,
+        editable=True,
         row_deletable=True,
         row_selectable="multi",
         column_selectable="single",
@@ -151,23 +152,35 @@ def draw_selected_region_plots(
     cfg: dict[str, Any],
     bed_track_settings: dict[str, BedTrackSettings],
 ):
+    # If no data (just init)
     if not cfg["data"]:
         return dash.no_update
 
     elements = []
     for row in selected_rows:
         rgn_info = regions[row]
-        itv = (rgn_info["Chrom"], rgn_info["Start"], rgn_info["End"])
+        try:
+            st, end = int(rgn_info["Start"]), int(rgn_info["End"])
+        except ValueError:
+            logger.error(f"Invalid st and end: {rgn_info}")
+            continue
+
+        itv = (rgn_info["Chrom"], st, end)
         itv_str = f"{itv[0]}:{itv[1]}-{itv[2]}"
         itv_str_plot = f"{itv[0]}<br>{itv[1]}-{itv[2]}"
-        fig_res = draw_cenplot(
-            itv_selected_cen=itv,
-            bed_track_settings=bed_track_settings,
-            cfg=cfg,
-            add_yaxis_kwargs={"title_text": itv_str_plot},
-        )
+        try:
+            fig_res = draw_cenplot(
+                itv_selected_cen=itv,
+                bed_track_settings=bed_track_settings,
+                cfg=cfg,
+                add_yaxis_kwargs={"title_text": itv_str_plot},
+            )
+        except Exception as err:
+            logger.error(f"Failed to draw compare plot for {rgn_info}: {err}")
+            continue
+
         if not fig_res:
-            logger.debug(f"No plot for {rgn_info}")
+            logger.error(f"No plot for {rgn_info}")
             continue
 
         fig, style = fig_res
@@ -214,11 +227,14 @@ def draw_settings_and_dataview_table(
     dfs: list[pl.DataFrame] = []
     for row in regions_rows:
         rgn_info = data_regions[row]
+        try:
+            st, end = int(rgn_info["Start"]), int(rgn_info["End"])
+        except ValueError:
+            logger.error(f"Invalid st and end: {rgn_info}")
+            continue
+
         df = data_fhs.query(
-            label=active_tab,
-            chrom=rgn_info["Chrom"],
-            st=rgn_info["Start"],
-            end=rgn_info["End"],
+            label=active_tab, chrom=rgn_info["Chrom"], st=st, end=end, to_relative=False
         )
         if not isinstance(df, pl.DataFrame):
             logger.debug(f"No data found for {active_tab} and {rgn_info}")
@@ -255,7 +271,7 @@ def draw_settings_and_dataview_table(
     return html.Div(
         [
             html.H3(fname),
-            html.Hr(),
+            html.Br(),
             dataview_tab(
                 data_table=data_table,
                 track_settings=track_settings,

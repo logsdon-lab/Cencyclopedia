@@ -13,6 +13,12 @@ ALLOWED_FILETYPES = (
     "bw",
     "bed.gz",
 )
+COMPARE_PAGE_STYLE = {
+    "padding": "2rem 4rem",
+    "overflow": "scroll",
+    # Hide scrollbar
+    "scrollbar-width": "none",
+}
 
 
 def layout_regions() -> html.Div:
@@ -23,6 +29,7 @@ def layout_regions() -> html.Div:
             du.Upload(
                 id="upload-regions",
                 filetypes=["bed"],
+                text="Upload a BED file",
                 cancel_button=True,
                 default_style={
                     "minHeight": "20",
@@ -43,6 +50,8 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
             du.Upload(
                 id="upload-data",
                 max_files=1,
+                text_disabled="Upload a BED file to enable",
+                text="Upload a BED (bed.gz), bigwig (.bw) or bigBed (.bb) file",
                 filetypes=ALLOWED_FILETYPES,
                 default_style={
                     "minHeight": "20",
@@ -52,6 +61,8 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
                 disabled=True,
             ),
             html.Br(),
+            html.H2("Settings"),
+            html.Hr(),
             dbc.Tabs(
                 [dbc.Tab(label=label, tab_id=label) for label in labels],
                 id="data-label-tabs",
@@ -66,6 +77,7 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
 def layout_compare(labels: list[str], active_tab: str | None = None):
     if not active_tab:
         active_tab = labels[0]
+    # https://community.plotly.com/t/scrollable-navigation-bar-in-multi-column-layout/61865/2
     return dbc.Row(
         [
             dbc.Col(
@@ -74,7 +86,8 @@ def layout_compare(labels: list[str], active_tab: str | None = None):
                     html.Hr(),
                     dbc.Spinner(html.Div(id="figures-container")),
                 ],
-                width=6,
+                className="h-100 overflow-scroll",
+                style={"padding-right": "1rem"},
             ),
             dbc.Col(
                 [
@@ -82,9 +95,11 @@ def layout_compare(labels: list[str], active_tab: str | None = None):
                     html.Br(),
                     layout_upload(labels, active_tab),
                 ],
-                width=6,
+                className="h-100 overflow-scroll",
+                style={"padding-left": "1rem"},
             ),
-        ]
+        ],
+        className="vh-100",
     )
 
 
@@ -94,10 +109,8 @@ def compare_page(cfg):
     uploaded_cfg = deepcopy(cfg)
     uploaded_cfg["data"] = {}
 
-    # TODO: Should also allow filtering by descriptors like maternal/paternal or species
-    # TODO: Click new to add new tab and auto load new tab.
     # TODO: Parse data based on extension. Display error message otherwise.
-    return html.Div(
+    return dbc.Container(
         [
             # Config
             dcc.Store(id="cfg", data=uploaded_cfg),
@@ -113,7 +126,5 @@ def compare_page(cfg):
             modal_error_message(),
             layout_compare(tabs, active_tab=tabs[0]),
         ],
-        style={
-            "padding": "4rem",
-        },
+        style=COMPARE_PAGE_STYLE,
     )
