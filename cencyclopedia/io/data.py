@@ -5,7 +5,7 @@ import pybigtools
 import polars as pl
 
 from loguru import logger
-from typing import Any, Iterator
+from typing import Any, Iterator, Mapping
 
 from cencyclopedia.io.config import Config, Position, DataType
 from cencyclopedia.plot.common import TrackMode
@@ -15,16 +15,22 @@ FILE_HANDLE = pybigtools.BBIReader | pysam.TabixFile | pathlib.Path | None
 
 
 class Data:
-    def __init__(self, cfg: dict[str, Any]):
+    def __init__(self, cfg: Mapping[str, Config]):
         self.fhs: dict[str, FILE_HANDLE] = {}
         self.cfg: dict[str, Config] = {}
 
-        for label, trk_info in cfg.items():
+        for label, og_trk_info in cfg.items():
             # validate datatype and position
-            typ = DataType("null" if not trk_info["type"] else trk_info["type"])
-            pos = Position(trk_info["position"])
-            trk_info["type"] = typ
-            trk_info["position"] = pos
+            typ = DataType("null" if not og_trk_info["type"] else og_trk_info["type"])
+            pos = Position(og_trk_info["position"])
+            # Might be immutable so create new dict
+            trk_info: Config = {
+                "options": og_trk_info["options"],
+                "path": og_trk_info.get("path", ""),
+                "position": pos,
+                "prop": og_trk_info.get("prop", 0.0),
+                "type": typ,
+            }
             self.cfg[label] = trk_info
 
             is_bigfile = typ == DataType.BIGWIG or typ == DataType.BIGBED

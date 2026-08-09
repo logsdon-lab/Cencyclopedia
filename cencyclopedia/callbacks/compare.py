@@ -1,15 +1,16 @@
 import os
 import dash
+import traceback
 import pybigtools
-
 import polars as pl
 import dash_bootstrap_components as dbc
 
 from typing import Any
+from functools import lru_cache
 from loguru import logger
 from dash import html, dcc, Input, Output, State, callback, dash_table
 from dash.exceptions import PreventUpdate
-
+from frozendict import frozendict, cool
 
 from cencyclopedia.components.dataview import dataview_tab
 from cencyclopedia.io.data import Data, DataType
@@ -88,7 +89,6 @@ def add_uploaded_data_to_cfg(
 
 @callback(
     Output("data-table-container", "children"),
-    Output("regions_file", "data"),
     Output("upload-data", "disabled"),
     Input("upload-regions", "isCompleted"),
     Input("upload-regions", "upload_id"),
@@ -135,7 +135,22 @@ def draw_regions_datatable(
         style_cell={"textAlign": "left"},
         style_data={"whiteSpace": "normal", "height": "auto", "lineHeight": "15px"},
     )
-    return data_table, file, False
+    return data_table, False
+
+
+@lru_cache(maxsize=20)
+def draw_cenplot_cached(
+    itv: tuple[str, int, int] | None,
+    bed_track_settings: frozendict[str, BedTrackSettings] | None,
+    cfg: frozendict[str, Any],
+    add_yaxis_kwargs: frozendict[str, Any],
+):
+    return draw_cenplot(
+        itv_selected_cen=itv,
+        bed_track_settings=bed_track_settings,
+        cfg=cfg,
+        add_yaxis_kwargs=add_yaxis_kwargs,
+    )
 
 
 @callback(
@@ -156,8 +171,13 @@ def draw_selected_region_plots(
     if not cfg["data"]:
         return dash.no_update
 
-    elements = []
-    for row in selected_rows:
+    # Convert to immutable frozendict to hash
+    fcfg = cool.deepfreeze(cfg)
+    fbed_track_settings = cool.deepfreeze(bed_track_settings)
+
+    # https://stackoverflow.com/a/5884123
+    figures = []
+    for row in sorted(selected_rows):
         rgn_info = regions[row]
         try:
             st, end = int(rgn_info["Start"]), int(rgn_info["End"])
@@ -168,15 +188,20 @@ def draw_selected_region_plots(
         itv = (rgn_info["Chrom"], st, end)
         itv_str = f"{itv[0]}:{itv[1]}-{itv[2]}"
         itv_str_plot = f"{itv[0]}<br>{itv[1]}-{itv[2]}"
+
+        # Cache existing plots
         try:
-            fig_res = draw_cenplot(
-                itv_selected_cen=itv,
-                bed_track_settings=bed_track_settings,
-                cfg=cfg,
-                add_yaxis_kwargs={"title_text": itv_str_plot},
+            fig_res = draw_cenplot_cached(
+                itv=itv,
+                bed_track_settings=fbed_track_settings,
+                cfg=fcfg,
+                add_yaxis_kwargs=frozendict({"title_text": itv_str_plot}),
             )
         except Exception as err:
-            logger.error(f"Failed to draw compare plot for {rgn_info}: {err}")
+            tbk = traceback.format_exc()
+            logger.error(
+                f"Failed to draw compare plot for {rgn_info}: {err}\ntrace: {tbk}"
+            )
             continue
 
         if not fig_res:
@@ -191,9 +216,9 @@ def draw_selected_region_plots(
             config={"displaylogo": False},
             style={**style, **{"height": 200}},
         )
-        elements.append(final_fig)
+        figures.append(final_fig)
 
-    return elements
+    return figures
 
 
 @callback(

@@ -2,6 +2,7 @@ import dash
 import polars as pl
 import plotly.graph_objs as go
 
+import traceback
 from typing import Any
 from loguru import logger
 from copy import deepcopy
@@ -76,6 +77,8 @@ def draw_selected_cen_figure(
             raise PreventUpdate
         fig, style = fig_res
     except Exception as err:
+        tbk = traceback.format_exc()
+        logger.error(f"Cannot plot figure due to: {err}\ntrace: {tbk}")
         return dash.no_update, dash.no_update, modal_body_content(str(err)), True
     return fig, style, dash.no_update, dash.no_update
 

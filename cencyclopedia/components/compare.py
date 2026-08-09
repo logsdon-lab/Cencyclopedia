@@ -114,10 +114,6 @@ def compare_page(cfg):
         [
             # Config
             dcc.Store(id="cfg", data=uploaded_cfg),
-            # Regions
-            dcc.Store(id="selected_regions", data=[]),
-            # Path to uploaded file.
-            dcc.Store(id="regions_file", data=None),
             # Individual track settings
             dcc.Store(
                 id="bed-track-settings",

@@ -1,7 +1,7 @@
 import polars as pl
 import plotly.graph_objs as go
 
-from typing import Any
+from typing import Any, Mapping
 from loguru import logger
 from plotly.subplots import make_subplots
 
@@ -24,13 +24,13 @@ from cencyclopedia.plot.bed import (
 # https://stackoverflow.com/questions/63611740/how-to-persist-state-of-plotly-graph-in-dash-app
 def draw_cenplot(
     itv_selected_cen: tuple[str, int, int] | None,
-    bed_track_settings: dict[str, BedTrackSettings] | None,
-    cfg: dict[str, Any],
+    bed_track_settings: Mapping[str, BedTrackSettings] | None,
+    cfg: Mapping[str, Any],
     *,
     xlim: tuple[int, int] | None = None,
     to_relative: bool = False,
-    add_xaxis_kwargs: dict[str, Any] | None = None,
-    add_yaxis_kwargs: dict[str, Any] | None = None,
+    add_xaxis_kwargs: Mapping[str, Any] | None = None,
+    add_yaxis_kwargs: Mapping[str, Any] | None = None,
 ) -> tuple[go._figure.Figure, dict[str, Any]] | None:
     if not itv_selected_cen:
         return None
@@ -158,8 +158,8 @@ def draw_cenplot(
         else:
             dfs_groups = []
         # https://plotly.com/python/reference/layout/xaxis/
-        update_xaxis_kwargs = options.get("xaxis_kwargs", {}) | add_xaxis_kwargs
-        update_yaxis_kwargs = options.get("yaxis_kwargs", {}) | add_yaxis_kwargs
+        update_xaxis_kwargs = dict(options.get("xaxis_kwargs", {}) | add_xaxis_kwargs)
+        update_yaxis_kwargs = dict(options.get("yaxis_kwargs", {}) | add_yaxis_kwargs)
         n_groups = len(dfs_groups)
 
         for i, track_idx in enumerate(lst_indices):
