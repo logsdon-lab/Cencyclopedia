@@ -56,6 +56,29 @@ def layout_regions() -> html.Div:
                                     color="secondary",
                                     n_clicks=0,
                                 ),
+                                popover(
+                                    header="Help",
+                                    body=dcc.Markdown(
+                                        """
+                                        ### Regions
+                                        Click or drag a BED3+ file to the upload button to start.
+                                        * All files are stored server-side and are deleted on session exit.
+                                        * The maximum file size is 100 Mb
+
+                                        A data table of regions will render if successful.
+                                        * This is used to filter files uploaded.
+                                        * All values are editable and will rerender the plot on change
+                                        * Clicking the 2nd column's checkbox will add it to the plot.
+                                        * Clicking the 1st column's **"x"** will remove the region.
+
+                                        ### Presets
+                                        Click a preset to load a dataset. This disables additional file uploads.
+                                        * HGSVC: Human genome structural variation consortium
+                                        * T2T-Primates: Telomere-to-telomere primates
+                                        """
+                                    ),
+                                    target="btn-help-regions",
+                                ),
                             ],
                         ),
                         2,
@@ -67,6 +90,7 @@ def layout_regions() -> html.Div:
                 filetypes=["bed"],
                 text="Upload a BED file",
                 cancel_button=True,
+                max_file_size=100,
                 default_style={
                     "minHeight": "20",
                     "lineHeight": "20px",
@@ -82,12 +106,52 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
     return html.Div(
         [
             row_title_with_help("Files", button_id="btn-help-files"),
+            popover(
+                header="Help",
+                target="btn-help-files",
+                body=dcc.Markdown(
+                    """
+                    ### Files
+                    Files can only be uploaded after a BED file is uploaded.
+                    * All files are stored server-side and are deleted on session exit.
+                    * The maximum file size is 100 Mb
+
+                    Once uploaded, additionally tabs can be added (**"Add"**) or removed (**"Remove"**).
+                    * If a preset is used, only tabs can be removed.
+
+                    ### Track layout
+                    Use the arrow buttons (**"<"** or **">"**) to shift the relative position of a given file within the plot.
+
+                    To modify BED track layout, use the "Mode" section. The following modes are possible:
+                    * Condensed
+                        * Default.
+                    * Length
+                        * Show the largest annotation at the top.
+                    * Frequency
+                        * Show the most frequent annotation at the top.
+                    * Proportion
+                        * Show the annotation covering the largest proportion of the region at the top.
+
+                    ### Update
+                    Once set, click **"Update"** to replot.
+                    * *"All"* or a set number up to 50 can be drawn at a time.
+
+                    ### Reset
+                    To reset the tracks for a give data type to its default. Click the **"Reset"** button.
+                    * This is only done for that data type.
+
+                    ### Data
+                    Click **"Download"** to download the data locally as a `bed.gz` file.
+                    """
+                ),
+            ),
             du.Upload(
                 id="upload-data",
                 max_files=1,
                 text_disabled="Upload a BED file to enable",
                 text="Upload a BED (bed.gz), bigwig (.bw) or bigBed (.bb) file",
                 filetypes=ALLOWED_FILETYPES,
+                max_file_size=100,
                 default_style={
                     "minHeight": "20",
                     "lineHeight": "20px",
@@ -204,6 +268,20 @@ def layout_compare(
                                             size="sm",
                                             color="secondary",
                                             n_clicks=0,
+                                        ),
+                                        popover(
+                                            header="Help",
+                                            body=dcc.Markdown(
+                                                """
+                                                1. Each track on this figure is interactive.
+                                                    * Hovering over each datatype displays associated values/names.
+                                                2. To zoom in, use the **"Zoom"** icon in Plotly's modal bar.
+                                                3. To move around the figure, use the **"Pan"** option.
+                                                4. To reset each figure, click the **"Reset axes"** icon.
+                                                5. Use the **"Layout"** button on the left to resize the figure height and vertical track spacing.
+                                                """
+                                            ),
+                                            target="btn-help-plot",
                                         ),
                                     ]
                                 ),
