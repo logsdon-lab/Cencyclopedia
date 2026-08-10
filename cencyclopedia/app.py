@@ -22,7 +22,7 @@ from cencyclopedia.callbacks.home import *
 
 
 def server():
-    configfile = os.environ.get("CENCYCLOPEDIA_CONFIG", "config.yaml")
+    configfile = os.environ.get("CENCYCLOPEDIA_CONFIG", "config_hgsvc.yaml")
     with open(configfile, "rb") as fh:
         cfg = yaml.safe_load(fh)
         title = cfg["general"]["title"]

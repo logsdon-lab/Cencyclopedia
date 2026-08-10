@@ -1,4 +1,5 @@
 import os
+import yaml
 import pysam
 import traceback
 import pybigtools
@@ -23,6 +24,124 @@ from cencyclopedia.plot.common import BedTrackSettings, DEFAULT_SETTINGS
 
 
 Tabs = list[dict[str, Any] | dbc.Tab]  # pyright:ignore
+MAXSIZE_PLOT_LRU_CACHE = 20
+
+
+def get_regions_dash_table(df: pl.DataFrame) -> dash_table.DataTable:
+    return dash_table.DataTable(
+        id="datatable-regions",
+        data=list(df.iter_rows(named=True)),  # pyright: ignore
+        columns=[
+            {
+                "name": col,
+                "id": col,
+                "selectable": True,
+            }
+            for col in df.columns
+        ],
+        page_size=5,
+        editable=True,
+        row_deletable=True,
+        row_selectable="multi",
+        column_selectable="single",
+        selected_rows=[0],
+        sort_action="native",
+        filter_action="native",
+        style_cell={"textAlign": "left"},
+        style_data={"whiteSpace": "normal", "height": "auto", "lineHeight": "15px"},
+    )
+
+
+@callback(
+    Output("data-label-tabs", "active_tab", allow_duplicate=True),
+    Output("data-label-tabs", "children", allow_duplicate=True),
+    Output("bed-track-settings", "data", allow_duplicate=True),
+    Output("cfg", "data", allow_duplicate=True),
+    # Draw regions table manually
+    Output("data-table-container", "children", allow_duplicate=True),
+    # Signal complete to draw data table
+    Output("upload-data", "isCompleted", allow_duplicate=True),
+    # Disable uploading regions
+    Output("upload-regions", "disabled", allow_duplicate=True),
+    # Disallow deleting files
+    Output("read-only", "data"),
+    Input("btn-preset-hgsvc", "n_clicks"),
+    Input("btn-preset-t2t-primates", "n_clicks"),
+    State("cfg", "data"),
+    prevent_initial_call=True,
+)
+def load_compare_dataset(
+    n_clicks_hgsvc: int | None, n_clicks_t2t_primates: int | None, cfg: dict[str, Any]
+) -> tuple[
+    str,
+    Tabs,
+    dict[str, BedTrackSettings],
+    dict[str, Any],
+    dash_table.DataTable,
+    bool,
+    bool,
+    bool,
+]:
+    clicked_btn = ctx.triggered_id
+    if clicked_btn == "btn-preset-hgsvc":
+        logger.debug("Loading HGSVC dataset")
+        path_cfg_hgsvc = cfg["general"]["compare"]["presets"]["hgsvc"]
+        # Load data and compare track settings only
+        with open(path_cfg_hgsvc, "rb") as fh:
+            cfg_hgsvc = yaml.safe_load(fh)
+            cfg["data"] = cfg_hgsvc["data"]
+            cfg["general"]["compare"]["height"] = cfg_hgsvc["general"]["compare"][
+                "height"
+            ]
+            cfg["general"]["compare"]["vertical_spacing"] = cfg_hgsvc["general"][
+                "compare"
+            ]["vertical_spacing"]
+
+        # Get regions and format
+        # See data/hgsvc/bed.csv.gz
+        df_regions = (
+            pl.read_csv(cfg_hgsvc["general"]["output_regions"], has_header=True)
+            .drop("2", "2_right", "arm", "clade")
+            .unique(maintain_order=True)
+            .rename(
+                {
+                    "chrom": "Chrom",
+                    "chrom_st": "Start",
+                    "chrom_end": "End",
+                }
+            )
+        )
+        df_regions = df_regions.rename(
+            {col: col.capitalize() for col in df_regions.columns}
+        )
+        regions_dtable = get_regions_dash_table(df_regions)
+
+        # Create tabs and track settings
+        tabs = []
+        track_settings = {}
+        new_cfg_data = {}
+        idx = 1
+        for opts in cfg["data"].values():
+            new_tab_name = tab_name(idx)
+            # replace data label name with new tab nae
+            new_cfg_data[new_tab_name] = opts
+            # Is spacer
+            if not opts["type"]:
+                continue
+
+            track_settings[new_tab_name] = DEFAULT_SETTINGS
+            tabs.append(dbc.Tab(label=new_tab_name, tab_id=new_tab_name))
+            idx += 1
+        # Use new names for data options
+        cfg["data"] = new_cfg_data
+
+        active_tab = tabs[0].tab_id
+        return active_tab, tabs, track_settings, cfg, regions_dtable, True, True, True
+    elif clicked_btn == "btn-preset-t2t-primates":
+        logger.debug("Loading T2T-primates dataset")
+        raise PreventUpdate
+    else:
+        raise PreventUpdate
 
 
 @callback(
@@ -126,7 +245,7 @@ def add_new_data_tab_manual(
     expand_tracks: dict[str, BedTrackSettings],
 ) -> tuple[str, list, dict[str, BedTrackSettings]]:
     """
-    Adds a new data tab when add button is manula pressed.
+    Adds a new data tab when add button is manually pressed.
     """
     if not n_clicks or not ctx.triggered_id == "btn-add-data-tab":
         raise PreventUpdate
@@ -142,6 +261,7 @@ def add_new_data_tab_manual(
     Input("data-label-tabs", "active_tab"),
     State("data-label-tabs", "children"),
     State("cfg", "data"),
+    State("read-only", "data"),
     prevent_initial_call=True,
 )
 def delete_data_tab(
@@ -149,6 +269,7 @@ def delete_data_tab(
     active_tab: str,
     curr_tabs: Tabs,
     cfg: dict[str, Any],
+    read_only: bool,
 ) -> tuple[str | None, Tabs, dict[str, Any]]:
     if not n_clicks or not ctx.triggered_id == "btn-delete-data-tab":
         raise PreventUpdate
@@ -183,10 +304,11 @@ def delete_data_tab(
         raise PreventUpdate
 
     try:
-        # Handle were data loaded twice
-        if all(
+        # Handle where data loaded twice
+        no_duplicates = all(
             other_opt.get("path") != opts["path"] for other_opt in cfg["data"].values()
-        ):
+        )
+        if not read_only and not no_duplicates:
             os.remove(opts["path"])
     except FileNotFoundError:
         pass
@@ -296,38 +418,16 @@ def draw_regions_datatable(
         # Anything after the first three are treated as metadata
         new_columns=["Chrom", "Start", "End"],
     )
-
-    data_table = dash_table.DataTable(
-        id="datatable-regions",
-        data=list(df.iter_rows(named=True)),  # pyright: ignore
-        columns=[
-            {
-                "name": col,
-                "id": col,
-                "selectable": True,
-            }
-            for col in df.columns
-        ],
-        page_size=5,
-        editable=True,
-        row_deletable=True,
-        row_selectable="multi",
-        column_selectable="single",
-        selected_rows=[0],
-        sort_action="native",
-        filter_action="native",
-        style_cell={"textAlign": "left"},
-        style_data={"whiteSpace": "normal", "height": "auto", "lineHeight": "15px"},
-    )
+    data_table = get_regions_dash_table(df)
     return data_table, False
 
 
-@lru_cache(maxsize=20)
+@lru_cache(maxsize=MAXSIZE_PLOT_LRU_CACHE)
 def draw_cenplot_cached(
     itv: tuple[str, int, int] | None,
     bed_track_settings: frozendict[str, BedTrackSettings] | None,
     cfg: frozendict[str, Any],
-    add_yaxis_kwargs: frozendict[str, Any],
+    add_yaxis_kwargs: frozendict[int, frozendict[str, Any]],
     _track_order: tuple[str, ...],
 ) -> tuple[Figure, dict[str, Any]] | None:
     return draw_cenplot(
@@ -344,6 +444,8 @@ def draw_cenplot_cached(
     Input("datatable-regions", "selected_rows"),
     Input("cfg", "data"),
     Input("bed-track-settings", "data"),
+    State("fig-height", "data"),
+    State("fig-vspace", "data"),
     prevent_initial_call=True,
 )
 def draw_selected_region_plots(
@@ -351,10 +453,16 @@ def draw_selected_region_plots(
     selected_rows: list[int],
     cfg: dict[str, Any],
     bed_track_settings: dict[str, BedTrackSettings],
+    fig_height: int | str,
+    fig_vspace: float | str,
 ) -> list[dcc.Graph]:
     # If no data (just init)
     if not cfg["data"]:
         return []
+
+    # Use settings
+    cfg["general"]["selected_cen"]["height"] = fig_height
+    cfg["general"]["selected_cen"]["vertical_spacing"] = fig_vspace
 
     # Convert to immutable frozendict to hash
     fcfg = cool.deepfreeze(cfg)
@@ -382,7 +490,10 @@ def draw_selected_region_plots(
                 itv=itv,
                 bed_track_settings=fbed_track_settings,
                 cfg=fcfg,
-                add_yaxis_kwargs=frozendict({"title_text": itv_str_plot}),
+                # Add title at top most track
+                add_yaxis_kwargs=frozendict(
+                    {0: frozendict({"title_text": itv_str_plot})}
+                ),
                 _track_order=track_order,
             )
         except Exception as err:
@@ -402,7 +513,7 @@ def draw_selected_region_plots(
             id=f"fig-{itv_str}",
             responsive=True,
             config={"displaylogo": False},
-            style={**style, **{"height": 200}},
+            style=style,
         )
         figures.append(final_fig)
 

@@ -5,6 +5,10 @@ from copy import deepcopy
 from dash import dcc, html
 
 from cencyclopedia.components.err_msg import modal_error_message
+from cencyclopedia.components.help import (
+    row_title_with_help,
+    row_title_with_side_components,
+)
 
 
 ALLOWED_FILETYPES = (
@@ -23,8 +27,40 @@ COMPARE_PAGE_STYLE = {
 def layout_regions() -> html.Div:
     return html.Div(
         [
-            html.H2("Regions"),
-            html.Hr(),
+            row_title_with_side_components(
+                "Regions",
+                [
+                    (
+                        dbc.ButtonGroup(
+                            [
+                                dbc.DropdownMenu(
+                                    label="Presets",
+                                    children=[
+                                        dbc.DropdownMenuItem(
+                                            "HGSVC", id="btn-preset-hgsvc", n_clicks=0
+                                        ),
+                                        dbc.DropdownMenuItem(
+                                            "T2T-Primates",
+                                            id="btn-preset-t2t-primates",
+                                            n_clicks=0,
+                                        ),
+                                    ],
+                                    id="dropdown-compare-preset",
+                                    size="sm",
+                                ),
+                                dbc.Button(
+                                    "Help",
+                                    id="btn-help-regions",
+                                    size="sm",
+                                    color="secondary",
+                                    n_clicks=0,
+                                ),
+                            ],
+                        ),
+                        2,
+                    ),
+                ],
+            ),
             du.Upload(
                 id="upload-regions",
                 filetypes=["bed"],
@@ -44,8 +80,7 @@ def layout_regions() -> html.Div:
 def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
     return html.Div(
         [
-            html.H2("Files"),
-            html.Hr(),
+            row_title_with_help("Files", button_id="btn-help-files"),
             du.Upload(
                 id="upload-data",
                 max_files=1,
@@ -108,8 +143,7 @@ def layout_compare(labels: list[str], active_tab: str | None = None):
         [
             dbc.Col(
                 [
-                    html.H2("Plot"),
-                    html.Hr(),
+                    row_title_with_help("Plot", button_id="btn-help-plot"),
                     dbc.Spinner(html.Div(id="figures-container")),
                 ],
                 className="h-100 overflow-scroll",
@@ -151,6 +185,14 @@ def compare_page(cfg):
             dcc.Store(id="cfg", data=uploaded_cfg),
             # Individual track settings
             dcc.Store(id="bed-track-settings", data={}),
+            # Height
+            dcc.Store(id="fig-height", data=cfg["general"]["compare"]["height"]),
+            # Vertical spacing
+            dcc.Store(
+                id="fig-vspace", data=cfg["general"]["compare"]["vertical_spacing"]
+            ),
+            # Disallow deleting files. For presets
+            dcc.Store(id="read-only", data=False),
             modal_error_message(),
             layout_compare(tabs, active_tab=None),
         ],

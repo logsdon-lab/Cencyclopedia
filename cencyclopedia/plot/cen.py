@@ -29,8 +29,8 @@ def draw_cenplot(
     *,
     xlim: tuple[int, int] | None = None,
     to_relative: bool = False,
-    add_xaxis_kwargs: Mapping[str, Any] | None = None,
-    add_yaxis_kwargs: Mapping[str, Any] | None = None,
+    add_xaxis_kwargs: Mapping[int, Mapping[str, Any]] | None = None,
+    add_yaxis_kwargs: Mapping[int, Mapping[str, Any]] | None = None,
 ) -> tuple[go._figure.Figure, dict[str, Any]] | None:
     if not itv_selected_cen:
         return None
@@ -157,12 +157,20 @@ def draw_cenplot(
             )
         else:
             dfs_groups = []
-        # https://plotly.com/python/reference/layout/xaxis/
-        update_xaxis_kwargs = dict(options.get("xaxis_kwargs", {}) | add_xaxis_kwargs)
-        update_yaxis_kwargs = dict(options.get("yaxis_kwargs", {}) | add_yaxis_kwargs)
+
         n_groups = len(dfs_groups)
 
         for i, track_idx in enumerate(lst_indices):
+            # https://plotly.com/python/reference/layout/xaxis/
+            # Allow override based on index. Mostly for allow placing title at top most track
+            update_xaxis_kwargs = dict(
+                options.get("xaxis_kwargs", {})
+                | add_xaxis_kwargs.get(track_idx - 1, {})
+            )
+            update_yaxis_kwargs = dict(
+                options.get("yaxis_kwargs", {})
+                | add_yaxis_kwargs.get(track_idx - 1, {})
+            )
             try:
                 grp, df_grp = dfs_groups[i]
                 grp = grp[0]
