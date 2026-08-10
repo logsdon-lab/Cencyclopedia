@@ -68,8 +68,8 @@ def layout_regions() -> html.Div:
                                         A data table of regions will render if successful.
                                         * This is used to filter files uploaded.
                                         * All values are editable and will rerender the plot on change
-                                        * Clicking the 2nd column's checkbox will add it to the plot.
                                         * Clicking the 1st column's **"x"** will remove the region.
+                                        * Clicking the 2nd column's checkbox will add it to the plot.
 
                                         ### Presets
                                         Click a preset to load a dataset. This disables additional file uploads.
@@ -326,7 +326,6 @@ def compare_page(cfg):
     fig_height = cfg["general"]["compare"]["height"]
     fig_vertical_spacing = cfg["general"]["compare"]["vertical_spacing"]
 
-    # TODO: Parse data based on extension. Display error message otherwise.
     return dbc.Container(
         [
             # Config

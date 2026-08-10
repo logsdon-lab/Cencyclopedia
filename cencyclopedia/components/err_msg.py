@@ -2,15 +2,19 @@ import dash_bootstrap_components as dbc
 from dash import html, dcc
 
 
-def modal_body_content(msg: str) -> dcc.Markdown:
+def modal_body_content(
+    msg: str,
+    ctx: str = "plotting",
+    likely_issue: str = "This is likely due to track spacing. Please try again with different settings.",
+) -> dcc.Markdown:
     return dcc.Markdown(
         f"""
-        Encountered an issue during plotting.
+        Encountered an issue during {ctx}.
         ```
         {msg.replace("\n", " ")}
         ```
 
-        This is likely due to track spacing. Please try again with different settings.
+        {likely_issue}
 
         If unable to fix, please report this text on the GitHub [issue tracker](https://github.com/logsdon-lab/Cencyclopedia/issues).
         """

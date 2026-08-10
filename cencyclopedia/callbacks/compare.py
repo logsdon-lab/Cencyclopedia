@@ -13,10 +13,23 @@ from functools import lru_cache
 from plotly.graph_objs import Figure
 from frozendict import frozendict, cool
 from dash.exceptions import PreventUpdate
-from dash import ctx, html, dcc, Input, Output, State, callback, dash_table
+from dash.dcc.express import send_bytes
+from dash import (
+    ctx,
+    html,
+    dcc,
+    Input,
+    Output,
+    State,
+    callback,
+    dash_table,
+    no_update,
+    NoUpdate,
+)
 
 from cencyclopedia.components.compare import get_tab_n, tab_name
 from cencyclopedia.components.dataview import dataview_tab
+from cencyclopedia.components.err_msg import modal_body_content
 from cencyclopedia.io.data import Data, DataType
 from cencyclopedia.io.config import DEFAULT_BED_OPTIONS, DEFAULT_BEDGRAPH_OPTIONS
 from cencyclopedia.plot.cen import draw_cenplot
@@ -59,7 +72,41 @@ def get_regions_dash_table(df: pl.DataFrame) -> html.Div:
     )
 
 
-# TODO: code duplication
+def get_df_from_selected_rows(
+    data_fhs: Data,
+    active_tab: str,
+    data_regions: list[dict[str, Any]],
+    regions_rows: list[int],
+) -> tuple[pl.DataFrame | None, dcc.Markdown | None]:
+    dfs: list[pl.DataFrame] = []
+    for row in regions_rows:
+        rgn_info = data_regions[row]
+        try:
+            st, end = int(rgn_info["Start"]), int(rgn_info["End"])
+        except ValueError:
+            err_msg = modal_body_content(
+                f"Invalid st and end: {rgn_info}",
+                ctx="start and end coordinate parsing",
+                likely_issue="This is likey due to invalid bed file types. Please ensure start and end are integers.",
+            )
+            return None, err_msg
+
+        df = data_fhs.query(
+            label=active_tab, chrom=rgn_info["Chrom"], st=st, end=end, to_relative=False
+        )
+        if not isinstance(df, pl.DataFrame):
+            logger.debug(f"No data found for {active_tab} and {rgn_info}")
+            continue
+        dfs.append(df)
+
+    if dfs:
+        df_all = pl.concat(dfs)
+    else:
+        df_all = None
+
+    return df_all, None
+
+
 @callback(
     Output("fig-height", "data"),
     Output("fig-vertical-spacing", "data"),
@@ -375,6 +422,8 @@ def delete_data_tab(
     Output("data-label-tabs", "children", allow_duplicate=True),
     Output("bed-track-settings", "data", allow_duplicate=True),
     Output("cfg", "data", allow_duplicate=True),
+    Output("body-err-msg", "children", allow_duplicate=True),
+    Output("modal-err-msg", "is_open", allow_duplicate=True),
     Input("upload-data", "isCompleted"),
     Input("upload-data", "upload_id"),
     Input("upload-data", "fileNames"),
@@ -393,26 +442,35 @@ def add_uploaded_data_to_cfg(
     curr_tabs: Tabs,
     expand_tracks: dict[str, BedTrackSettings],
 ) -> tuple[
-    str,
-    Tabs,
-    dict[str, BedTrackSettings],
-    dict[str, Any],
+    str | NoUpdate,
+    Tabs | NoUpdate,
+    dict[str, BedTrackSettings] | NoUpdate,
+    dict[str, Any] | NoUpdate,
+    dcc.Markdown | NoUpdate,
+    bool | NoUpdate,
 ]:
     if not is_done:
         raise PreventUpdate
+
+    def no_change_plus_error_msg(err_msg: dcc.Markdown):
+        return no_update, no_update, no_update, no_update, err_msg, True
 
     fname = files[0]
     _, ext = os.path.splitext(fname)
     fpath = os.path.join(cfg["general"]["compare"]["tmp_dir"], upload_id, fname)
 
     # Check if bigwig or bigbed
-    # TODO: Message
     if ext == ".bb" or ext == ".bw":
         try:
             # Check valid bigwig/bigbed
             b = pybigtools.open(fpath)
         except Exception as err:
-            raise RuntimeError(f"Cannot read file with bigtools: {err}")
+            err_msg = modal_body_content(
+                f"Cannot read file with bigtools: {err}",
+                ctx="bigbed/bigwig parsing",
+                likely_issue="Please ensure the input file is a valid bigwig/bigbed file.",
+            )
+            return no_change_plus_error_msg(err_msg)
 
         if b.is_bigbed:
             opts = DEFAULT_BED_OPTIONS
@@ -425,12 +483,22 @@ def add_uploaded_data_to_cfg(
             # Check valid bgzipped file
             pysam.tabix_index(fpath)
         except Exception as err:
-            raise RuntimeError(f"Cannot index tabix bgzipped file: {err}")
+            err_msg = modal_body_content(
+                f"Cannot index tabix bgzipped file: {err}",
+                ctx="tabix file indexing",
+                likely_issue="Please ensure the input file is a valid bgzipped file. Check with `tabix -p bed ${file}`.",
+            )
+            return no_change_plus_error_msg(err_msg)
 
         opts = DEFAULT_BED_OPTIONS
         opts["type"] = DataType.BED9
     else:
-        raise ValueError("Invalid datatype extension")
+        err_msg = modal_body_content(
+            f"Invalid data type for {fname}: {ext}",
+            ctx="input file reading",
+            likely_issue="Please ensure the input file is a valid datatype (`.bw`, `.bb`, or `.bed.gz`).",
+        )
+        return no_change_plus_error_msg(err_msg)
 
     # Add new tab in case none exist
     if not active_tab:
@@ -443,7 +511,7 @@ def add_uploaded_data_to_cfg(
 
     opts["path"] = fpath
     cfg["data"][new_tab_id] = opts
-    return new_tab_id, curr_tabs, expand_tracks, cfg
+    return new_tab_id, curr_tabs, expand_tracks, cfg, no_update, no_update
 
 
 @callback(
@@ -493,6 +561,8 @@ def draw_cenplot_cached(
 
 @callback(
     Output("figures-container", "children"),
+    Output("body-err-msg", "children", allow_duplicate=True),
+    Output("modal-err-msg", "is_open", allow_duplicate=True),
     Input("datatable-regions", "data"),
     Input("datatable-regions", "selected_rows"),
     Input("cfg", "data"),
@@ -508,10 +578,14 @@ def draw_selected_region_plots(
     bed_track_settings: dict[str, BedTrackSettings],
     fig_height: int | str,
     fig_vertical_spacing: float | str,
-) -> list[dcc.Graph]:
+) -> tuple[list[dcc.Graph] | NoUpdate, dcc.Markdown | NoUpdate, bool | NoUpdate]:
     # If no data (just init)
     if not cfg["data"]:
-        return []
+        return (
+            [],
+            no_update,
+            no_update,
+        )
 
     # Use settings
     cfg["general"]["selected_cen"]["height"] = fig_height
@@ -530,8 +604,12 @@ def draw_selected_region_plots(
         try:
             st, end = int(rgn_info["Start"]), int(rgn_info["End"])
         except ValueError:
-            logger.error(f"Invalid st and end: {rgn_info}")
-            continue
+            err_msg = modal_body_content(
+                f"Invalid st and end: {rgn_info}",
+                ctx="start and end coordinate parsing",
+                likely_issue="This is likey due to invalid bed file types. Please ensure start and end are integers.",
+            )
+            return no_update, err_msg, True
 
         itv = (rgn_info["Chrom"], st, end)
         itv_str = f"{itv[0]}:{itv[1]}-{itv[2]}"
@@ -554,7 +632,11 @@ def draw_selected_region_plots(
             logger.error(
                 f"Failed to draw compare plot for {rgn_info}: {err}\ntrace: {tbk}"
             )
-            continue
+            err_msg = modal_body_content(
+                f"Failed to draw compare plot for {rgn_info}: {err}",
+                ctx="plotting",
+            )
+            return no_update, err_msg, True
 
         if not fig_res:
             logger.error(f"No plot for {rgn_info}")
@@ -570,11 +652,13 @@ def draw_selected_region_plots(
         )
         figures.append(final_fig)
 
-    return figures
+    return figures, no_update, no_update
 
 
 @callback(
     Output("data-settings-content", "children"),
+    Output("body-err-msg", "children", allow_duplicate=True),
+    Output("modal-err-msg", "is_open", allow_duplicate=True),
     Input("cfg", "data"),
     Input("upload-data", "isCompleted"),
     Input("data-label-tabs", "active_tab"),
@@ -590,7 +674,7 @@ def draw_settings_and_dataview_table(
     data_regions: list[dict[str, Any]],
     regions_rows: list[int],
     expand_tracks: dict[str, BedTrackSettings],
-) -> html.Div:
+) -> tuple[html.Div | NoUpdate, dcc.Markdown | NoUpdate, bool | NoUpdate]:
     if not is_data_uploaded:
         raise PreventUpdate
 
@@ -598,31 +682,17 @@ def draw_settings_and_dataview_table(
 
     # New tab with no uploaded data
     if active_tab not in data_fhs.cfg:
-        return html.Div()
+        return html.Div(), no_update, no_update
 
     # Display fname
     fname = os.path.basename(cfg["data"][active_tab]["path"])
-    dfs: list[pl.DataFrame] = []
-    for row in regions_rows:
-        rgn_info = data_regions[row]
-        try:
-            st, end = int(rgn_info["Start"]), int(rgn_info["End"])
-        except ValueError:
-            logger.error(f"Invalid st and end: {rgn_info}")
-            continue
+    res_df, err = get_df_from_selected_rows(
+        data_fhs, active_tab, data_regions, regions_rows
+    )
+    if err:
+        return no_update, err, True
 
-        df = data_fhs.query(
-            label=active_tab, chrom=rgn_info["Chrom"], st=st, end=end, to_relative=False
-        )
-        if not isinstance(df, pl.DataFrame):
-            logger.debug(f"No data found for {active_tab} and {rgn_info}")
-            continue
-        dfs.append(df)
-
-    if dfs:
-        df_all = pl.concat(dfs)
-    else:
-        df_all = pl.DataFrame()
+    df_all = res_df if isinstance(res_df, pl.DataFrame) else pl.DataFrame()
 
     data_table = dash_table.DataTable(
         id="datatable-active-tab",
@@ -646,14 +716,71 @@ def draw_settings_and_dataview_table(
     track_settings = expand_tracks[active_tab]
     dtype = data_fhs.datatype(active_tab)
     disabled = not dtype.is_expandable() if dtype else True
-    return html.Div(
-        [
-            html.H3(fname),
-            html.Br(),
-            dataview_tab(
-                data_table=data_table,
-                track_settings=track_settings,
-                all_disabled=disabled,
-            ),
-        ]
+    return (
+        html.Div(
+            [
+                html.H3(fname),
+                html.Br(),
+                dataview_tab(
+                    data_table=data_table,
+                    track_settings=track_settings,
+                    all_disabled=disabled,
+                ),
+            ]
+        ),
+        no_update,
+        no_update,
+    )
+
+
+@callback(
+    Output("download-data", "data", allow_duplicate=True),
+    Output("body-err-msg", "children", allow_duplicate=True),
+    Output("modal-err-msg", "is_open", allow_duplicate=True),
+    Input("btn-download-data", "n_clicks"),
+    State("datatable-regions", "data"),
+    State("datatable-regions", "selected_rows"),
+    State("data-label-tabs", "active_tab"),
+    State("cfg", "data"),
+    prevent_initial_call=True,
+)
+def download_compare_data(
+    n_clicks: int | None,
+    data_regions: list[dict[str, Any]],
+    regions_rows: list[int],
+    active_tab: str,
+    cfg: dict[str, Any],
+) -> tuple[dict[str, Any] | NoUpdate, dcc.Markdown | NoUpdate, bool | NoUpdate]:
+    logger.debug(f"Download triggered: {ctx.triggered}")
+    if not n_clicks:
+        raise PreventUpdate
+
+    data_fhs = Data(cfg["data"])
+    res_df, err = get_df_from_selected_rows(
+        data_fhs, active_tab, data_regions, regions_rows
+    )
+    if err:
+        return no_update, err, True
+
+    df_all = res_df if isinstance(res_df, pl.DataFrame) else pl.DataFrame()
+
+    # Rename if replacement colnames provided.
+    replace_colnames: dict[str, str] | None = data_fhs.options(active_tab).get(
+        "replace_colnames"
+    )
+    if replace_colnames:
+        df_all = df_all.rename(replace_colnames, strict=False)
+
+    first_col = df_all.columns[0]
+    # Assume bed-like and is chrom. Add # to start so works in IGV
+    if not first_col.startswith("#"):
+        df_all = df_all.rename({first_col: f"#{first_col}"})
+
+    outfname = f"{active_tab.replace(' ', '_')}.bed.gz"
+    return (
+        send_bytes(
+            lambda x: df_all.write_csv(x, separator="\t", compression="gzip"), outfname
+        ),
+        no_update,
+        no_update,
     )
