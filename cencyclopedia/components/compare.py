@@ -44,7 +44,7 @@ def layout_regions() -> html.Div:
 def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
     return html.Div(
         [
-            html.H2("Settings"),
+            html.H2("Files"),
             html.Hr(),
             du.Upload(
                 id="upload-data",
@@ -59,29 +59,37 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
                 cancel_button=True,
                 disabled=True,
             ),
-            dbc.Row(
+            dbc.ButtonGroup(
                 [
-                    dbc.Col(
-                        dbc.Button(
-                            "Add",
-                            id="btn-add-data-tab",
-                            color="primary",
-                            className="d-grid gap-2 col-12 mx-auto",
-                        ),
-                        width=6,
+                    dbc.Button(
+                        "◄",
+                        color="secondary",
+                        id="btn-shift-data-tab-left",
+                        className="d-grid col-1",
                     ),
-                    dbc.Col(
-                        dbc.Button(
-                            "Delete",
-                            id="btn-delete-data-tab",
-                            color="danger",
-                            className="d-grid gap-2 col-12 mx-auto",
-                        ),
-                        width=6,
+                    dbc.Button(
+                        "Add",
+                        color="success",
+                        id="btn-add-data-tab",
+                        className="d-grid col-5",
+                    ),
+                    dbc.Button(
+                        "Remove",
+                        color="danger",
+                        id="btn-delete-data-tab",
+                        className="d-grid col-5",
+                    ),
+                    dbc.Button(
+                        "►",
+                        color="secondary",
+                        id="btn-shift-data-tab-right",
+                        className="d-grid col-1",
                     ),
                 ],
-                style={"margin-top": "10px"},
+                size="md",
+                style={"margin-top": "15px", "width": "100%"},
             ),
+            html.Br(),
             html.Br(),
             dbc.Tabs(
                 [dbc.Tab(label=label, tab_id=label) for label in labels],

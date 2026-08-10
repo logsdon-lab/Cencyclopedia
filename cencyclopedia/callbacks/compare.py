@@ -7,6 +7,7 @@ import dash_bootstrap_components as dbc
 
 from typing import Any
 from loguru import logger
+from copy import deepcopy
 from functools import lru_cache
 from plotly.graph_objs import Figure
 from frozendict import frozendict, cool
@@ -27,12 +28,70 @@ Tabs = list[dict[str, Any] | dbc.Tab]  # pyright:ignore
 @callback(
     Output("btn-add-data-tab", "disabled"),
     Output("btn-delete-data-tab", "disabled"),
+    Output("btn-shift-data-tab-left", "disabled"),
+    Output("btn-shift-data-tab-right", "disabled"),
     Input("cfg", "data"),
     Input("data-label-tabs", "active_tab"),
 )
-def enable_add_del_btn(cfg: dict[str, Any], active_tab: str) -> tuple[bool, bool]:
+def enable_tab_op_btn(
+    cfg: dict[str, Any], active_tab: str
+) -> tuple[bool, bool, bool, bool]:
     is_enabled = active_tab not in cfg["data"]
-    return is_enabled, is_enabled
+    return is_enabled, is_enabled, is_enabled, is_enabled
+
+
+@callback(
+    Output("data-label-tabs", "children", allow_duplicate=True),
+    Output("cfg", "data", allow_duplicate=True),
+    Input("btn-shift-data-tab-left", "n_clicks"),
+    Input("btn-shift-data-tab-right", "n_clicks"),
+    State("data-label-tabs", "active_tab"),
+    State("data-label-tabs", "children"),
+    State("cfg", "data"),
+    prevent_initial_call=True,
+)
+def shift_active_tab_up_or_down(
+    n_clicks_shift_data_left: int | None,
+    n_clicks_shift_data_right: int | None,
+    active_tab: str,
+    curr_tabs: Tabs,
+    cfg: dict[str, Any],
+) -> tuple[Tabs, dict[str, Any]]:
+    if not n_clicks_shift_data_left and not n_clicks_shift_data_right:
+        raise PreventUpdate
+
+    offsets = {"btn-shift-data-tab-left": -1, "btn-shift-data-tab-right": 1}
+    offset = offsets.get(ctx.triggered_id)  # pyright: ignore
+    if offset:
+        idx_shift = offset
+        all_data_labels, all_data = zip(*list(cfg["data"].items()))
+        all_data_labels, all_data = list(all_data_labels), list(all_data)
+        all_curr_tabs = deepcopy(curr_tabs)
+
+        prev_idx = all_data_labels.index(active_tab)
+        new_idx = prev_idx + idx_shift
+        if new_idx < 0:
+            new_idx = 0
+        elif new_idx > len(all_data_labels) - 1:
+            new_idx = len(all_data_labels) - 1
+
+        all_data_labels[prev_idx], all_data_labels[new_idx] = (
+            all_data_labels[new_idx],
+            all_data_labels[prev_idx],
+        )
+        all_data[prev_idx], all_data[new_idx] = all_data[new_idx], all_data[prev_idx]
+        all_curr_tabs[prev_idx], all_curr_tabs[new_idx] = (
+            all_curr_tabs[new_idx],
+            all_curr_tabs[prev_idx],
+        )
+
+        new_cfg_data = dict(zip(all_data_labels, all_data))
+        logger.info(f"Swapped tabs.\nPrevious: {curr_tabs}\nNew: {all_curr_tabs}")
+        logger.info(f"Swapped cfg.\nPrevious: {cfg['data']}\nNew: {new_cfg_data}")
+        cfg["data"] = new_cfg_data
+        return all_curr_tabs, cfg
+    else:
+        raise PreventUpdate
 
 
 def get_new_tab_info(
@@ -124,7 +183,11 @@ def delete_data_tab(
         raise PreventUpdate
 
     try:
-        os.remove(opts["path"])
+        # Handle were data loaded twice
+        if all(
+            other_opt.get("path") != opts["path"] for other_opt in cfg["data"].values()
+        ):
+            os.remove(opts["path"])
     except FileNotFoundError:
         pass
 
@@ -136,7 +199,7 @@ def delete_data_tab(
     Output("data-label-tabs", "active_tab", allow_duplicate=True),
     Output("data-label-tabs", "children", allow_duplicate=True),
     Output("bed-track-settings", "data", allow_duplicate=True),
-    Output("cfg", "data"),
+    Output("cfg", "data", allow_duplicate=True),
     Input("upload-data", "isCompleted"),
     Input("upload-data", "upload_id"),
     Input("upload-data", "fileNames"),
@@ -265,6 +328,7 @@ def draw_cenplot_cached(
     bed_track_settings: frozendict[str, BedTrackSettings] | None,
     cfg: frozendict[str, Any],
     add_yaxis_kwargs: frozendict[str, Any],
+    _track_order: tuple[str, ...],
 ) -> tuple[Figure, dict[str, Any]] | None:
     return draw_cenplot(
         itv_selected_cen=itv,
@@ -294,6 +358,8 @@ def draw_selected_region_plots(
 
     # Convert to immutable frozendict to hash
     fcfg = cool.deepfreeze(cfg)
+    # Pass track order to trigger replot if dict label order changes
+    track_order = tuple(cfg["data"].keys())
     fbed_track_settings = cool.deepfreeze(bed_track_settings)
 
     # https://stackoverflow.com/a/5884123
@@ -317,6 +383,7 @@ def draw_selected_region_plots(
                 bed_track_settings=fbed_track_settings,
                 cfg=fcfg,
                 add_yaxis_kwargs=frozendict({"title_text": itv_str_plot}),
+                _track_order=track_order,
             )
         except Exception as err:
             tbk = traceback.format_exc()
