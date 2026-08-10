@@ -191,8 +191,7 @@ def compare_page(cfg):
             dcc.Store(
                 id="fig-vspace", data=cfg["general"]["compare"]["vertical_spacing"]
             ),
-            # Disallow deleting files. For presets
-            dcc.Store(id="read-only", data=False),
+            dcc.Store(id="preset-loaded", data=False),
             modal_error_message(),
             layout_compare(tabs, active_tab=None),
         ],

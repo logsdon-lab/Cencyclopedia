@@ -27,28 +27,35 @@ Tabs = list[dict[str, Any] | dbc.Tab]  # pyright:ignore
 MAXSIZE_PLOT_LRU_CACHE = 20
 
 
-def get_regions_dash_table(df: pl.DataFrame) -> dash_table.DataTable:
-    return dash_table.DataTable(
-        id="datatable-regions",
-        data=list(df.iter_rows(named=True)),  # pyright: ignore
-        columns=[
-            {
-                "name": col,
-                "id": col,
-                "selectable": True,
-            }
-            for col in df.columns
-        ],
-        page_size=5,
-        editable=True,
-        row_deletable=True,
-        row_selectable="multi",
-        column_selectable="single",
-        selected_rows=[0],
-        sort_action="native",
-        filter_action="native",
-        style_cell={"textAlign": "left"},
-        style_data={"whiteSpace": "normal", "height": "auto", "lineHeight": "15px"},
+def get_regions_dash_table(df: pl.DataFrame) -> html.Div:
+    return html.Div(
+        dash_table.DataTable(
+            id="datatable-regions",
+            data=list(df.iter_rows(named=True)),  # pyright: ignore
+            columns=[
+                {
+                    "name": col,
+                    "id": col,
+                    "selectable": True,
+                }
+                for col in df.columns
+            ],
+            page_size=5,
+            editable=True,
+            row_deletable=True,
+            row_selectable="multi",
+            column_selectable="single",
+            selected_rows=[0],
+            sort_action="native",
+            filter_action="native",
+            style_cell={"textAlign": "left"},
+            style_data={"whiteSpace": "normal", "height": "auto", "lineHeight": "15px"},
+        ),
+        style={
+            "overflow": "scroll",
+            # Hide scrollbar
+            "scrollbar-width": "none",
+        },
     )
 
 
@@ -62,9 +69,10 @@ def get_regions_dash_table(df: pl.DataFrame) -> dash_table.DataTable:
     # Signal complete to draw data table
     Output("upload-data", "isCompleted", allow_duplicate=True),
     # Disable uploading regions
+    Output("upload-data", "disabled", allow_duplicate=True),
     Output("upload-regions", "disabled", allow_duplicate=True),
     # Disallow deleting files
-    Output("read-only", "data"),
+    Output("preset-loaded", "data"),
     Input("btn-preset-hgsvc", "n_clicks"),
     Input("btn-preset-t2t-primates", "n_clicks"),
     State("cfg", "data"),
@@ -77,7 +85,8 @@ def load_compare_dataset(
     Tabs,
     dict[str, BedTrackSettings],
     dict[str, Any],
-    dash_table.DataTable,
+    html.Div,
+    bool,
     bool,
     bool,
     bool,
@@ -136,7 +145,20 @@ def load_compare_dataset(
         cfg["data"] = new_cfg_data
 
         active_tab = tabs[0].tab_id
-        return active_tab, tabs, track_settings, cfg, regions_dtable, True, True, True
+
+        disable_upload_data = True
+        disable_upload_regions = True
+        return (
+            active_tab,
+            tabs,
+            track_settings,
+            cfg,
+            regions_dtable,
+            True,
+            disable_upload_data,
+            disable_upload_regions,
+            True,
+        )
     elif clicked_btn == "btn-preset-t2t-primates":
         logger.debug("Loading T2T-primates dataset")
         raise PreventUpdate
@@ -151,11 +173,15 @@ def load_compare_dataset(
     Output("btn-shift-data-tab-right", "disabled"),
     Input("cfg", "data"),
     Input("data-label-tabs", "active_tab"),
+    Input("preset-loaded", "data"),
 )
 def enable_tab_op_btn(
-    cfg: dict[str, Any], active_tab: str
+    cfg: dict[str, Any], active_tab: str, preset_loaded: bool
 ) -> tuple[bool, bool, bool, bool]:
     is_enabled = active_tab not in cfg["data"]
+    # Don't load adding data if preset.
+    if preset_loaded:
+        return True, is_enabled, is_enabled, is_enabled
     return is_enabled, is_enabled, is_enabled, is_enabled
 
 
@@ -261,7 +287,7 @@ def add_new_data_tab_manual(
     Input("data-label-tabs", "active_tab"),
     State("data-label-tabs", "children"),
     State("cfg", "data"),
-    State("read-only", "data"),
+    State("preset_loaded", "data"),
     prevent_initial_call=True,
 )
 def delete_data_tab(
@@ -269,7 +295,7 @@ def delete_data_tab(
     active_tab: str,
     curr_tabs: Tabs,
     cfg: dict[str, Any],
-    read_only: bool,
+    preset_loaded: bool,
 ) -> tuple[str | None, Tabs, dict[str, Any]]:
     if not n_clicks or not ctx.triggered_id == "btn-delete-data-tab":
         raise PreventUpdate
@@ -308,7 +334,7 @@ def delete_data_tab(
         no_duplicates = all(
             other_opt.get("path") != opts["path"] for other_opt in cfg["data"].values()
         )
-        if not read_only and not no_duplicates:
+        if not preset_loaded and not no_duplicates:
             os.remove(opts["path"])
     except FileNotFoundError:
         pass
@@ -404,7 +430,7 @@ def add_uploaded_data_to_cfg(
 )
 def draw_regions_datatable(
     is_done: bool, upload_id: str, files: list[str], cfg: dict[str, Any]
-) -> tuple[dash_table.DataTable, bool]:
+) -> tuple[html.Div, bool]:
     if not is_done:
         raise PreventUpdate
 
