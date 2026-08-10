@@ -5,7 +5,6 @@ from copy import deepcopy
 from dash import dcc, html
 
 from cencyclopedia.components.err_msg import modal_error_message
-from cencyclopedia.plot.common import DEFAULT_SETTINGS
 
 
 ALLOWED_FILETYPES = (
@@ -45,7 +44,7 @@ def layout_regions() -> html.Div:
 def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
     return html.Div(
         [
-            html.H2("Upload"),
+            html.H2("Settings"),
             html.Hr(),
             du.Upload(
                 id="upload-data",
@@ -60,9 +59,30 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
                 cancel_button=True,
                 disabled=True,
             ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            "Add",
+                            id="btn-add-data-tab",
+                            color="primary",
+                            className="d-grid gap-2 col-12 mx-auto",
+                        ),
+                        width=6,
+                    ),
+                    dbc.Col(
+                        dbc.Button(
+                            "Delete",
+                            id="btn-delete-data-tab",
+                            color="danger",
+                            className="d-grid gap-2 col-12 mx-auto",
+                        ),
+                        width=6,
+                    ),
+                ],
+                style={"margin-top": "10px"},
+            ),
             html.Br(),
-            html.H2("Settings"),
-            html.Hr(),
             dbc.Tabs(
                 [dbc.Tab(label=label, tab_id=label) for label in labels],
                 id="data-label-tabs",
@@ -75,8 +95,6 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
 
 
 def layout_compare(labels: list[str], active_tab: str | None = None):
-    if not active_tab:
-        active_tab = labels[0]
     # https://community.plotly.com/t/scrollable-navigation-bar-in-multi-column-layout/61865/2
     return dbc.Row(
         [
@@ -103,8 +121,17 @@ def layout_compare(labels: list[str], active_tab: str | None = None):
     )
 
 
+def tab_name(n: int) -> str:
+    return f"File {n}"
+
+
+def get_tab_n(name: str) -> int:
+    _, n = name.split(" ")
+    return int(n)
+
+
 def compare_page(cfg):
-    tabs = ["Datatype 1", "+"]
+    tabs = []
     # Blank config
     uploaded_cfg = deepcopy(cfg)
     uploaded_cfg["data"] = {}
@@ -115,12 +142,9 @@ def compare_page(cfg):
             # Config
             dcc.Store(id="cfg", data=uploaded_cfg),
             # Individual track settings
-            dcc.Store(
-                id="bed-track-settings",
-                data={tabs[0]: DEFAULT_SETTINGS},
-            ),
+            dcc.Store(id="bed-track-settings", data={}),
             modal_error_message(),
-            layout_compare(tabs, active_tab=tabs[0]),
+            layout_compare(tabs, active_tab=None),
         ],
         style=COMPARE_PAGE_STYLE,
     )
