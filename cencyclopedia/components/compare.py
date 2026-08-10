@@ -6,6 +6,7 @@ from dash import dcc, html
 
 from cencyclopedia.components.err_msg import modal_error_message
 from cencyclopedia.components.help import (
+    popover,
     row_title_with_help,
     row_title_with_side_components,
 )
@@ -137,13 +138,79 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
     )
 
 
-def layout_compare(labels: list[str], active_tab: str | None = None):
+def popout_fig_opts_components(
+    fig_height: int, fig_vertical_spacing: float
+) -> tuple[dbc.Button, dbc.Popover]:  # pyright:ignore
+    return (
+        dbc.Button(
+            "Layout",
+            id="btn-popup-opts-compare-fig",
+            size="sm",
+            n_clicks=0,
+        ),
+        popover(
+            header="Layout",
+            body=[
+                dbc.Label("Height"),
+                dbc.Input(
+                    id="input-height-compare-fig",
+                    value=fig_height,
+                ),
+                html.Br(),
+                dbc.Label("Vertical spacing"),
+                dbc.Input(
+                    id="input-vertical-spacing-compare-fig",
+                    min=0.0,
+                    placeholder="Set 0.0 to autosize.",
+                    value=fig_vertical_spacing if fig_vertical_spacing else 0.0,
+                ),
+                html.Br(),
+                dbc.Button(
+                    "Update",
+                    id="btn-update-opts-compare-fig",
+                    size="sm",
+                    n_clicks=0,
+                ),
+            ],
+            target="btn-popup-opts-compare-fig",
+        ),
+    )
+
+
+def layout_compare(
+    labels: list[str],
+    active_tab: str | None,
+    fig_height: int,
+    fig_vertical_spacing: float,
+):
     # https://community.plotly.com/t/scrollable-navigation-bar-in-multi-column-layout/61865/2
     return dbc.Row(
         [
             dbc.Col(
                 [
-                    row_title_with_help("Plot", button_id="btn-help-plot"),
+                    row_title_with_side_components(
+                        "Plot",
+                        [
+                            (
+                                dbc.ButtonGroup(
+                                    [
+                                        *popout_fig_opts_components(
+                                            fig_height=fig_height,
+                                            fig_vertical_spacing=fig_vertical_spacing,
+                                        ),
+                                        dbc.Button(
+                                            "Help",
+                                            id="btn-help-plot",
+                                            size="sm",
+                                            color="secondary",
+                                            n_clicks=0,
+                                        ),
+                                    ]
+                                ),
+                                2,
+                            )
+                        ],
+                    ),
                     dbc.Spinner(html.Div(id="figures-container")),
                 ],
                 className="h-100 overflow-scroll",
@@ -178,6 +245,9 @@ def compare_page(cfg):
     uploaded_cfg = deepcopy(cfg)
     uploaded_cfg["data"] = {}
 
+    fig_height = cfg["general"]["compare"]["height"]
+    fig_vertical_spacing = cfg["general"]["compare"]["vertical_spacing"]
+
     # TODO: Parse data based on extension. Display error message otherwise.
     return dbc.Container(
         [
@@ -186,14 +256,17 @@ def compare_page(cfg):
             # Individual track settings
             dcc.Store(id="bed-track-settings", data={}),
             # Height
-            dcc.Store(id="fig-height", data=cfg["general"]["compare"]["height"]),
+            dcc.Store(id="fig-height", data=fig_height),
             # Vertical spacing
-            dcc.Store(
-                id="fig-vspace", data=cfg["general"]["compare"]["vertical_spacing"]
-            ),
+            dcc.Store(id="fig-vertical-spacing", data=fig_vertical_spacing),
             dcc.Store(id="preset-loaded", data=False),
             modal_error_message(),
-            layout_compare(tabs, active_tab=None),
+            layout_compare(
+                tabs,
+                active_tab=None,
+                fig_height=fig_height,
+                fig_vertical_spacing=fig_vertical_spacing,
+            ),
         ],
         style=COMPARE_PAGE_STYLE,
     )

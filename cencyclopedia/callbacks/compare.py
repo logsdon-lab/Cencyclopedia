@@ -59,6 +59,33 @@ def get_regions_dash_table(df: pl.DataFrame) -> html.Div:
     )
 
 
+# TODO: code duplication
+@callback(
+    Output("fig-height", "data"),
+    Output("fig-vertical-spacing", "data"),
+    Input("btn-update-opts-compare-fig", "n_clicks"),
+    State("input-height-compare-fig", "value"),
+    State("input-vertical-spacing-compare-fig", "value"),
+)
+def update_selected_cen_layout_params(
+    n_clicks: int | None,
+    new_height: str,
+    new_vspace: float | str,  # idk
+):
+    if not n_clicks or not new_vspace or not new_height:
+        raise PreventUpdate
+    try:
+        ht = float(new_height)
+    except Exception:
+        ht = new_height
+
+    if new_vspace == 0.0:
+        vspace = None
+    else:
+        vspace = float(new_vspace)
+    return ht, vspace
+
+
 @callback(
     Output("data-label-tabs", "active_tab", allow_duplicate=True),
     Output("data-label-tabs", "children", allow_duplicate=True),
@@ -470,8 +497,8 @@ def draw_cenplot_cached(
     Input("datatable-regions", "selected_rows"),
     Input("cfg", "data"),
     Input("bed-track-settings", "data"),
-    State("fig-height", "data"),
-    State("fig-vspace", "data"),
+    Input("fig-height", "data"),
+    Input("fig-vertical-spacing", "data"),
     prevent_initial_call=True,
 )
 def draw_selected_region_plots(
@@ -480,7 +507,7 @@ def draw_selected_region_plots(
     cfg: dict[str, Any],
     bed_track_settings: dict[str, BedTrackSettings],
     fig_height: int | str,
-    fig_vspace: float | str,
+    fig_vertical_spacing: float | str,
 ) -> list[dcc.Graph]:
     # If no data (just init)
     if not cfg["data"]:
@@ -488,7 +515,7 @@ def draw_selected_region_plots(
 
     # Use settings
     cfg["general"]["selected_cen"]["height"] = fig_height
-    cfg["general"]["selected_cen"]["vertical_spacing"] = fig_vspace
+    cfg["general"]["selected_cen"]["vertical_spacing"] = fig_vertical_spacing
 
     # Convert to immutable frozendict to hash
     fcfg = cool.deepfreeze(cfg)
