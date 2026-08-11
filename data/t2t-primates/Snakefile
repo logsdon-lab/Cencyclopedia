@@ -2,7 +2,7 @@
 # Convert (ont5mC and cenpa_dimelo) to bedgraph.gz and bin into 5kbp bins. Merge, rename, and to bb.
 # Merge (asat_hor, asat_CENdetectHOR, cdr, censat, censat_strand, sd), rename, and to bb.
 # Merge (cenpa_cr_5kb), rename, and to bw.
-# Rename (repeatmasker_v2) and split into individual bed.gz
+# Rename (repeatmasker) and split into individual bed.gz. Don't use v2 as not bed9 and won't benefit anyways.
 
 import hashlib
 import itertools
@@ -289,7 +289,7 @@ rule merge_data:
     input:
         expand(
             rules.merge_bigwig_bigbed.output,
-            dtype=[dtype for dtype in set(DTYPES) if dtype != "repeatmasker_v2"],
+            dtype=[dtype for dtype in set(DTYPES) if dtype != "repeatmasker"],
         ),
     output:
         touch(join(WD_DIR, "merge_data.done")),
@@ -313,15 +313,15 @@ rule split_repeatmasker:
     input:
         expand(
             rules.rename_bigwig_bigbed.output,
-            dtype="repeatmasker_v2",
-            file_hash=DTYPES_HASHES["repeatmasker_v2"],
+            dtype="repeatmasker",
+            file_hash=DTYPES_HASHES["repeatmasker"],
         ),
     output:
         directory(join(WD_DIR, "RepeatMasker")),
     params:
         infiles=lambda wc: " ".join(
-            get_outfname("repeatmasker_v2", file_hash, with_suffix="_renamed")
-            for file_hash in DTYPES_HASHES["repeatmasker_v2"]
+            get_outfname("repeatmasker", file_hash, with_suffix="_renamed")
+            for file_hash in DTYPES_HASHES["repeatmasker"]
         ),
     threads: 8
     shell:

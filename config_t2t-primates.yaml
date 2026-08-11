@@ -60,28 +60,28 @@ data:
         showticklabels: false
         ticks: ""
         showline: false
-  # "RepeatMasker":
-  #   path: data/t2t-primates/RepeatMasker
-  #   position: relative
-  #   type: bed
-  #   prop: 0.05
-  #   options:
-  #     replace_colnames:
-  #       chrom: "Contig"
-  #       chrom_st: "Start"
-  #       chrom_end: "End"
-  #       name: "Structure"
-  #       color: "Color"
-  #       score: "Score"
-  #     rle: false
-  #     xaxis_kwargs:
-  #       ticks: ""
-  #       showline: false
-  #     yaxis_kwargs:
-  #       title_text: "RepeatMasker v2"
-  #       showticklabels: false
-  #       ticks: ""
-  #       showline: false
+  "RepeatMasker":
+    path: data/t2t-primates/RepeatMasker
+    position: relative
+    type: bed
+    prop: 0.05
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Structure"
+        color: "Color"
+        score: "Score"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "RepeatMasker"
+        showticklabels: false
+        ticks: ""
+        showline: false
   "CDR":
     path: data/t2t-primates/all_cdr.bb
     position: relative
