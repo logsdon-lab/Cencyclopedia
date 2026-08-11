@@ -87,7 +87,6 @@ class Data:
         * `end`
         """
         dtype = self.cfg[label]["type"]
-        parser = dtype.get_pysam_parser()
         schema = dtype.get_schema()
         read_fns = dtype.get_read_fns(
             options=self.cfg[label]["options"], chrom=chrom, st=st, end=end
@@ -121,7 +120,7 @@ class Data:
         try:
             logger.debug(f"Query {label} for {chrom}:{st}-{end}")
             if isinstance(fh, pysam.TabixFile):
-                qry = fh.fetch(chrom, st, end, parser=parser)
+                qry = fh.fetch(chrom, st, end, parser=pysam.asTuple())
             else:
                 qry = fh.records(chrom, st, end)
 

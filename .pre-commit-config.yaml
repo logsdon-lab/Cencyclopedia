@@ -5,7 +5,9 @@ repos:
     rev: v6.0.0
     hooks:
     -   id: trailing-whitespace
+        exclude: ".*\\.bw|.*\\.bb"
     -   id: end-of-file-fixer
+        exclude: ".*\\.bw|.*\\.bb"
     -   id: check-yaml
     -   id: check-added-large-files
         exclude: ".*\\.bw|.*\\.bb|.*\\.gz|.*png|wab"

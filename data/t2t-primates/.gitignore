@@ -12,6 +12,6 @@
 !all*.bw
 !all*.bb
 !centromeric_regions.bed
-# !RepeatMasker
-# !RepeatMasker/*.gz
-# !RepeatMasker/*.gz.tbi
+!RepeatMasker
+!RepeatMasker/*.gz
+!RepeatMasker/*.gz.tbi

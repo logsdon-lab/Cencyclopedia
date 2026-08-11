@@ -1,5 +1,3 @@
-import pysam
-
 import polars as pl
 
 from enum import StrEnum
@@ -10,7 +8,7 @@ from .bed import (
     read_bigbed_row,
     read_bigwig_row,
     to_relative_coords_bed,
-    read_bed9_row,
+    read_bedn_row,
     read_bedgraph_row,
     read_bedstrand_row,
     read_bed_local_selfident_row,
@@ -84,12 +82,6 @@ class DataType(StrEnum):
         else:
             raise ValueError(f"Invalid name. {self}")
 
-    def get_pysam_parser(self) -> pysam.asBed | pysam.asTuple:
-        if self == DataType.BEDPE_SELFIDENT:
-            return pysam.asTuple()
-        else:
-            return pysam.asBed()
-
     def get_read_fns(
         self, options: dict[str, Any], chrom: str, st: int | None, end: int | None
     ) -> DataOpFunctions | None:
@@ -112,7 +104,7 @@ class DataType(StrEnum):
             )
         elif self == DataType.BED9:
             return DataOpFunctions(
-                read_fn=read_bed9_row, to_relative_fn=to_relative_fn, finalizer_fn=None
+                read_fn=read_bedn_row, to_relative_fn=to_relative_fn, finalizer_fn=None
             )
         elif self == DataType.BEDSTRAND:
             return DataOpFunctions(

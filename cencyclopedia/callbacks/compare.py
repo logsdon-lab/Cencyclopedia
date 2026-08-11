@@ -107,6 +107,46 @@ def get_df_from_selected_rows(
     return df_all, None
 
 
+def load_preset_cfg(cfg: dict[str, Any], preset: str) -> dict[str, Any]:
+    path_cfg = cfg["general"]["compare"]["presets"][preset]
+    # Load data and compare track settings only
+    with open(path_cfg, "rb") as fh:
+        cfg_preset = yaml.safe_load(fh)
+        # Data to use
+        cfg["data"] = cfg_preset["data"]
+        # Regions to use
+        cfg["general"]["output_regions"] = cfg_preset["general"]["output_regions"]
+        # height and vspacing for track settings
+        cfg["general"]["compare"]["height"] = cfg_preset["general"]["compare"]["height"]
+        cfg["general"]["compare"]["vertical_spacing"] = cfg_preset["general"][
+            "compare"
+        ]["vertical_spacing"]
+
+    return cfg
+
+
+def get_new_tab_and_cfg_data(
+    cfg: dict[str, Any],
+) -> tuple[str, Tabs, dict[str, BedTrackSettings], dict[str, Any]]:
+    tabs = []
+    track_settings = {}
+    new_cfg_data = {}
+    idx = 1
+    for opts in cfg["data"].values():
+        new_tab_name = tab_name(idx)
+        # replace data label name with new tab nae
+        new_cfg_data[new_tab_name] = opts
+        # Is spacer
+        if not opts["type"]:
+            continue
+
+        track_settings[new_tab_name] = DEFAULT_SETTINGS
+        tabs.append(dbc.Tab(label=new_tab_name, tab_id=new_tab_name))
+        idx += 1
+    active_tab = tabs[0].tab_id
+    return active_tab, tabs, track_settings, new_cfg_data
+
+
 @callback(
     Output("fig-height", "data"),
     Output("fig-vertical-spacing", "data"),
@@ -168,22 +208,12 @@ def load_compare_dataset(
     clicked_btn = ctx.triggered_id
     if clicked_btn == "btn-preset-hgsvc":
         logger.debug("Loading HGSVC dataset")
-        path_cfg_hgsvc = cfg["general"]["compare"]["presets"]["hgsvc"]
-        # Load data and compare track settings only
-        with open(path_cfg_hgsvc, "rb") as fh:
-            cfg_hgsvc = yaml.safe_load(fh)
-            cfg["data"] = cfg_hgsvc["data"]
-            cfg["general"]["compare"]["height"] = cfg_hgsvc["general"]["compare"][
-                "height"
-            ]
-            cfg["general"]["compare"]["vertical_spacing"] = cfg_hgsvc["general"][
-                "compare"
-            ]["vertical_spacing"]
+        cfg = load_preset_cfg(cfg, "hgsvc")
 
         # Get regions and format
         # See data/hgsvc/bed.csv.gz
         df_regions = (
-            pl.read_csv(cfg_hgsvc["general"]["output_regions"], has_header=True)
+            pl.read_csv(cfg["general"]["output_regions"], has_header=True)
             .drop("2", "2_right", "arm", "clade")
             .unique(maintain_order=True)
             .rename(
@@ -200,26 +230,9 @@ def load_compare_dataset(
         regions_dtable = get_regions_dash_table(df_regions)
 
         # Create tabs and track settings
-        tabs = []
-        track_settings = {}
-        new_cfg_data = {}
-        idx = 1
-        for opts in cfg["data"].values():
-            new_tab_name = tab_name(idx)
-            # replace data label name with new tab nae
-            new_cfg_data[new_tab_name] = opts
-            # Is spacer
-            if not opts["type"]:
-                continue
-
-            track_settings[new_tab_name] = DEFAULT_SETTINGS
-            tabs.append(dbc.Tab(label=new_tab_name, tab_id=new_tab_name))
-            idx += 1
+        active_tab, tabs, track_settings, new_cfg_data = get_new_tab_and_cfg_data(cfg)
         # Use new names for data options
         cfg["data"] = new_cfg_data
-
-        active_tab = tabs[0].tab_id
-
         disable_upload_data = True
         disable_upload_regions = True
         return (
@@ -235,7 +248,34 @@ def load_compare_dataset(
         )
     elif clicked_btn == "btn-preset-t2t-primates":
         logger.debug("Loading T2T-primates dataset")
-        raise PreventUpdate
+        cfg = load_preset_cfg(cfg, "t2t-primates")
+
+        # Get regions and format
+        # See data/t2t-primates/centromeric_regions.bed
+        df_regions = pl.read_csv(
+            cfg["general"]["output_regions"],
+            has_header=False,
+            separator="\t",
+            new_columns=["Chrom", "Start", "End"],
+        )
+        regions_dtable = get_regions_dash_table(df_regions)
+
+        # Create tabs and track settings
+        active_tab, tabs, track_settings, new_cfg_data = get_new_tab_and_cfg_data(cfg)
+        cfg["data"] = new_cfg_data
+        disable_upload_data = True
+        disable_upload_regions = True
+        return (
+            active_tab,
+            tabs,
+            track_settings,
+            cfg,
+            regions_dtable,
+            True,
+            disable_upload_data,
+            disable_upload_regions,
+            True,
+        )
     else:
         raise PreventUpdate
 
@@ -751,9 +791,10 @@ def download_compare_data(
     active_tab: str,
     cfg: dict[str, Any],
 ) -> tuple[dict[str, Any] | NoUpdate, dcc.Markdown | NoUpdate, bool | NoUpdate]:
-    logger.debug(f"Download triggered: {ctx.triggered}")
     if not n_clicks:
         raise PreventUpdate
+
+    logger.debug(f"Download triggered: {ctx.triggered}")
 
     data_fhs = Data(cfg["data"])
     res_df, err = get_df_from_selected_rows(
