@@ -116,12 +116,8 @@ def load_preset_cfg(cfg: dict[str, Any], preset: str) -> dict[str, Any]:
         cfg["data"] = cfg_preset["data"]
         # Regions to use
         cfg["general"]["output_regions"] = cfg_preset["general"]["output_regions"]
-        # height and vspacing for track settings
-        cfg["general"]["compare"]["height"] = cfg_preset["general"]["compare"]["height"]
-        cfg["general"]["compare"]["vertical_spacing"] = cfg_preset["general"][
-            "compare"
-        ]["vertical_spacing"]
-
+        # track settings
+        cfg["general"]["selected_cen"] = cfg_preset["general"]["selected_cen"]
     return cfg
 
 
@@ -173,6 +169,20 @@ def update_selected_cen_layout_params(
     return ht, vspace
 
 
+# When updated manually or from preset
+@callback(
+    Output("input-height-compare-fig", "value"),
+    Output("input-vertical-spacing-compare-fig", "value"),
+    Input("fig-height", "data"),
+    Input("fig-vertical-spacing", "data"),
+)
+def update_selected_cen_layout_values(
+    new_height: str,
+    new_vspace: float | str,
+) -> tuple[str, float | str]:
+    return new_height, new_vspace
+
+
 @callback(
     Output("data-label-tabs", "active_tab", allow_duplicate=True),
     Output("data-label-tabs", "children", allow_duplicate=True),
@@ -185,6 +195,9 @@ def update_selected_cen_layout_params(
     # Disable uploading regions
     Output("upload-data", "disabled", allow_duplicate=True),
     Output("upload-regions", "disabled", allow_duplicate=True),
+    # Update height and vertical spacing
+    Output("fig-height", "data", allow_duplicate=True),
+    Output("fig-vertical-spacing", "data", allow_duplicate=True),
     # Disallow deleting files
     Output("preset-loaded", "data"),
     Input("btn-preset-hgsvc", "n_clicks"),
@@ -203,6 +216,8 @@ def load_compare_dataset(
     bool,
     bool,
     bool,
+    int | str,
+    float,
     bool,
 ]:
     clicked_btn = ctx.triggered_id
@@ -244,6 +259,8 @@ def load_compare_dataset(
             True,
             disable_upload_data,
             disable_upload_regions,
+            cfg["general"]["selected_cen"]["height"],
+            cfg["general"]["selected_cen"]["vertical_spacing"],
             True,
         )
     elif clicked_btn == "btn-preset-t2t-primates":
@@ -274,6 +291,8 @@ def load_compare_dataset(
             True,
             disable_upload_data,
             disable_upload_regions,
+            cfg["general"]["selected_cen"]["height"],
+            cfg["general"]["selected_cen"]["vertical_spacing"],
             True,
         )
     else:
@@ -495,7 +514,11 @@ def add_uploaded_data_to_cfg(
     def no_change_plus_error_msg(err_msg: dcc.Markdown):
         return no_update, no_update, no_update, no_update, err_msg, True
 
-    fname = files[0]
+    try:
+        fname = files[0]
+    except TypeError:
+        raise PreventUpdate
+
     _, ext = os.path.splitext(fname)
     fpath = os.path.join(cfg["general"]["compare"]["tmp_dir"], upload_id, fname)
 
@@ -653,7 +676,7 @@ def draw_selected_region_plots(
 
         itv = (rgn_info["Chrom"], st, end)
         itv_str = f"{itv[0]}:{itv[1]}-{itv[2]}"
-        itv_str_plot = f"{itv[0]}<br>{itv[1]}-{itv[2]}"
+        itv_str_plot = f"<b>{itv[0]}<br>{itv[1]}-{itv[2]}</b>"
 
         # Cache existing plots
         try:

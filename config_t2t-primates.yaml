@@ -21,8 +21,6 @@ general:
   fig_1: {}
   compare:
     tmp_dir: /tmp/uploads
-    height: 150
-    vertical_spacing: 0.005
     presets:
       hgsvc: config_hgsvc.yaml
       t2t-primates: config_t2t-primates.yaml
@@ -37,7 +35,7 @@ general:
     # y-axis title borderpad pad
     ytitle_borderpad: 20
     # Left, right, bottom, and top margin of selected cen plot
-    lmargin: 140
+    lmargin: 180
     rmargin: 0
     bmargin: 0
     tmargin: 0
@@ -47,7 +45,7 @@ general:
     default_data_tab: "Alpha-satellite HORs"
 # Tracks
 data:
-  "Spacer":
+  "Spacer_1":
     position: relative
     type: null
     prop: 0.2
@@ -82,6 +80,19 @@ data:
         showticklabels: false
         ticks: ""
         showline: false
+  "Spacer_2":
+    position: relative
+    type: null
+    prop: 0.01
+    options:
+      xaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
   "CDR":
     path: data/t2t-primates/all_cdr.bb
     position: relative
@@ -101,6 +112,19 @@ data:
         showline: false
       yaxis_kwargs:
         title_text: CDR(s)
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "Spacer_3":
+    position: relative
+    type: null
+    prop: 0.01
+    options:
+      xaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
         showticklabels: false
         ticks: ""
         showline: false

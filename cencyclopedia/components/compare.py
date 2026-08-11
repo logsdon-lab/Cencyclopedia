@@ -323,8 +323,8 @@ def compare_page(cfg):
     uploaded_cfg = deepcopy(cfg)
     uploaded_cfg["data"] = {}
 
-    fig_height = cfg["general"]["compare"]["height"]
-    fig_vertical_spacing = cfg["general"]["compare"]["vertical_spacing"]
+    fig_height = cfg["general"]["selected_cen"]["height"]
+    fig_vertical_spacing = cfg["general"]["selected_cen"]["vertical_spacing"]
 
     return dbc.Container(
         [

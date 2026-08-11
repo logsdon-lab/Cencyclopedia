@@ -35,8 +35,6 @@ general:
     - "Self-identity"
   compare:
     tmp_dir: /tmp/uploads
-    height: 400
-    vertical_spacing: 0.005
     presets:
       hgsvc: config_hgsvc.yaml
       t2t-primates: config_t2t-primates.yaml
