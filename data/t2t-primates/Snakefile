@@ -1,0 +1,372 @@
+# Fix (sequence_identity). Merge, rename, and to bb.
+# Convert (ont5mC and cenpa_dimelo) to bedgraph.gz and bin into 5kbp bins. Merge, rename, and to bb.
+# Merge (asat_hor, asat_CENdetectHOR, cdr, censat, censat_strand, sd), rename, and to bb.
+# Merge (cenpa_cr_5kb), rename, and to bw.
+# TODO: Rename (repeatmasker_v2) and split into individual bed.gz
+
+import hashlib
+import itertools
+import polars as pl
+from collections import defaultdict
+from os.path import join, basename, splitext
+
+WD_DIR = "data/t2t-primates"
+
+
+rule format_track_db_data:
+    input:
+        data=join(WD_DIR, "T2T-PrimatesCenSatHubTrackDBdata.tsv"),
+        order=join(WD_DIR, "track_order.tsv"),
+    output:
+        data=join(WD_DIR, "T2T-PrimatesCenSatHubTrackDBdata_filtered.tsv"),
+    params:
+        script=workflow.source_path("convert_track_data_manifest_to_long.py"),
+    shell:
+        """
+        python {params.script} {input.data} {input.order} >{output.data}
+        """
+
+
+# File hash to url
+FILES: dict[str, str] = {}
+# File hash to sample
+SAMPLES: dict[str, str] = {}
+# All file hashes
+HASHES: list[str] = []
+# All datatypes
+DTYPES: list[str] = []
+# Datatype to list of file_hashes
+DTYPES_HASHES: defaultdict[str, list[str]] = defaultdict(list)
+# Datatypes that are bigwigs
+BIGWIG_DTYPES = {"ont5mc", "cenpa_cr_5kb", "cenpa_dimelo"}
+
+try:
+    df_manifest = pl.read_csv(rules.format_track_db_data.output[0], separator="\t")
+    for dtype, url, sample in zip(
+        df_manifest["track"], df_manifest["bigDataUrl"], df_manifest["sample"]
+    ):
+        # Skip RM align bb
+        if ".align.bb" in url:
+            continue
+        # Hash filename to prevent redownloading
+        h = hashlib.new("sha256")
+        h.update(url.encode())
+        file_hash = h.hexdigest()
+
+        HASHES.append(file_hash)
+        DTYPES.append(dtype)
+        FILES[file_hash] = url
+        SAMPLES[file_hash] = sample
+        DTYPES_HASHES[dtype].append(file_hash)
+except FileNotFoundError:
+    pass
+
+
+wildcard_constraints:
+    dtype="|".join(DTYPES_HASHES.keys()),
+    file_hash="|".join(FILES.keys()),
+
+
+def get_outfname(dtype: str, file_hash: str, with_suffix: str | None = None) -> str:
+    url = FILES[file_hash]
+    bname = basename(url)
+    if with_suffix:
+        bname_part, ext = splitext(bname)
+        bname = f"{bname_part}{with_suffix}{ext}"
+
+    abspath = join(WD_DIR, dtype, bname)
+    return abspath
+
+
+def get_bigtools_subcmd(
+    infile: str, *, info: bool = False, inverse: bool = False
+) -> str:
+    if infile.endswith("bb"):
+        if info:
+            return "bigbedinfo"
+        elif inverse:
+            return "bedtobigbed"
+        else:
+            return "bigbedtobed"
+    elif infile.endswith("bw"):
+        if info:
+            return "bigwiginfo"
+        elif inverse:
+            return "bedgraphtobigwig"
+        else:
+            return "bigwigtobedgraph"
+    else:
+        raise ValueError(f"Not valid: {infile}")
+
+
+rule download_file:
+    output:
+        touch(join(WD_DIR, "{dtype}", "{file_hash}.done")),
+    params:
+        url=lambda wc: FILES[wc.file_hash],
+        outfile=lambda wc: get_outfname(wc.dtype, wc.file_hash),
+    shell:
+        """
+        wget {params.url} -O {params.outfile}
+        """
+
+
+rule create_chrom_sizes:
+    input:
+        rules.download_file.output,
+    output:
+        temp(join(WD_DIR, "{dtype}", "{file_hash}_chrom_sizes_{prefix}.tsv")),
+    params:
+        infile=lambda wc: get_outfname(wc.dtype, wc.file_hash),
+        prefix=lambda wc: "" if wc.prefix == "null" else f"{wc.prefix}_",
+        subcmd_info=lambda wc: get_bigtools_subcmd(
+            get_outfname(wc.dtype, wc.file_hash), info=True
+        ),
+    shell:
+        """
+        bigtools {params.subcmd_info} --chroms {params.infile} \
+            | grep -P "\\t" \
+            | awk -vOFS="\\t" '{{ print "{params.prefix}"$1, $3 }}' >{output}
+        """
+
+
+# Invalid bigbed file with null character in name (4th) column
+rule fix_seq_identity:
+    input:
+        rules.download_file.output,
+        chrom_sizes=expand(
+            rules.create_chrom_sizes.output,
+            dtype="{dtype}",
+            file_hash="{file_hash}",
+            prefix="null",
+        ),
+    output:
+        touch(join(WD_DIR, "{dtype}", "{file_hash}_fixed.done")),
+    params:
+        infile=lambda wc: get_outfname(wc.dtype, wc.file_hash),
+        outfile=lambda wc: get_outfname(wc.dtype, wc.file_hash, with_suffix="_fixed"),
+    shell:
+        """
+        bigtools bigbedtobed {params.infile} - \
+            | sed 's/\\t\\t/\\t.\\t/g' \
+            | awk -v OFS="\\t" '{{ $4=$9; print }}' \
+            | bigtools bedtobigbed - {input.chrom_sizes} {params.outfile}
+        """
+
+
+rule bin_into_5kbp:
+    input:
+        rules.download_file.output,
+        chrom_sizes=expand(
+            rules.create_chrom_sizes.output,
+            dtype="{dtype}",
+            file_hash="{file_hash}",
+            prefix="null",
+        ),
+    output:
+        touch(join(WD_DIR, "{dtype}", "{file_hash}_binned_5kbp.done")),
+    params:
+        bn=join(WD_DIR, "wab"),
+        infile=lambda wc: get_outfname(wc.dtype, wc.file_hash),
+        outfile=lambda wc: get_outfname(
+            wc.dtype, wc.file_hash, with_suffix="_binned_5kbp"
+        ),
+    shell:
+        """
+        {params.bn} window -i {params.infile} \
+            | sort -k1,1 -k2,2n \
+            | bigtools bedgraphtobigwig - {input.chrom_sizes} {params.outfile}
+        """
+
+
+def get_sub_infiles(wc):
+    if wc.dtype == "sequence_identity":
+        return rules.fix_seq_identity.params.outfile
+
+    elif wc.dtype == "ont5mc" or wc.dtype == "cenpa_dimelo":
+        return rules.bin_into_5kbp.params.outfile
+
+    else:
+        return rules.download_file.params.outfile
+
+
+def get_sub_infiles_checkpoints(wc):
+    if wc.dtype == "sequence_identity":
+        return rules.fix_seq_identity.output
+
+    elif wc.dtype == "ont5mc" or wc.dtype == "cenpa_dimelo":
+        return rules.bin_into_5kbp.output
+
+    else:
+        return rules.download_file.output
+
+
+# To get chrom sizes
+# Then convert to bigfile after adding name
+rule rename_bigwig_bigbed:
+    input:
+        get_sub_infiles_checkpoints,
+        chrom_sizes=lambda wc: expand(
+            rules.create_chrom_sizes.output,
+            dtype=wc.dtype,
+            file_hash=wc.file_hash,
+            prefix=SAMPLES[wc.file_hash],
+        ),
+    output:
+        touch(join(WD_DIR, "{dtype}", "{file_hash}_renamed.done")),
+    params:
+        sample=lambda wc: SAMPLES[wc.file_hash],
+        subcmd=lambda wc: get_bigtools_subcmd(get_outfname(wc.dtype, wc.file_hash)),
+        subcmd_inverse=lambda wc: get_bigtools_subcmd(
+            get_outfname(wc.dtype, wc.file_hash), inverse=True
+        ),
+        infile=get_sub_infiles,
+        outfile=lambda wc: get_outfname(wc.dtype, wc.file_hash, with_suffix="_renamed"),
+    shell:
+        """
+        bigtools {params.subcmd} {params.infile} - \
+            | awk -v OFS="\\t" '{{ $1="{params.sample}_"$1; print }}' \
+            | sort -k1,1 -k2,2n \
+            | {params.subcmd_inverse} - {input.chrom_sizes} {params.outfile}
+        """
+
+
+rule merge_bigwig_bigbed:
+    input:
+        lambda wc: list(
+            itertools.chain.from_iterable(
+                expand(
+                    rules.rename_bigwig_bigbed.output,
+                    dtype=wc.dtype,
+                    file_hash=file_hash,
+                )
+                for file_hash in DTYPES_HASHES[wc.dtype]
+            )
+        ),
+        chrom_sizes=lambda wc: (
+            []
+            if wc.dtype in BIGWIG_DTYPES
+            else list(
+                itertools.chain.from_iterable(
+                    expand(
+                        rules.create_chrom_sizes.output,
+                        dtype=wc.dtype,
+                        file_hash=file_hash,
+                        prefix=SAMPLES[file_hash],
+                    )
+                    for file_hash in DTYPES_HASHES[wc.dtype]
+                )
+            )
+        ),
+    output:
+        touch(join(WD_DIR, "merge_{dtype}.done")),
+    params:
+        infiles=lambda wc: " ".join(
+            get_outfname(wc.dtype, file_hash, with_suffix="_renamed")
+            for file_hash in DTYPES_HASHES[wc.dtype]
+        ),
+        outfile=lambda wc: (
+            join(
+                WD_DIR, f"all_{wc.dtype}.{"bw" if wc.dtype in BIGWIG_DTYPES else "bb"}"
+            )
+        ),
+        is_bigwig=lambda wc: wc.dtype in BIGWIG_DTYPES,
+    shell:
+        """
+        if [[ {params.is_bigwig} == "True" ]]; then
+            bigtools bigwigmerge {params.infiles} {params.outfile}
+        else
+            for file in {params.infiles}; do
+                bigbedtobed ${{file}} - >>{params.outfile}.tmp
+            done
+            bedtobigbed {params.outfile}.tmp <(cat {input.chrom_sizes}) {params.outfile}
+            rm -f {params.outfile}.tmp
+        fi
+        """
+
+
+rule merge_data:
+    input:
+        expand(
+            rules.merge_bigwig_bigbed.output,
+            dtype=[dtype for dtype in set(DTYPES) if dtype != "repeatmasker_v2"],
+        ),
+    output:
+        touch(join(WD_DIR, "merge_data.done")),
+
+
+rule convert_bedfile_to_long:
+    input:
+        join(WD_DIR, "centromeric_regions.tsv"),
+    output:
+        join(WD_DIR, "centromeric_regions.bed"),
+    params:
+        script=workflow.source_path("convert_regions_to_long.py"),
+    shell:
+        """
+        python {params.script} {input} >{output}
+        """
+
+
+# Repeatmasker annnotations are too large so split by contig.
+rule split_repeatmasker:
+    input:
+        expand(
+            rules.rename_bigwig_bigbed.output,
+            dtype="repeatmasker_v2",
+            file_hash=DTYPES_HASHES["repeatmasker_v2"],
+        ),
+    output:
+        directory(join(WD_DIR, "RepeatMasker")),
+    params:
+        infiles=lambda wc: " ".join(
+            get_outfname("repeatmasker_v2", file_hash, with_suffix="_renamed")
+            for file_hash in DTYPES_HASHES["repeatmasker_v2"]
+        ),
+    threads: 8
+    shell:
+        """
+        mkdir -p {output}
+        for file in {params.infiles}; do
+            bigtools bigbedtobed ${{file}} - \
+                | awk '{{
+                    chrom=$1;
+                    fname="{output}/"chrom".bed";
+                    print > fname
+                }}'
+        done
+        # Then bgzip everything and tabix index
+        find {output} -type f -name "*.bed" \
+            | xargs -I [] -P {threads} \
+                bash -c "bgzip [] && tabix -p bed [].gz"
+        """
+
+
+rule all:
+    default_target: True
+    input:
+        expand(rules.download_file.output, zip, dtype=DTYPES, file_hash=HASHES),
+        expand(
+            rules.rename_bigwig_bigbed.output,
+            zip,
+            dtype=DTYPES,
+            file_hash=HASHES,
+        ),
+        expand(
+            rules.bin_into_5kbp.output,
+            dtype="cenpa_dimelo",
+            file_hash=DTYPES_HASHES["cenpa_dimelo"],
+        ),
+        expand(
+            rules.bin_into_5kbp.output,
+            dtype="ont5mc",
+            file_hash=DTYPES_HASHES["ont5mc"],
+        ),
+        expand(
+            rules.fix_seq_identity.output,
+            dtype="sequence_identity",
+            file_hash=DTYPES_HASHES["sequence_identity"],
+        ),
+        rules.split_repeatmasker.output,
+        rules.merge_data.output,
+        rules.convert_bedfile_to_long.output,

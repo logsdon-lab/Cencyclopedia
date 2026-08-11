@@ -1,0 +1,11 @@
+TEs	repeatmasker_v2
+CDR	cdr
+Methylation	ont5mc
+CENP-A CUT&RUN 5 kbp	cenpa_cr_5kb
+CENP-A DiMeLo-seq	cenpa_dimelo
+CenSat	censat
+CenSat strand	censat_strand
+ASat HORs	asat_hor
+CENdetectHOR	asat_hor_CENdetectHOR
+SegDup	sd
+Local sequence identity	sequence_identity

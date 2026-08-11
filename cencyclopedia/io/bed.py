@@ -35,7 +35,10 @@ def into_hexcode(s: str) -> str:
     if s.startswith("#"):
         return s
     else:
-        return "#%02x%02x%02x" % tuple(int(v) for v in s.split(","))
+        channels = s.split(",")
+        if len(channels) != 3:
+            return "#000000"
+        return "#%02x%02x%02x" % tuple(int(v) for v in channels)
 
 
 def read_bedgraph_row(rec: Any) -> tuple[str, int, int, str]:

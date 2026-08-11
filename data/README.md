@@ -1,5 +1,22 @@
 # Data:
 
+## T2T-primates
+Reformat track DB information so makes more sense.
+```bash
+pixi run snakemake -s data/t2t-primates/Snakefile \
+-c 8 \
+--rerun-triggers mtime \
+-np format_track_db_data
+```
+
+Then generate merged bigwigs/bigbeds.
+```bash
+pixi run snakemake -s data/t2t-primates/Snakefile \
+-c 8 \
+-np \
+--rerun-triggers mtime
+```
+
 ## HGSVC
 ```
 HOR annotation: /project/logsdon_shared/projects/HGSVC3/HGSVC_centromere_annotation/HOR

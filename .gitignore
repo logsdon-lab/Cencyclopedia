@@ -6,3 +6,4 @@ venv# pixi environments
 .pixi/*
 !.pixi/config.toml
 *.log
+.snakemake

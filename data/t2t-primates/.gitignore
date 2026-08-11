@@ -1,0 +1,17 @@
+*
+
+# Scripts/source data
+!README.md
+!.gitignore
+!Snakefile
+!*.py
+!*.tsv
+!wab
+
+# Outputs
+!all*.bw
+!all*.bb
+!centromeric_regions.bed
+# !RepeatMasker
+# !RepeatMasker/*.gz
+# !RepeatMasker/*.gz.tbi
