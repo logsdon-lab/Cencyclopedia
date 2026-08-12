@@ -7,6 +7,7 @@ from typing import Any
 from loguru import logger
 from dash import dcc, html
 
+from cencyclopedia.plot.common import plotly_config_settings
 from cencyclopedia.plot.tree import create_tree_figure
 from cencyclopedia.components.home import create_logo
 from cencyclopedia.components.err_msg import modal_error_message
@@ -206,7 +207,9 @@ def tree_layout(
                                 dcc.Graph(
                                     id="fig-selected-cen",
                                     responsive=True,
-                                    config={"displaylogo": False},
+                                    config=plotly_config_settings(
+                                        "fig-selected-cen.svg"
+                                    ),
                                     style={
                                         "height": cfg["general"]["selected_cen"][
                                             "height"
@@ -261,7 +264,10 @@ def tree_page(
                 id="fig-cens-tree",
                 figure=fig,
                 responsive=True,
-                config={"displaylogo": False, "displayModeBar": True},
+                config={
+                    "displayModeBar": True,
+                    **plotly_config_settings("fig-cens-tree.svg"),
+                },
             ),
             dropdown=dcc.Dropdown(
                 all_chroms,

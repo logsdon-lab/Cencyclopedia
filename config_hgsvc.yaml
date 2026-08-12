@@ -264,7 +264,7 @@ data:
         showline: false
   "Self-identity":
     # If dir, will expect ${dir}/${contig}.bed.gz
-    path: data/hgsvc/ModDotPlot/
+    path: data/hgsvc/ModDotPlot
     position: relative
     type: bedpe_selfident
     prop: 0.5

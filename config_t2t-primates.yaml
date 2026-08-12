@@ -35,7 +35,7 @@ general:
     # y-axis title borderpad pad
     ytitle_borderpad: 20
     # Left, right, bottom, and top margin of selected cen plot
-    lmargin: 180
+    lmargin: 140
     rmargin: 0
     bmargin: 0
     tmargin: 0
@@ -80,106 +80,6 @@ data:
         showticklabels: false
         ticks: ""
         showline: false
-  "Spacer_2":
-    position: relative
-    type: null
-    prop: 0.01
-    options:
-      xaxis_kwargs:
-        showticklabels: false
-        ticks: ""
-        showline: false
-      yaxis_kwargs:
-        showticklabels: false
-        ticks: ""
-        showline: false
-  "CDR":
-    path: data/t2t-primates/all_cdr.bb
-    position: relative
-    type: bigbed
-    prop: 0.01
-    options:
-      replace_colnames:
-        chrom: "Contig"
-        chrom_st: "Start"
-        chrom_end: "End"
-        name: "CDR"
-        color: "Color"
-        score: "Score"
-      rle: false
-      xaxis_kwargs:
-        ticks: ""
-        showline: false
-      yaxis_kwargs:
-        title_text: CDR(s)
-        showticklabels: false
-        ticks: ""
-        showline: false
-  "Spacer_3":
-    position: relative
-    type: null
-    prop: 0.01
-    options:
-      xaxis_kwargs:
-        showticklabels: false
-        ticks: ""
-        showline: false
-      yaxis_kwargs:
-        showticklabels: false
-        ticks: ""
-        showline: false
-  "CpG methylation":
-    path: data/t2t-primates/all_ont5mc.bw
-    position: relative
-    type: bigwig
-    prop: 0.1
-    options:
-      replace_colnames:
-        chrom: "Contig"
-        chrom_st: "Start"
-        chrom_end: "End"
-        name: "Average CpG methylation"
-      rle: false
-      xaxis_kwargs:
-        ticks: ""
-        showline: false
-      yaxis_kwargs:
-        range: [0.0, 100.0]
-        title_text: "CpG<br>methylation"
-  "CENP-A CUT&RUN":
-    path: data/t2t-primates/all_cenpa_cr_5kb.bw
-    position: relative
-    type: bigwig
-    prop: 0.1
-    options:
-      replace_colnames:
-        chrom: "Contig"
-        chrom_st: "Start"
-        chrom_end: "End"
-        name: "Fold enrichment"
-      rle: false
-      xaxis_kwargs:
-        ticks: ""
-        showline: false
-      yaxis_kwargs:
-        title_text: "CENP-A CUT&RUN"
-  "CENP-A DiMeLo-seq":
-    path: data/t2t-primates/all_cenpa_dimelo.bw # TODO
-    position: relative
-    type: bigwig
-    prop: 0.1
-    options:
-      replace_colnames:
-        chrom: "Contig"
-        chrom_st: "Start"
-        chrom_end: "End"
-        name: "Fold enrichment"
-      rle: false
-      xaxis_kwargs:
-        ticks: ""
-        showline: false
-      yaxis_kwargs:
-        title_text: "CENP-A DiMeLo-seq"
   "CenSat":
     path: data/t2t-primates/all_censat.bb
     position: relative
@@ -312,3 +212,103 @@ data:
         showticklabels: false
         ticks: ""
         showline: false
+  "Spacer_2":
+    position: relative
+    type: null
+    prop: 0.1
+    options:
+      xaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "CDR":
+    path: data/t2t-primates/all_cdr.bb
+    position: relative
+    type: bigbed
+    prop: 0.01
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "CDR"
+        color: "Color"
+        score: "Score"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: CDR(s)
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "Spacer_3":
+    position: relative
+    type: null
+    prop: 0.01
+    options:
+      xaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "CpG methylation":
+    path: data/t2t-primates/all_ont5mc.bw
+    position: relative
+    type: bigwig
+    prop: 0.1
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Average CpG methylation"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        range: [0.0, 100.0]
+        title_text: "CpG<br>methylation"
+  "CENP-A CUT&RUN":
+    path: data/t2t-primates/all_cenpa_cr_5kb.bw
+    position: relative
+    type: bigwig
+    prop: 0.1
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Fold enrichment"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "CENP-A CUT&RUN"
+  "CENP-A DiMeLo-seq":
+    path: data/t2t-primates/all_cenpa_dimelo.bw # TODO
+    position: relative
+    type: bigwig
+    prop: 0.1
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Fold enrichment"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "CENP-A DiMeLo-seq"

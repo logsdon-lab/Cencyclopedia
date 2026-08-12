@@ -33,10 +33,15 @@ from cencyclopedia.components.err_msg import modal_body_content
 from cencyclopedia.io.data import Data, DataType
 from cencyclopedia.io.config import DEFAULT_BED_OPTIONS, DEFAULT_BEDGRAPH_OPTIONS
 from cencyclopedia.plot.cen import draw_cenplot
-from cencyclopedia.plot.common import BedTrackSettings, DEFAULT_SETTINGS
+from cencyclopedia.plot.common import (
+    BedTrackSettings,
+    DEFAULT_SETTINGS,
+    plotly_config_settings,
+)
 
 
 Tabs = list[dict[str, Any] | dbc.Tab]  # pyright:ignore
+Config = dict[str, dict[str, Any]]
 MAXSIZE_PLOT_LRU_CACHE = 20
 
 
@@ -107,7 +112,7 @@ def get_df_from_selected_rows(
     return df_all, None
 
 
-def load_preset_cfg(cfg: dict[str, Any], preset: str) -> dict[str, Any]:
+def load_preset_cfg(cfg: Config, preset: str) -> dict[str, Any]:
     path_cfg = cfg["general"]["compare"]["presets"][preset]
     # Load data and compare track settings only
     with open(path_cfg, "rb") as fh:
@@ -122,7 +127,7 @@ def load_preset_cfg(cfg: dict[str, Any], preset: str) -> dict[str, Any]:
 
 
 def get_new_tab_and_cfg_data(
-    cfg: dict[str, Any],
+    cfg: Config,
 ) -> tuple[str, Tabs, dict[str, BedTrackSettings], dict[str, Any]]:
     tabs = []
     track_settings = {}
@@ -208,7 +213,7 @@ def update_selected_cen_layout_values(
     prevent_initial_call=True,
 )
 def load_compare_dataset(
-    n_clicks_hgsvc: int | None, n_clicks_t2t_primates: int | None, cfg: dict[str, Any]
+    n_clicks_hgsvc: int | None, n_clicks_t2t_primates: int | None, cfg: Config
 ) -> tuple[
     str,
     Tabs,
@@ -311,7 +316,7 @@ def load_compare_dataset(
     Input("preset-loaded", "data"),
 )
 def enable_tab_op_btn(
-    cfg: dict[str, Any], active_tab: str, preset_loaded: bool
+    cfg: Config, active_tab: str, preset_loaded: bool
 ) -> tuple[bool, bool, bool, bool]:
     is_enabled = active_tab not in cfg["data"]
     # Don't load adding data if preset. Allow deleting.
@@ -335,7 +340,7 @@ def shift_active_tab_up_or_down(
     n_clicks_shift_data_right: int | None,
     active_tab: str,
     curr_tabs: Tabs,
-    cfg: dict[str, Any],
+    cfg: Config,
 ) -> tuple[Tabs, dict[str, Any]]:
     if not n_clicks_shift_data_left and not n_clicks_shift_data_right:
         raise PreventUpdate
@@ -429,7 +434,7 @@ def delete_data_tab(
     n_clicks: int | None,
     active_tab: str,
     curr_tabs: Tabs,
-    cfg: dict[str, Any],
+    cfg: Config,
     preset_loaded: bool,
 ) -> tuple[str | None, Tabs, dict[str, Any]]:
     if not n_clicks or not ctx.triggered_id == "btn-delete-data-tab":
@@ -498,7 +503,7 @@ def add_uploaded_data_to_cfg(
     is_done: bool,
     upload_id: str,
     files: list[str],
-    cfg: dict[str, Any],
+    cfg: Config,
     active_tab: str,
     curr_tabs: Tabs,
     expand_tracks: dict[str, BedTrackSettings],
@@ -575,6 +580,11 @@ def add_uploaded_data_to_cfg(
         new_tab_id = active_tab
 
     opts["path"] = fpath
+    # Update title
+    opts["options"]["yaxis_kwargs"]["title_text"] = new_tab_id
+
+    logger.debug(f"Added data to {new_tab_id}. Options: {opts}")
+
     cfg["data"][new_tab_id] = opts
     return new_tab_id, curr_tabs, expand_tracks, cfg, no_update, no_update
 
@@ -589,7 +599,7 @@ def add_uploaded_data_to_cfg(
     prevent_initial_call=True,
 )
 def draw_regions_datatable(
-    is_done: bool, upload_id: str, files: list[str], cfg: dict[str, Any]
+    is_done: bool, upload_id: str, files: list[str], cfg: Config
 ) -> tuple[html.Div, bool]:
     if not is_done:
         raise PreventUpdate
@@ -605,6 +615,7 @@ def draw_regions_datatable(
         new_columns=["Chrom", "Start", "End"],
     )
     data_table = get_regions_dash_table(df)
+    logger.debug(f"Added {df.shape} regions: {file}")
     return data_table, False
 
 
@@ -612,9 +623,9 @@ def draw_regions_datatable(
 def draw_cenplot_cached(
     itv: tuple[str, int, int] | None,
     bed_track_settings: frozendict[str, BedTrackSettings] | None,
-    cfg: frozendict[str, Any],
-    add_yaxis_kwargs: frozendict[int, frozendict[str, Any]],
+    cfg: frozendict[str, frozendict[str, Any]],
     _track_order: tuple[str, ...],
+    add_yaxis_kwargs: frozendict[int, frozendict[str, Any]] | None = None,
 ) -> tuple[Figure, dict[str, Any]] | None:
     return draw_cenplot(
         itv_selected_cen=itv,
@@ -639,11 +650,13 @@ def draw_cenplot_cached(
 def draw_selected_region_plots(
     regions: list[dict[str, Any]],
     selected_rows: list[int],
-    cfg: dict[str, Any],
+    cfg: Config,
     bed_track_settings: dict[str, BedTrackSettings],
     fig_height: int | str,
     fig_vertical_spacing: float | str,
-) -> tuple[list[dcc.Graph] | NoUpdate, dcc.Markdown | NoUpdate, bool | NoUpdate]:
+) -> tuple[
+    list[dcc.Graph | html.H4] | NoUpdate, dcc.Markdown | NoUpdate, bool | NoUpdate
+]:
     # If no data (just init)
     if not cfg["data"]:
         return (
@@ -677,8 +690,8 @@ def draw_selected_region_plots(
             return no_update, err_msg, True
 
         itv = (rgn_info["Chrom"], st, end)
-        itv_str = f"{itv[0]}:{itv[1]}-{itv[2]}"
-        itv_str_plot = f"<b>{itv[0]}<br>{itv[1]}-{itv[2]}</b>"
+        itv_str_fs = f"{itv[0]}_{itv[1]}-{itv[2]}"
+        itv_str_plot = f"{itv[0]}:{itv[1]}-{itv[2]}"
 
         # Cache existing plots
         try:
@@ -686,10 +699,6 @@ def draw_selected_region_plots(
                 itv=itv,
                 bed_track_settings=fbed_track_settings,
                 cfg=fcfg,
-                # Add title at top most track
-                add_yaxis_kwargs=frozendict(
-                    {0: frozendict({"title_text": itv_str_plot})}
-                ),
                 _track_order=track_order,
             )
         except Exception as err:
@@ -710,11 +719,12 @@ def draw_selected_region_plots(
         fig, style = fig_res
         final_fig = dcc.Graph(
             figure=fig,
-            id=f"fig-{itv_str}",
+            id=f"fig-{itv_str_fs}",
             responsive=True,
-            config={"displaylogo": False},
+            config=plotly_config_settings(f"fig-{itv_str_fs}.svg"),
             style=style,
         )
+        figures.append(html.H4(itv_str_plot))
         figures.append(final_fig)
 
     return figures, no_update, no_update
@@ -733,7 +743,7 @@ def draw_selected_region_plots(
     prevent_initial_call=True,
 )
 def draw_settings_and_dataview_table(
-    cfg: dict[str, Any],
+    cfg: Config,
     is_data_uploaded: bool,
     active_tab: str,
     data_regions: list[dict[str, Any]],
@@ -750,7 +760,14 @@ def draw_settings_and_dataview_table(
         return html.Div(), no_update, no_update
 
     # Display fname
+    # If no extension, is directory. Show glob of files
     fname = os.path.basename(cfg["data"][active_tab]["path"])
+    typ = data_fhs.datatype(active_tab)
+    _, ext = os.path.splitext(fname)
+    if not ext and typ:
+        ext = typ.get_extension()
+        fname = f"{fname}/*{ext}"
+
     res_df, err = get_df_from_selected_rows(
         data_fhs, active_tab, data_regions, regions_rows
     )
@@ -780,11 +797,19 @@ def draw_settings_and_dataview_table(
     )
     track_settings = expand_tracks[active_tab]
     dtype = data_fhs.datatype(active_tab)
+    opts = data_fhs.options(active_tab)
     disabled = not dtype.is_expandable() if dtype else True
+    title = opts.get("yaxis_kwargs", {}).get("title_text", "")
+    if title:
+        title = title.replace("<br>", " ")
+        title_h3 = html.H3(f"{title} - {fname}")
+    else:
+        title_h3 = html.H3(fname)
+
     return (
         html.Div(
             [
-                html.H3(fname),
+                title_h3,
                 html.Br(),
                 dataview_tab(
                     data_table=data_table,
@@ -814,7 +839,7 @@ def download_compare_data(
     data_regions: list[dict[str, Any]],
     regions_rows: list[int],
     active_tab: str,
-    cfg: dict[str, Any],
+    cfg: Config,
 ) -> tuple[dict[str, Any] | NoUpdate, dcc.Markdown | NoUpdate, bool | NoUpdate]:
     if not n_clicks:
         raise PreventUpdate
