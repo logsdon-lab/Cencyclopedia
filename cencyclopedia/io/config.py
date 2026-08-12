@@ -169,7 +169,6 @@ DEFAULT_BED_OPTIONS: Config = {
         "rle": True,
         "xaxis_kwargs": {"ticks": "", "showline": False},
         "yaxis_kwargs": {
-            # TODO: Add title,  in settings
             "showticklabels": False,
             "ticks": "",
             "showline": False,
@@ -199,9 +198,8 @@ DEFAULT_BEDGRAPH_OPTIONS: Config = {
         "rle": False,
         "xaxis_kwargs": {"ticks": "", "showline": False},
         "yaxis_kwargs": {
-            "showticklabels": False,
-            "ticks": "",
-            "showline": False,
+            "showticklabels": True,
+            "showline": True,
         },
     },
 }

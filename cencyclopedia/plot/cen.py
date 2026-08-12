@@ -25,7 +25,7 @@ from cencyclopedia.plot.bed import (
 def draw_cenplot(
     itv_selected_cen: tuple[str, int, int] | None,
     bed_track_settings: Mapping[str, BedTrackSettings] | None,
-    cfg: Mapping[str, Any],
+    cfg: Mapping[str, Mapping[str, Any]],
     *,
     xlim: tuple[int, int] | None = None,
     to_relative: bool = False,
