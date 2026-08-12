@@ -7,6 +7,7 @@ from cencyclopedia.components.tree import CHROMS
 from cencyclopedia.components.tree import split_layout
 from cencyclopedia.io.figure_1 import read_figure_1_bbox_data
 from cencyclopedia.components.help import row_title_with_help, popover
+from cencyclopedia.plot.common import plotly_config_settings
 
 
 def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "chr8"):
@@ -65,8 +66,10 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                         dcc.Graph(
                                             id="fig-1-home",
                                             config={
-                                                "displaylogo": False,
                                                 "displayModeBar": True,
+                                                **plotly_config_settings(
+                                                    "overview-fig-1.svg"
+                                                ),
                                             },
                                             style={
                                                 "height": cfg["general"]["fig_1"][
@@ -110,7 +113,9 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                             dcc.Graph(
                                                 id="fig-selected-cen-home-chm13",
                                                 responsive=True,
-                                                config={"displaylogo": False},
+                                                config=plotly_config_settings(
+                                                    "fig-overview-selected-cen-chm13.svg"
+                                                ),
                                                 style={
                                                     "height": cfg["general"]["fig_1"][
                                                         "height_cens"
@@ -130,7 +135,9 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
                                             dcc.Graph(
                                                 id="fig-selected-cen-home",
                                                 responsive=True,
-                                                config={"displaylogo": False},
+                                                config=plotly_config_settings(
+                                                    "fig-overview-selected-cen.svg"
+                                                ),
                                                 style={
                                                     "height": cfg["general"]["fig_1"][
                                                         "height_cens"

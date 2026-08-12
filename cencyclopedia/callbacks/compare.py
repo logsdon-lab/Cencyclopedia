@@ -33,7 +33,11 @@ from cencyclopedia.components.err_msg import modal_body_content
 from cencyclopedia.io.data import Data, DataType
 from cencyclopedia.io.config import DEFAULT_BED_OPTIONS, DEFAULT_BEDGRAPH_OPTIONS
 from cencyclopedia.plot.cen import draw_cenplot
-from cencyclopedia.plot.common import BedTrackSettings, DEFAULT_SETTINGS
+from cencyclopedia.plot.common import (
+    BedTrackSettings,
+    DEFAULT_SETTINGS,
+    plotly_config_settings,
+)
 
 
 Tabs = list[dict[str, Any] | dbc.Tab]  # pyright:ignore
@@ -686,7 +690,7 @@ def draw_selected_region_plots(
             return no_update, err_msg, True
 
         itv = (rgn_info["Chrom"], st, end)
-        itv_str = f"{itv[0]}:{itv[1]}-{itv[2]}"
+        itv_str_fs = f"{itv[0]}_{itv[1]}-{itv[2]}"
         itv_str_plot = f"{itv[0]}:{itv[1]}-{itv[2]}"
 
         # Cache existing plots
@@ -715,9 +719,9 @@ def draw_selected_region_plots(
         fig, style = fig_res
         final_fig = dcc.Graph(
             figure=fig,
-            id=f"fig-{itv_str}",
+            id=f"fig-{itv_str_fs}",
             responsive=True,
-            config={"displaylogo": False},
+            config=plotly_config_settings(f"fig-{itv_str_fs}.svg"),
             style=style,
         )
         figures.append(html.H4(itv_str_plot))

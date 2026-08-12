@@ -6,6 +6,7 @@ from PIL import Image
 from typing import Any
 from dash import dcc, html, get_asset_url
 
+from cencyclopedia.plot.common import PLOTLY_CONFIG_SETTINGS
 from cencyclopedia.plot.image import add_image_to_figure
 
 HOME_PAGE_STYLE = {
@@ -87,7 +88,7 @@ def home_page(cfg: dict[str, Any]):
                     figure=create_chromosome_navlink(cfg),
                     id="fig-chrom-navlink",
                     style={"height": "30vh"},
-                    config={"displayModeBar": False},
+                    config={"displayModeBar": False, **PLOTLY_CONFIG_SETTINGS},
                 )
             ),
             html.Br(),

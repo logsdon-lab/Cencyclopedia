@@ -8,7 +8,10 @@ from cencyclopedia.io.data import Data
 from cencyclopedia.components.tree import dataview_selected_cen
 from cencyclopedia.components.err_msg import modal_error_message
 from cencyclopedia.components.help import popover, row_title_with_help
-from cencyclopedia.plot.common import DEFAULT_SETTINGS
+from cencyclopedia.plot.common import (
+    DEFAULT_SETTINGS,
+    plotly_config_settings,
+)
 
 CEN_PAGE_STYLE = {
     "padding": "4rem",
@@ -107,7 +110,7 @@ def layout_cen(cfg, dropdown, dataview_selected_cen) -> html.Div:
                 dcc.Graph(
                     id="fig-selected-cen",
                     responsive=True,
-                    config={"displaylogo": False},
+                    config=plotly_config_settings("fig-selected-cen.svg"),
                     style={
                         "height": cfg["general"]["selected_cen"]["height"],
                     },
