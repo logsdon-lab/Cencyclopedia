@@ -169,6 +169,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/yte-1.9.4-pyhd8ed1ab_0.conda
       - pypi: ./
       - pypi: https://files.pythonhosted.org/packages/04/96/92447566d16df59b2a776c0fb82dbc4d9e07cd95062562af01e408583fc4/itsdangerous-2.2.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0b/8c/dd63d210b28a7589f4bc1e84880525368147425c717d12834ab562f52d14/dash-4.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0c/29/0348de65b8cc732daa3e33e67806420b2ae89bdce2b04af740289c5c6c8c/loguru-0.7.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/10/cb/f2ad4230dc2eb1a74edf38f1a38b9b52277f75bef262d8908e60d957e13c/blinker-1.9.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/12/59/8338f4dc4e3d3163e01e063b2c964e450d8ff1af139ebe1e19265f816ad4/dash_uploader-0.6.1.tar.gz
@@ -177,15 +178,12 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/38/3d/2d244233ac4f76e38533cfcb2991c9eb4c7bf688ae0a036d30725b8faafe/importlib_metadata-9.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/38/74/f94141b38a51a553efef7f510fc213894161ae49b88bffd037f8d2a7cb2f/frozendict-2.4.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/3a/13/547360d81e6d88d58492968ffda9f9542854f11310ee556fef14260cc886/zipp-4.1.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/60/64deacb3abc70c52e2d88a808a052d1621c86a48fe9194f2c065579ab1cd/polars_runtime_32-1.43.2-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/67/f3/6cd296376653270ac1b423bb30bd70942d9916b6978c6f40472d6ac038e7/retrying-1.4.2-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/68/34/65604740edcb20e1bda6a890348ed7d282e7dd23aa00401cbe36fd0edbd9/janus-2.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7e/85/a5bfaebfd305ac18b57b0854d74e37e586809061a91fda62f0bd50c8518e/narwhals-2.24.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7f/9c/34f6962f9b9e9c71f6e5ed806e0d0ff03c9d1b0b2340088a0cf4bce09b18/flask-3.1.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/93/8c/2e650f2afeb7ee576912636c23ddb621c91ac6a98e66dc8d29c3c69446e1/werkzeug-3.1.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/95/9c/c510029fc6ef33a6275cd2c5d3cecd6613dfd6aa401d57c54f1c18852ccf/setuptools-84.0.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/9a/29/498125538103a11eab9cfbbde41bacf93e14ab3ac92ae9fb4ac0ac4dd61b/dash-4.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c4/ea/066ce356c5df3c2d42b72801f768d41bf691f58f6d2a90f6334fbed39785/pysam-0.24.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/d6/38/1efeec8b4d741c09ccd169baf8a00c07a0176b58e418d4cd0c30dffedd22/dash_bootstrap_components-2.0.4-py3-none-any.whl
@@ -2582,13 +2580,13 @@ packages:
   requires_dist:
   - polars>=1.43.2,<2
   - plotly>=6.9.0,<7
-  - dash>=4.4.1,<5
-  - pyyaml
+  - dash==4.0.0
+  - pyyaml>=6.0.3,<7
   - loguru>=0.7.3,<0.8
   - pillow>=12.3.0,<13
   - dash-bootstrap-components>=2.0.4,<3
   - gunicorn>=26.0.0,<27
-  - numpy
+  - numpy>=2.5.1,<3
   - pysam>=0.24.0,<0.25
   - dash-uploader>=0.6.1,<0.7
   - pybigtools>=0.3.0,<0.4
@@ -2598,6 +2596,66 @@ packages:
   name: itsdangerous
   version: 2.2.0
   sha256: c6242fc49e35958c8b15141343aa660db5fc54d4f13a1db01a3f5891b98700ef
+  requires_python: '>=3.8'
+- pypi: https://files.pythonhosted.org/packages/0b/8c/dd63d210b28a7589f4bc1e84880525368147425c717d12834ab562f52d14/dash-4.0.0-py3-none-any.whl
+  name: dash
+  version: 4.0.0
+  sha256: e36b4b4eae9e1fa4136bf4f1450ed14ef76063bc5da0b10f8ab07bd57a7cb1ab
+  requires_dist:
+  - flask>=1.0.4,<3.2
+  - werkzeug<3.2
+  - plotly>=5.0.0
+  - importlib-metadata
+  - typing-extensions>=4.1.1
+  - requests
+  - retrying
+  - nest-asyncio
+  - setuptools
+  - flask[async] ; extra == 'async'
+  - black==22.3.0 ; extra == 'ci'
+  - flake8==7.0.0 ; extra == 'ci'
+  - flaky==3.8.1 ; extra == 'ci'
+  - flask-talisman==1.0.0 ; extra == 'ci'
+  - ipython<9.0.0 ; extra == 'ci'
+  - mimesis<=11.1.0 ; extra == 'ci'
+  - mock==4.0.3 ; extra == 'ci'
+  - numpy<=1.26.3 ; extra == 'ci'
+  - orjson>=3.10.11 ; extra == 'ci'
+  - openpyxl ; extra == 'ci'
+  - pandas>=1.4.0 ; extra == 'ci'
+  - pyarrow ; extra == 'ci'
+  - pylint==3.0.3 ; extra == 'ci'
+  - pytest-mock ; extra == 'ci'
+  - pytest-sugar==1.1.1 ; extra == 'ci'
+  - pyzmq>=26.0.0 ; extra == 'ci'
+  - xlrd>=2.0.1 ; extra == 'ci'
+  - pytest-rerunfailures ; extra == 'ci'
+  - jupyterlab<4.0.0 ; extra == 'ci'
+  - pyright==1.1.398 ; python_full_version >= '3.7' and extra == 'ci'
+  - mypy==1.15.0 ; python_full_version >= '3.12' and extra == 'ci'
+  - coloredlogs>=15.0.1 ; extra == 'dev'
+  - fire>=0.4.0 ; extra == 'dev'
+  - pyyaml>=5.4.1 ; extra == 'dev'
+  - beautifulsoup4>=4.8.2 ; extra == 'testing'
+  - cryptography ; extra == 'testing'
+  - lxml>=4.6.2 ; extra == 'testing'
+  - percy>=2.0.2 ; extra == 'testing'
+  - pytest>=6.0.2 ; extra == 'testing'
+  - requests[security]>=2.21.0 ; extra == 'testing'
+  - selenium>=3.141.0,<=4.2.0 ; extra == 'testing'
+  - waitress>=1.4.4 ; extra == 'testing'
+  - multiprocess>=0.70.12 ; extra == 'testing'
+  - psutil>=5.8.0 ; extra == 'testing'
+  - dash-testing-stub>=0.0.2 ; extra == 'testing'
+  - redis>=3.5.3,<=5.0.4 ; extra == 'celery'
+  - kombu<5.4.0 ; extra == 'celery'
+  - celery[redis]>=5.1.2,<5.4.0 ; extra == 'celery'
+  - diskcache>=5.2.1 ; extra == 'diskcache'
+  - multiprocess>=0.70.12 ; extra == 'diskcache'
+  - psutil>=5.8.0 ; extra == 'diskcache'
+  - flask-compress ; extra == 'compress'
+  - plotly-cloud ; extra == 'cloud'
+  - dash-ag-grid ; extra == 'ag-grid'
   requires_python: '>=3.8'
 - pypi: https://files.pythonhosted.org/packages/0c/29/0348de65b8cc732daa3e33e67806420b2ae89bdce2b04af740289c5c6c8c/loguru-0.7.3-py3-none-any.whl
   name: loguru
@@ -2810,13 +2868,6 @@ packages:
   - pytest-enabler>=3.4 ; extra == 'enabler'
   - pytest-mypy>=1.0.1 ; platform_python_implementation != 'PyPy' and extra == 'type'
   requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
-  name: comm
-  version: 0.2.3
-  sha256: c615d91d75f7f04f095b30d1c1711babd43bdc6419c1be9886a85f2f4e489417
-  requires_dist:
-  - pytest ; extra == 'test'
-  requires_python: '>=3.8'
 - pypi: https://files.pythonhosted.org/packages/62/60/64deacb3abc70c52e2d88a808a052d1621c86a48fe9194f2c065579ab1cd/polars_runtime_32-1.43.2-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
   name: polars-runtime-32
   version: 1.43.2
@@ -2827,11 +2878,6 @@ packages:
   version: 1.4.2
   sha256: bbc004aeb542a74f3569aeddf42a2516efefcdaff90df0eb38fbfbf19f179f59
   requires_python: '>=3.6'
-- pypi: https://files.pythonhosted.org/packages/68/34/65604740edcb20e1bda6a890348ed7d282e7dd23aa00401cbe36fd0edbd9/janus-2.0.0-py3-none-any.whl
-  name: janus
-  version: 2.0.0
-  sha256: 7e6449d34eab04cd016befbd7d8c0d8acaaaab67cb59e076a69149f9031745f9
-  requires_python: '>=3.9'
 - pypi: https://files.pythonhosted.org/packages/7e/85/a5bfaebfd305ac18b57b0854d74e37e586809061a91fda62f0bd50c8518e/narwhals-2.24.0-py3-none-any.whl
   name: narwhals
   version: 2.24.0
@@ -2932,73 +2978,6 @@ packages:
   - importlib-metadata>=7.0.2 ; python_full_version < '3.10' and extra == 'type'
   - jaraco-develop>=7.21 ; sys_platform != 'cygwin' and extra == 'type'
   requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/9a/29/498125538103a11eab9cfbbde41bacf93e14ab3ac92ae9fb4ac0ac4dd61b/dash-4.4.1-py3-none-any.whl
-  name: dash
-  version: 4.4.1
-  sha256: 72120a91b10ee4d73f9446efd5d6a4ec218086feed7b1b479d2259844d1f658f
-  requires_dist:
-  - flask>=1.0.4,<3.2
-  - werkzeug<3.2
-  - plotly>=5.0.0
-  - importlib-metadata
-  - typing-extensions>=4.1.1
-  - requests
-  - retrying
-  - nest-asyncio
-  - setuptools
-  - janus>=1.0.0
-  - pydantic>=2.10
-  - comm
-  - flask[async] ; extra == 'async'
-  - black==22.3.0 ; extra == 'ci'
-  - flake8==7.0.0 ; extra == 'ci'
-  - flaky==3.8.1 ; extra == 'ci'
-  - flask-talisman==1.0.0 ; extra == 'ci'
-  - ipython<9.0.0 ; extra == 'ci'
-  - mimesis<=11.1.0 ; extra == 'ci'
-  - mock==4.0.3 ; extra == 'ci'
-  - numpy<=1.26.3 ; extra == 'ci'
-  - orjson>=3.10.11 ; extra == 'ci'
-  - openpyxl ; extra == 'ci'
-  - pandas>=1.4.0 ; extra == 'ci'
-  - pyarrow ; extra == 'ci'
-  - pylint==3.0.3 ; extra == 'ci'
-  - pytest-mock ; extra == 'ci'
-  - pytest-split ; extra == 'ci'
-  - pytest-sugar==1.1.1 ; extra == 'ci'
-  - pyzmq>=26.0.0 ; extra == 'ci'
-  - xlrd>=2.0.1 ; extra == 'ci'
-  - pytest-rerunfailures ; extra == 'ci'
-  - jupyterlab<4.0.0 ; extra == 'ci'
-  - pyright==1.1.398 ; python_full_version >= '3.7' and extra == 'ci'
-  - mypy==1.15.0 ; python_full_version >= '3.12' and extra == 'ci'
-  - coloredlogs>=15.0.1 ; extra == 'dev'
-  - fire>=0.4.0 ; extra == 'dev'
-  - pyyaml>=5.4.1 ; extra == 'dev'
-  - beautifulsoup4>=4.8.2 ; extra == 'testing'
-  - cryptography ; extra == 'testing'
-  - lxml>=4.6.2 ; extra == 'testing'
-  - percy-python-selenium>=1.0.0 ; extra == 'testing'
-  - pytest>=6.0.2 ; extra == 'testing'
-  - requests[security]>=2.21.0 ; extra == 'testing'
-  - selenium>=3.141.0,<=4.2.0 ; extra == 'testing'
-  - waitress>=1.4.4 ; extra == 'testing'
-  - multiprocess>=0.70.12 ; extra == 'testing'
-  - psutil>=5.8.0 ; extra == 'testing'
-  - dash-testing-stub>=0.0.2 ; extra == 'testing'
-  - redis>=3.5.3,<=5.0.4 ; extra == 'celery'
-  - kombu<5.4.0 ; extra == 'celery'
-  - celery[redis]>=5.1.2,<5.4.0 ; extra == 'celery'
-  - diskcache>=5.2.1 ; extra == 'diskcache'
-  - multiprocess>=0.70.12 ; extra == 'diskcache'
-  - psutil>=5.8.0 ; extra == 'diskcache'
-  - flask-compress ; extra == 'compress'
-  - fastapi ; extra == 'fastapi'
-  - uvicorn[standard] ; extra == 'fastapi'
-  - quart ; extra == 'quart'
-  - plotly-cloud ; extra == 'cloud'
-  - dash-ag-grid ; extra == 'ag-grid'
-  requires_python: '>=3.9'
 - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
   name: nest-asyncio
   version: 1.6.0
