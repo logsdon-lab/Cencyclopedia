@@ -292,7 +292,7 @@ def layout_compare(
                     dbc.Spinner(html.Div(id="figures-container")),
                 ],
                 className="h-100 overflow-scroll",
-                style={"padding-right": "1rem"},
+                style={"padding-right": "1rem", "scrollbar-width": "none"},
             ),
             dbc.Col(
                 [
@@ -301,10 +301,11 @@ def layout_compare(
                     layout_upload(labels, active_tab),
                 ],
                 className="h-100 overflow-scroll",
-                style={"padding-left": "1rem"},
+                style={"padding-left": "1rem", "scrollbar-width": "none"},
             ),
         ],
         className="vh-100",
+        style={"scrollbar-width": "none"},
     )
 
 

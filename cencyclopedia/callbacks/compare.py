@@ -314,9 +314,9 @@ def enable_tab_op_btn(
     cfg: dict[str, Any], active_tab: str, preset_loaded: bool
 ) -> tuple[bool, bool, bool, bool]:
     is_enabled = active_tab not in cfg["data"]
-    # Don't load adding data if preset.
+    # Don't load adding data if preset. Allow deleting.
     if preset_loaded:
-        return True, is_enabled, is_enabled, is_enabled
+        return True, False, is_enabled, is_enabled
     return is_enabled, is_enabled, is_enabled, is_enabled
 
 
@@ -422,7 +422,7 @@ def add_new_data_tab_manual(
     Input("data-label-tabs", "active_tab"),
     State("data-label-tabs", "children"),
     State("cfg", "data"),
-    State("preset_loaded", "data"),
+    State("preset-loaded", "data"),
     prevent_initial_call=True,
 )
 def delete_data_tab(

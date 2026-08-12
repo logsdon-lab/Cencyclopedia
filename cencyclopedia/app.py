@@ -60,6 +60,7 @@ def server():
         raise RuntimeError(f"Invalid mode, {mode}")
 
     app.layout = layout
+    # app.run(debug=True)
     server = app.server
     return server
 
