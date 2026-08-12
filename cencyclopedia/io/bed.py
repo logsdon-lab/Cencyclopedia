@@ -30,43 +30,85 @@ BEDPE_SCHEMA = {
 }
 
 
-def read_bedgraph_row(rec: Any):
-    return (rec.contig, rec.start, rec.end, rec.name)
+def into_hexcode(s: Any) -> str:
+    if not isinstance(s, str):
+        return "#000000"
+    # https://stackoverflow.com/a/3380739
+    if s.startswith("#"):
+        return s
+    else:
+        channels = s.split(",")
+        if len(channels) != 3:
+            return "#000000"
+        return "#%02x%02x%02x" % tuple(int(v) for v in channels)
 
 
-def read_bedstrand_row(rec: Any):
+def read_bedgraph_row(rec: tuple[Any, ...]) -> tuple[str, int, int, str]:
+    return (rec[0], rec[1], rec[2], rec[3])
+
+
+def read_bigwig_row(rec: Any, chrom: str) -> tuple[str, int, int, int]:
     try:
-        item_rgb = rec.itemRGB
-    except KeyError:
+        value = rec[2]
+    except IndexError:
+        value = 0
+    return (chrom, rec[0], rec[1], value)
+
+
+def read_bedstrand_row(rec: Any) -> tuple[str, int, int, str, str, int]:
+    try:
+        item_rgb = rec[8]
+    except IndexError:
         item_rgb = "#000000"
     try:
-        score = rec.score
-    except KeyError:
+        score = rec[4]
+    except IndexError:
         score = 0
-    return (rec.contig, rec.start, rec.end, rec.strand, item_rgb, score)
+    return (rec[0], rec[1], rec[2], rec[5], item_rgb, score)
 
 
-def read_bed9_row(rec: Any):
+def read_bedn_row(rec: Any) -> tuple[str, int, int, str, str, int]:
     try:
-        name = rec.name
-    except KeyError:
+        name = rec[3]
+    except IndexError:
+        name = "."
+
+    try:
+        item_rgb = into_hexcode(rec[8])
+    except IndexError:
+        item_rgb = "#000000"
+    try:
+        score = rec[4]
+    except IndexError:
+        score = 0
+
+    contig = rec[0]
+    start = rec[1]
+    end = rec[2]
+    return (contig, start, end, name, item_rgb, score)
+
+
+def read_bigbed_row(rec: Any, chrom: str) -> tuple[str, int, int, str, str, int]:
+    try:
+        name = rec[2]
+    except IndexError:
         name = "."
     try:
-        item_rgb = rec.itemRGB
-    except KeyError:
+        item_rgb = into_hexcode(rec[7])
+    except IndexError:
         item_rgb = "#000000"
     try:
-        score = rec.score
-    except KeyError:
+        score = rec[3]
+    except IndexError:
         score = 0
-    return (rec.contig, rec.start, rec.end, name, item_rgb, score)
+    return (chrom, rec[0], rec[1], name, item_rgb, score)
 
 
 def read_bed_local_selfident_row(
     rec: tuple[str, str, str, str],
     breakpoints: list[float],
     colors: list[str],
-) -> tuple[str, int, int, float, str, int]:
+) -> tuple[str, int, int, str, str, float]:
     chrom, chrom_st, chrom_end, ident = rec
     chrom_st = int(chrom_st)
     chrom_end = int(chrom_end)
@@ -90,12 +132,12 @@ def read_bed_local_selfident_row(
     return (chrom, chrom_st, chrom_end, label, color, ident)
 
 
-def to_relative_coords_bed(df: pl.DataFrame, min_st: int | None):
+def to_relative_coords_bed(df: pl.DataFrame, min_st: int | None) -> pl.DataFrame:
     if min_st:
-        min_st = pl.lit(min_st)
+        min_st_expr: pl.Expr = pl.lit(min_st)
     else:
-        min_st = pl.col("chrom_st").min().over("chrom")
+        min_st_expr = pl.col("chrom_st").min().over("chrom")
     return df.with_columns(
-        pl.col("chrom_st") - min_st,
-        pl.col("chrom_end") - min_st,
+        pl.col("chrom_st") - min_st_expr,
+        pl.col("chrom_end") - min_st_expr,
     )

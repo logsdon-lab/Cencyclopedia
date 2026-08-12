@@ -12,7 +12,7 @@ def main_page(
     cfg: dict[str, Any],
 ):
     # Data
-    data = Data.new(cfg["data"])
+    data = Data(cfg["data"])
     datatypes = list(data.labels)
     selected_cen_height = cfg["general"]["selected_cen"]["height"]
     selected_cen_vspacing = cfg["general"]["selected_cen"]["vertical_spacing"]
@@ -38,7 +38,7 @@ def main_page(
                     if dcfg["type"] != "spacer"
                 },
             ),
-            # URL (/, all, chr?)
+            # URL (/, all, compare, chr?)
             dcc.Location(id="url", refresh=False),
             dbc.Row(
                 home_page(cfg),

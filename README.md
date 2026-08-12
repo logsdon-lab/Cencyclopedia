@@ -7,14 +7,30 @@ Interactive centromere catalog.
       <figure>
         <img src="docs/overview.png">
         <br>
-        <figcaption>Centromere haplotypes</figcaption>
+        <figcaption>HGSVC centromere haplotypes</figcaption>
       </figure>
     </td>
     <td>
       <figure>
         <img src="docs/ui.png">
         <br>
-        <figcaption>Phylogenetic tree</figcaption>
+        <figcaption>HGSVC phylogenetic tree</figcaption>
+      </figure>
+    </td>
+  </tr>
+  <tr>
+     <td>
+      <figure>
+        <img src="docs/custom_hgsvc_preset.png">
+        <br>
+        <figcaption>Load preset data</figcaption>
+      </figure>
+    </td>
+       <td>
+      <figure>
+        <img src="docs/custom_data_upload.png">
+        <br>
+        <figcaption>Upload and visualize custom data</figcaption>
       </figure>
     </td>
   </tr>
@@ -27,11 +43,9 @@ git clone git@github.com:logsdon-lab/Cencyclopedia.git
 cd Cencyclopedia
 ```
 
-Setup dependencies. Requires Python >= 3.12.
+Setup dependencies using `pixi`.
 ```bash
-python -m venv venv
-source venv/bin/activate
-python -m pip install -r requirements.txt
+pixi install
 ```
 
 ## Browser
@@ -41,7 +55,7 @@ View in your browser at https://cencyclopedia.com.
 ### Python
 Set up app locally. Data is stored in repo.
 ```bash
-gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'
+pixi run local
 ```
 
 Then, open [`127.0.0.1:8050`](http://127.0.0.1:8050) in browser.
@@ -56,7 +70,7 @@ Modify `general.mode`, `general.output_regions`, and `general.selected_cen.heigh
 ```yaml
 general:
   mode: single
-  output_regions: data/bed_single.csv.gz
+  output_regions: data/hgsvc/bed_single.csv.gz
   selected_cen:
     height: 800
     vertical_spacing: 0.0
@@ -65,7 +79,7 @@ general:
 Then rerun pointing to the new configfile.
 ```bash
 export CENCYCLOPEDIA_CONFIG="config_single.yaml"
-gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'
+pixi run local
 ```
 
 ### Docker
@@ -76,3 +90,9 @@ docker run -p 8050:8050 --rm cencyclopedia:latest
 ```
 
 Then, open [`127.0.0.1:8050`](http://127.0.0.1:8050) in browser.
+
+## TODO
+* [ ] More scalable data storage solution probably with AWS support.
+
+## Cite
+Gao, S., Oshima, K.K., Chuang, SC. et al. A global view of human centromere variation and evolution. Nature (2026). https://doi.org/10.1038/s41586-026-10841-9

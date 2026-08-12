@@ -1,10 +1,11 @@
+import os
 import polars as pl
 import dash_bootstrap_components as dbc
 
 from PIL import Image
 from typing import Any
 from loguru import logger
-from dash import dcc, html, get_asset_url
+from dash import dcc, html
 
 from cencyclopedia.plot.tree import create_tree_figure
 from cencyclopedia.components.home import create_logo
@@ -247,7 +248,7 @@ def tree_page(
     )
     fname = f"{chrom_name}_PhylogeneticTree_p_q-arm_withLegend.png"
     try:
-        path = get_asset_url(fname)
+        path = os.path.join(cfg["general"]["tree"]["input_dir"], fname)
         fig = create_tree_figure(Image.open(path), dfs_regions_chrom_arm, cfg)
     except (OSError, KeyError):
         logger.error(f"Cannot open image ({fname}) for {chrom_name} tree")
@@ -274,12 +275,12 @@ def tree_page(
             ),
             cfg=cfg,
         ),
-        chrom_names=CHROMS.keys(),
+        chrom_names=list(CHROMS.keys()),
     )
     return layout
 
 
-def split_layout(content: html.Div, chrom_names: list[str]) -> dbc.Row:
+def split_layout(content: html.Div, chrom_names: list[str]):
     sidebar = html.Div(
         [
             dbc.NavLink(create_logo(width="8rem"), href="/", active="exact"),

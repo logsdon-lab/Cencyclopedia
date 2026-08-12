@@ -3,9 +3,11 @@ import polars as pl
 
 from typing import Any
 from loguru import logger
-from dash import dcc, Input, Output, callback, dash_table, State, html, ctx
+from dash.dcc.express import send_bytes
+from dash.exceptions import PreventUpdate
+from dash import Input, Output, callback, dash_table, State, html, ctx
 
-from cencyclopedia.io.data import Data, EXPANDABLE_DATA_TYPES
+from cencyclopedia.io.data import Data
 from cencyclopedia.plot.common import (
     BedTrackSettings,
     DEFAULT_SETTINGS,
@@ -23,9 +25,12 @@ from cencyclopedia.components.dataview import dataview_tab
     State("bed-track-settings", "data"),
 )
 def disable_update_while_original(
-    data_label: str, mode: str, expand_tracks: dict[str, BedTrackSettings]
+    active_tab: str | None, mode: str, expand_tracks: dict[str, BedTrackSettings]
 ) -> bool:
-    track_settings = expand_tracks[data_label]
+    if not active_tab:
+        raise PreventUpdate
+
+    track_settings = expand_tracks[active_tab]
     return mode == DEFAULT_MODE and track_settings.get("mode") == DEFAULT_MODE
 
 
@@ -37,23 +42,26 @@ def disable_update_while_original(
     State("bed-track-settings", "data"),
 )
 def draw_dataview_tab(
-    data_label: str,
+    active_tab: str | None,
     itv_selected_cen: tuple[str, int, int] | None,
     cfg: dict[str, Any],
     expand_tracks: dict[str, BedTrackSettings],
 ) -> html.Div:
-    if not itv_selected_cen:
-        return dash.no_update
+    if not itv_selected_cen or not active_tab:
+        raise PreventUpdate
 
     chrom, st, end = itv_selected_cen
-    data_fhs = Data.new(cfg["data"])
-    df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
-    replace_colnames: dict[str, str] = data_fhs.options(data_label).get(
+    data_fhs = Data(cfg["data"])
+    df = data_fhs.query(active_tab, chrom, st, end, to_relative=False)
+    if not isinstance(df, pl.DataFrame):
+        raise PreventUpdate
+
+    replace_colnames: dict[str, str] = data_fhs.options(active_tab).get(
         "replace_colnames", {}
     )
     data_table = dash_table.DataTable(
-        id=f"data-{data_label}",
-        data=list(df.iter_rows(named=True)),
+        id=f"data-{active_tab}",
+        data=list(df.iter_rows(named=True)),  # pyright: ignore
         columns=[
             {
                 # Get replacement name, otherwise keep same.
@@ -71,8 +79,9 @@ def draw_dataview_tab(
         style_data={"whiteSpace": "normal", "height": "auto", "lineHeight": "15px"},
     )
     # Use defaults.
-    track_settings = expand_tracks[data_label]
-    disabled = data_fhs.datatype(data_label) not in EXPANDABLE_DATA_TYPES
+    track_settings = expand_tracks[active_tab]
+    dtype = data_fhs.datatype(active_tab)
+    disabled = not dtype.is_expandable() if dtype else True
     return dataview_tab(
         data_table=data_table, track_settings=track_settings, all_disabled=disabled
     )
@@ -89,16 +98,16 @@ def draw_dataview_tab(
 )
 def update_bed_tracks_settings(
     n_clicks: int | None,
-    data_label: str,
-    mode: str,
-    limit: int,
+    active_tab: str | None,
+    mode: TrackMode,
+    limit: TrackLimit,
     bed_tracks_settings: dict[str, BedTrackSettings],
-) -> dash._callback.NoUpdate | dict[str, BedTrackSettings]:
+) -> dash.NoUpdate | dict[str, BedTrackSettings]:
     # Don't update tracks to avoid rerender if not stale.
-    if not n_clicks:
-        return dash.no_update
+    if not n_clicks or not active_tab:
+        raise PreventUpdate
 
-    bed_tracks_settings[data_label] = {"mode": mode, "limit": limit}
+    bed_tracks_settings[active_tab] = {"mode": mode, "limit": limit}
     logger.debug(f"New expand tracks: {bed_tracks_settings}")
     return bed_tracks_settings
 
@@ -114,21 +123,14 @@ def update_bed_tracks_settings(
 )
 def reset_bed_tracks_settings(
     n_clicks: int | None,
-    data_label: str,
+    active_tab: str | None,
     bed_tracks_settings: dict[str, BedTrackSettings],
-) -> (
-    tuple[dash._callback.NoUpdate, dash._callback.NoUpdate, dash._callback.NoUpdate]
-    | tuple[
-        dict[str, BedTrackSettings],
-        TrackMode,
-        TrackLimit,
-    ]
-):
-    if not n_clicks:
-        return dash.no_update, dash.no_update, dash.no_update
+) -> tuple[dict[str, BedTrackSettings], TrackMode, TrackLimit]:
+    if not n_clicks or not active_tab:
+        raise PreventUpdate
 
     default_settings = DEFAULT_SETTINGS
-    bed_tracks_settings[data_label] = default_settings
+    bed_tracks_settings[active_tab] = default_settings
     logger.debug("Reset expand tracks.")
     return (
         bed_tracks_settings,
@@ -147,21 +149,22 @@ def reset_bed_tracks_settings(
 )
 def download_data(
     n_clicks: int | None,
-    data_label: str,
+    active_tab: str | None,
     itv_selected_cen: tuple[str, int, int],
     cfg: dict[str, Any],
-) -> dash._callback.NoUpdate | dict[str, Any]:
+) -> dash.NoUpdate | dict[str, Any]:
     logger.debug(f"Download triggered: {ctx.triggered}")
-    if not n_clicks:
-        return dash.no_update
+    if not n_clicks or not active_tab:
+        raise PreventUpdate
+
     chrom, st, end = itv_selected_cen
-    data_fhs = Data.new(cfg["data"])
-    df = data_fhs.query(data_label, chrom, st, end, to_relative=False)
+    data_fhs = Data(cfg["data"])
+    df = data_fhs.query(active_tab, chrom, st, end, to_relative=False)
     if not isinstance(df, pl.DataFrame):
         return dash.no_update
 
     # Rename if replacement colnames provided.
-    replace_colnames: dict[str, str] | None = data_fhs.options(data_label).get(
+    replace_colnames: dict[str, str] | None = data_fhs.options(active_tab).get(
         "replace_colnames"
     )
     if replace_colnames:
@@ -172,7 +175,7 @@ def download_data(
     if not first_col.startswith("#"):
         df = df.rename({first_col: f"#{first_col}"})
 
-    outfname = f"{chrom}_{st}_{end}_{data_label.replace(' ', '_')}.bed.gz"
-    return dcc.send_bytes(
+    outfname = f"{chrom}_{st}_{end}_{active_tab.replace(' ', '_')}.bed.gz"
+    return send_bytes(
         lambda x: df.write_csv(x, separator="\t", compression="gzip"), outfname
     )

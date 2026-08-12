@@ -1,4 +1,4 @@
-FROM python:3.14-slim-trixie
+FROM python:3.13-slim-trixie
 
 ENV DASH_DEBUG_MODE False
 
@@ -12,7 +12,7 @@ RUN apt update && \
 
 COPY . /app
 WORKDIR /app
-RUN pip install -r requirements.txt
+RUN pip install .
 
 EXPOSE 8050
 # gunicorn -b 0.0.0.0:8050 'cencyclopedia.app:server()'

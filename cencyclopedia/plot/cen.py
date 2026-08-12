@@ -1,7 +1,7 @@
 import polars as pl
 import plotly.graph_objs as go
 
-from typing import Any
+from typing import Any, Mapping
 from loguru import logger
 from plotly.subplots import make_subplots
 
@@ -24,20 +24,27 @@ from cencyclopedia.plot.bed import (
 # https://stackoverflow.com/questions/63611740/how-to-persist-state-of-plotly-graph-in-dash-app
 def draw_cenplot(
     itv_selected_cen: tuple[str, int, int] | None,
-    bed_track_settings: dict[str, BedTrackSettings] | None,
-    cfg: dict[str, Any],
+    bed_track_settings: Mapping[str, BedTrackSettings] | None,
+    cfg: Mapping[str, Any],
     *,
     xlim: tuple[int, int] | None = None,
     to_relative: bool = False,
+    add_xaxis_kwargs: Mapping[int, Mapping[str, Any]] | None = None,
+    add_yaxis_kwargs: Mapping[int, Mapping[str, Any]] | None = None,
 ) -> tuple[go._figure.Figure, dict[str, Any]] | None:
     if not itv_selected_cen:
         return None
     if not bed_track_settings:
         bed_track_settings = {}
 
+    if not add_xaxis_kwargs:
+        add_xaxis_kwargs = {}
+    if not add_yaxis_kwargs:
+        add_yaxis_kwargs = {}
+
     chrom, st, end = itv_selected_cen
     # Open tabix file handles
-    data_fhs = Data.new(cfg["data"])
+    data_fhs = Data(cfg["data"])
 
     props = []
     total_original_prop = 0.0
@@ -69,14 +76,13 @@ def draw_cenplot(
                 to_relative=to_relative,
                 rle=rle,
             )
-            assert isinstance(df, pl.DataFrame)
+            if isinstance(df, pl.DataFrame):
+                df = df.sort(by="group")
 
-            df = df.sort(by="group")
-
-            if to_relative:
-                df = clip_df(df, 0, end - st)
-            else:
-                df = clip_df(df, st, end)
+                if to_relative:
+                    df = clip_df(df, 0, end - st)
+                else:
+                    df = clip_df(df, st, end)
 
         if prop:
             total_original_prop += prop
@@ -142,7 +148,7 @@ def draw_cenplot(
         )
 
     idx_yaxis_titles = {}
-    for label, (indices, df) in indices.items():
+    for label, (lst_indices, df) in indices.items():
         dtype = data_fhs.datatype(label)
         options = data_fhs.options(label)
         if isinstance(df, pl.DataFrame):
@@ -151,12 +157,20 @@ def draw_cenplot(
             )
         else:
             dfs_groups = []
-        # https://plotly.com/python/reference/layout/xaxis/
-        update_xaxis_kwargs = options.get("xaxis_kwargs", {})
-        update_yaxis_kwargs = options.get("yaxis_kwargs", {})
+
         n_groups = len(dfs_groups)
 
-        for i, track_idx in enumerate(indices):
+        for i, track_idx in enumerate(lst_indices):
+            # https://plotly.com/python/reference/layout/xaxis/
+            # Allow override based on index. Mostly for allow placing title at top most track
+            update_xaxis_kwargs = dict(
+                options.get("xaxis_kwargs", {})
+                | add_xaxis_kwargs.get(track_idx - 1, {})
+            )
+            update_yaxis_kwargs = dict(
+                options.get("yaxis_kwargs", {})
+                | add_yaxis_kwargs.get(track_idx - 1, {})
+            )
             try:
                 grp, df_grp = dfs_groups[i]
                 grp = grp[0]
@@ -165,6 +179,7 @@ def draw_cenplot(
                 else:
                     name = None
             except IndexError:
+                df_grp = pl.DataFrame()
                 dtype = None
                 grp = None
                 name = None
@@ -215,7 +230,7 @@ def draw_cenplot(
             # Store yaxis title
             idx_yaxis_titles[track_idx] = yaxis_title
 
-            if dtype == "bed" or dtype == "bed_localselfident":
+            if dtype == "bigbed" or dtype == "bed" or dtype == "bed_localselfident":
                 add_bed_track(
                     df_grp,
                     fig,
@@ -225,15 +240,15 @@ def draw_cenplot(
                     invert=options.get("invert", True),
                     bp_slop=options.get("bp_slop", 0),
                     # Replace score label in hovertext if provided in replace_colnames
-                    score_label=options.get("replace_colnames").get("score"),
+                    score_label=options.get("replace_colnames", {}).get("score"),
                 )
-            elif dtype == "bedgraph":
+            elif dtype == "bigwig" or dtype == "bedgraph":
                 add_bedgraph_track(
                     df_grp,
                     fig,
                     row=track_idx,
                     col=1,
-                    name_label=options.get("replace_colnames").get("name"),
+                    name_label=options.get("replace_colnames", {}).get("name"),
                 )
             elif dtype == "bedstrand":
                 add_bedstrand_track(df_grp, fig, row=track_idx, col=1)

@@ -1,69 +1,64 @@
 import os
 import pysam
 import pathlib
+import pybigtools
 import polars as pl
 
 from loguru import logger
-from typing import Callable, Self, Any, Literal, Iterator, NamedTuple
+from typing import Any, Iterator, Mapping
 
+from cencyclopedia.io.config import Config, Position, DataType
 from cencyclopedia.plot.common import TrackMode
 
-from .bed import (
-    to_relative_coords_bed,
-    read_bed9_row,
-    read_bedgraph_row,
-    read_bedstrand_row,
-    read_bed_local_selfident_row,
-    BED_SCHEMA,
-    BEDGRAPH_SCHEMA,
-    BEDPE_SCHEMA,
-)
-from .bedpe import (
-    read_bedpe_selfident_row,
-    read_identity_breakpoints,
-    to_relative_coords_bedpe_selfident,
-)
 
-EXPANDABLE_DATA_TYPES = set(("bed", "bedstrand", "bed_localselfident"))
-
-DataType = Literal[
-    "bed", "bedgraph", "bedstrand", "bedpe_selfident", "bed_localselfident"
-]
+FILE_HANDLE = pybigtools.BBIReader | pysam.TabixFile | pathlib.Path | None
 
 
-class Data(NamedTuple):
-    fhs: dict[str, pysam.TabixFile | pathlib.Path | None]
-    cfg: dict[str, Any]
+class Data:
+    def __init__(self, cfg: Mapping[str, Config]):
+        self.fhs: dict[str, FILE_HANDLE] = {}
+        self.cfg: dict[str, Config] = {}
 
-    def new(cfg: dict[str, Any]) -> Self:
-        fhs = {}
-        cfgs = {}
-        for label, trk_info in cfg.items():
-            cfgs[label] = trk_info
+        for label, og_trk_info in cfg.items():
+            # validate datatype and position
+            typ = DataType("null" if not og_trk_info["type"] else og_trk_info["type"])
+            pos = Position(og_trk_info["position"])
+            # Might be immutable so create new dict
+            trk_info: Config = {
+                "options": og_trk_info["options"],
+                "path": og_trk_info.get("path", ""),
+                "position": pos,
+                "prop": og_trk_info.get("prop", 0.0),
+                "type": typ,
+            }
+            self.cfg[label] = trk_info
+
+            is_bigfile = typ == DataType.BIGWIG or typ == DataType.BIGBED
             path = trk_info.get("path")
             if not path:
-                fhs[label] = None
+                self.fhs[label] = None
             elif os.path.isfile(path):
-                fhs[label] = pysam.TabixFile(trk_info["path"])
+                if is_bigfile:
+                    self.fhs[label] = pybigtools.open(trk_info["path"])
+                else:
+                    self.fhs[label] = pysam.TabixFile(trk_info["path"])
             elif os.path.isdir(path):
-                fhs[label] = pathlib.Path(path)
+                self.fhs[label] = pathlib.Path(path)
             else:
                 logger.debug(f"Invalid file type for {path}")
                 continue
-
-        return Data(fhs=fhs, cfg=cfgs)
 
     def options(self, label: str) -> dict[str, Any]:
         return self.cfg[label].get("options", {})
 
     def datatype(self, label: str) -> DataType | None:
         dtype = self.cfg[label]["type"]
-        return self.cfg[label]["type"] if dtype != "spacer" else None
+        return self.cfg[label]["type"] if dtype != DataType.NULL else None
 
     @property
     def labels(self) -> Iterator[str]:
         for lbl in self.fhs.keys():
-            if self.cfg[lbl]["type"] == "spacer":
+            if self.cfg[lbl]["type"] == DataType.NULL:
                 continue
             yield lbl
 
@@ -71,7 +66,7 @@ class Data(NamedTuple):
     def track_params(self) -> Iterator[tuple[str, int, float | None]]:
         idx = 0
         for label, cfg in self.cfg.items():
-            if cfg["position"] == "relative":
+            if cfg["position"] == Position.RELATIVE:
                 idx += 1
             yield label, idx, cfg.get("prop")
 
@@ -91,56 +86,31 @@ class Data(NamedTuple):
         * `st`
         * `end`
         """
-        parser: pysam.asBed | pysam.asTuple = pysam.asBed()
-        to_relative_fn = lambda df: to_relative_coords_bed(df, st)
-        finalizer_fn: Callable[[pl.DataFrame], pl.DataFrame] | None = None
-        if self.cfg[label]["type"] == "spacer":
+        dtype = self.cfg[label]["type"]
+        schema = dtype.get_schema()
+        read_fns = dtype.get_read_fns(
+            options=self.cfg[label]["options"], chrom=chrom, st=st, end=end
+        )
+        # Spacer or invalid datatype
+        if not read_fns:
             return None
-        elif self.cfg[label]["type"] == "bed9":
-            read_fn = read_bed9_row
-            schema = BED_SCHEMA
-        elif self.cfg[label]["type"] == "bedstrand":
-            read_fn = read_bedstrand_row
-            schema = BED_SCHEMA
-        elif self.cfg[label]["type"] == "bedgraph":
-            read_fn = read_bedgraph_row
-            schema = BEDGRAPH_SCHEMA
-        elif self.cfg[label]["type"] == "bed_localselfident":
-            breakpoints, colors = read_identity_breakpoints(
-                self.cfg[label].get("ident_breakpoints")
-            )
-            read_fn = lambda rec: read_bed_local_selfident_row(
-                rec, breakpoints=breakpoints, colors=colors
-            )
-            schema = BED_SCHEMA
-        elif self.cfg[label]["type"] == "bedpe_selfident":
-            parser = pysam.asTuple()
-            breakpoints, colors = read_identity_breakpoints(
-                self.cfg[label].get("ident_breakpoints")
-            )
-            read_fn = lambda rec: read_bedpe_selfident_row(
-                rec,
-            )
-            to_relative_fn = lambda df: to_relative_coords_bedpe_selfident(df, st)
-            finalizer_fn = lambda df: df.filter(
-                pl.col("ref_st").is_between(st, end)
-                & pl.col("ref_end").is_between(st, end)
-            )
-            schema = BEDPE_SCHEMA
-        else:
-            read_fn = read_bed9_row
-            schema = BED_SCHEMA
 
         fh = self.fhs[label]
         if isinstance(fh, pysam.TabixFile):
             fh = fh
+        elif isinstance(fh, pybigtools.BBIReader):
+            fh = fh
         elif isinstance(fh, pathlib.Path):
             try:
-                fname = fh.joinpath(f"{chrom}.bed.gz").as_posix()
-                fh = pysam.TabixFile(fname)
+                ext = dtype.get_extension()
+                path = fh.joinpath(f"{chrom}{ext}").as_posix()
+                if dtype == DataType.BIGWIG or dtype == DataType.BIGBED:
+                    fh = pybigtools.open(path)
+                else:
+                    fh = pysam.TabixFile(path)
             except Exception as err:
                 raise RuntimeError(
-                    f"Error reading {fname} for {label} and {chrom}:{st}-{end}: {err}."
+                    f"Error reading {fh} for {label} and {chrom}:{st}-{end}: {err}"
                 )
         else:
             raise TypeError(
@@ -149,22 +119,26 @@ class Data(NamedTuple):
 
         try:
             logger.debug(f"Query {label} for {chrom}:{st}-{end}")
-            qry = fh.fetch(chrom, st, end, parser=parser)
+            if isinstance(fh, pysam.TabixFile):
+                qry = fh.fetch(chrom, st, end, parser=pysam.asTuple())
+            else:
+                qry = fh.records(chrom, st, end)
+
             df = pl.DataFrame(
-                data=[read_fn(rec) for rec in qry],
+                data=[read_fns.read_fn(rec) for rec in qry],
                 orient="row",
                 schema=schema,
             )
-            if finalizer_fn:
-                df = finalizer_fn(df)
-        except ValueError as err:
+            if read_fns.finalizer_fn:
+                df = read_fns.finalizer_fn(df)
+        except Exception as err:
             logger.debug(f"Unable to query {label} for {chrom}:{st}-{end} ({err})")
-            return pl.DataFrame(schema=BED_SCHEMA)
+            return pl.DataFrame(schema=schema)
 
         if not to_relative:
             return df
         else:
-            return to_relative_fn(df)
+            return read_fns.to_relative_fn(df)
 
     def split(
         self,

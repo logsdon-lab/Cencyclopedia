@@ -2,6 +2,7 @@ import dash
 import polars as pl
 import plotly.graph_objs as go
 
+import traceback
 from typing import Any
 from loguru import logger
 from copy import deepcopy
@@ -28,15 +29,15 @@ def update_selected_cen_layout_params(
     if not n_clicks or not new_vspace or not new_height:
         return dash.no_update, dash.no_update
     try:
-        new_height = float(new_height)
+        ht = float(new_height)
     except Exception:
-        new_height = new_height
+        ht = new_height
 
     if new_vspace == 0.0:
-        new_vspace = None
+        vspace = None
     else:
-        new_vspace = float(new_vspace)
-    return new_height, new_vspace
+        vspace = float(new_vspace)
+    return ht, vspace
 
 
 @callback(
@@ -57,10 +58,10 @@ def draw_selected_cen_figure(
     bed_track_settings: dict[str, BedTrackSettings],
     cfg: dict[str, Any],
 ) -> tuple[
-    go._figure.Figure,
-    dict[str, Any],
-    dcc.Markdown | dash._callback.NoUpdate,
-    bool | dash._callback.NoUpdate,
+    go._figure.Figure | dash.NoUpdate,
+    dict[str, Any] | dash.NoUpdate,
+    dcc.Markdown | dash.NoUpdate,
+    bool | dash.NoUpdate,
 ]:
     logger.debug(f"Draw update context: {ctx.triggered}")
     if not itv_selected_cen:
@@ -71,8 +72,13 @@ def draw_selected_cen_figure(
         cfg["general"]["selected_cen"]["height"] = selected_cen_height
         cfg["general"]["selected_cen"]["vertical_spacing"] = selected_cen_vspacing
         # Draw plot and update height if expanded.
-        fig, style = draw_cenplot(itv_selected_cen, bed_track_settings, cfg)
+        fig_res = draw_cenplot(itv_selected_cen, bed_track_settings, cfg)
+        if not fig_res:
+            raise PreventUpdate
+        fig, style = fig_res
     except Exception as err:
+        tbk = traceback.format_exc()
+        logger.error(f"Cannot plot figure due to: {err}\ntrace: {tbk}")
         return dash.no_update, dash.no_update, modal_body_content(str(err)), True
     return fig, style, dash.no_update, dash.no_update
 
@@ -89,12 +95,9 @@ def draw_selected_cen_figure(
 def update_selected_cen(
     click_data: dict[str, Any] | None,
     dropdown_selected_cen: str,
-    itv_selected_cen: tuple[str, int, int] | None,
+    itv_selected_cen: tuple[str, int, int],
     regions: str,
-) -> (
-    tuple[tuple[str, int, int], str]
-    | tuple[dash._callback.NoUpdate, dash._callback.NoUpdate]
-):
+) -> tuple[tuple[str, int, int], str] | tuple[dash.NoUpdate, dash.NoUpdate]:
     logger.debug(f"Click update context: {ctx.triggered}")
     if dropdown_selected_cen != itv_selected_cen[0]:
         itv_selected_cen = (

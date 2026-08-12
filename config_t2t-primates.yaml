@@ -1,0 +1,314 @@
+# TODO: Fill and format data
+general:
+  # Title of app
+  title: Cencyclopedia
+  # Mode to run {all, single}
+  mode: all
+  # Output regions
+  output_regions: data/t2t-primates/centromeric_regions.bed
+  # Regions bedfile
+  regions: data/hgsvc/all_array.bed.gz
+  # Clades (all)
+  clades: null
+  # Sample metadata (all)
+  sample_metadata: null
+  # Continental_group colors (all)
+  continental_group_colors: null
+  # Other settings
+  chrom_navlink:
+    chromosomes_img: assets/hgsvc/Chromosomes.png
+    bboxes: assets/hgsvc/Chromosomes.bboxes.csv
+  fig_1: {}
+  compare:
+    tmp_dir: /tmp/uploads
+    presets:
+      hgsvc: config_hgsvc.yaml
+      t2t-primates: config_t2t-primates.yaml
+  tree: {}
+  selected_cen:
+    # Selected centromere height
+    height: 400
+    # Centromere plot width (x / 12)
+    width: 5
+    # y-axis title position. left or right. Should also adjust margins below to accomodate.
+    ytitle_pos: left
+    # y-axis title borderpad pad
+    ytitle_borderpad: 20
+    # Left, right, bottom, and top margin of selected cen plot
+    lmargin: 180
+    rmargin: 0
+    bmargin: 0
+    tmargin: 0
+    # 0.0 for autosize
+    vertical_spacing: 0.005
+    # Selected tab for data view.
+    default_data_tab: "Alpha-satellite HORs"
+# Tracks
+data:
+  "Spacer_1":
+    position: relative
+    type: null
+    prop: 0.2
+    options:
+      xaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "RepeatMasker":
+    path: data/t2t-primates/RepeatMasker
+    position: relative
+    type: bed
+    prop: 0.05
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Structure"
+        color: "Color"
+        score: "Score"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "RepeatMasker"
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "Spacer_2":
+    position: relative
+    type: null
+    prop: 0.01
+    options:
+      xaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "CDR":
+    path: data/t2t-primates/all_cdr.bb
+    position: relative
+    type: bigbed
+    prop: 0.01
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "CDR"
+        color: "Color"
+        score: "Score"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: CDR(s)
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "Spacer_3":
+    position: relative
+    type: null
+    prop: 0.01
+    options:
+      xaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "CpG methylation":
+    path: data/t2t-primates/all_ont5mc.bw
+    position: relative
+    type: bigwig
+    prop: 0.1
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Average CpG methylation"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        range: [0.0, 100.0]
+        title_text: "CpG<br>methylation"
+  "CENP-A CUT&RUN":
+    path: data/t2t-primates/all_cenpa_cr_5kb.bw
+    position: relative
+    type: bigwig
+    prop: 0.1
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Fold enrichment"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "CENP-A CUT&RUN"
+  "CENP-A DiMeLo-seq":
+    path: data/t2t-primates/all_cenpa_dimelo.bw # TODO
+    position: relative
+    type: bigwig
+    prop: 0.1
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Fold enrichment"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "CENP-A DiMeLo-seq"
+  "CenSat":
+    path: data/t2t-primates/all_censat.bb
+    position: relative
+    type: bigbed
+    prop: 0.05
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Strand"
+        color: "Color"
+        score: "Score"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "CenSat"
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "CenSat strand":
+    path: data/t2t-primates/all_censat_strand.bb
+    position: relative
+    type: bigbed
+    prop: 0.05
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Strand"
+        color: "Color"
+        score: "Score"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "CenSat strand"
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "ASat HORs":
+    path: data/t2t-primates/all_asat_hor.bb
+    position: relative
+    type: bigbed
+    prop: 0.05
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Strand"
+        color: "Color"
+        score: "Score"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "α-satellite HORs"
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "CENdetectHOR":
+    path: data/t2t-primates/all_asat_hor_CENdetectHOR.bb
+    position: relative
+    type: bigbed
+    prop: 0.05
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Strand"
+        color: "Color"
+        score: "Score"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "CENdetectHOR"
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "SegDup":
+    path: data/t2t-primates/all_sd.bb
+    position: relative
+    type: bigbed
+    prop: 0.05
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Strand"
+        color: "Color"
+        score: "Score"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "SegDups"
+        showticklabels: false
+        ticks: ""
+        showline: false
+  "Local self-identity":
+    path: data/t2t-primates/all_sequence_identity.bb # TODO
+    position: relative
+    type: bigbed
+    prop: 0.02
+    options:
+      replace_colnames:
+        chrom: "Contig"
+        chrom_st: "Start"
+        chrom_end: "End"
+        name: "Color"
+        color: "Color"
+        score: "Percent identity"
+      rle: false
+      xaxis_kwargs:
+        ticks: ""
+        showline: false
+      yaxis_kwargs:
+        title_text: "Local self-identity"
+        showticklabels: false
+        ticks: ""
+        showline: false

@@ -18,7 +18,8 @@ HOME_PAGE_STYLE = {
 
 def create_chromosome_navlink(cfg: dict[str, Any]) -> go._figure.Figure:
     fig = add_image_to_figure(
-        Image.open(get_asset_url("Chromosomes.png")), fig=go._figure.Figure()
+        Image.open(cfg["general"]["chrom_navlink"]["chromosomes_img"]),
+        fig=go._figure.Figure(),
     )
     df_bboxes = pl.read_csv(cfg["general"]["chrom_navlink"]["bboxes"])
 
@@ -52,7 +53,7 @@ def create_chromosome_navlink(cfg: dict[str, Any]) -> go._figure.Figure:
 def create_logo(width: str = "8rem"):
     img = Image.open(get_asset_url("logo.png"))
     return html.Img(
-        src=img,
+        src=img,  # pyright: ignore
         style={
             "width": width,
             "display": "block",
@@ -80,6 +81,7 @@ def home_page(cfg: dict[str, Any]):
             html.Br(),
             html.H1("Start by picking a chromosome", style={"text-align": "center"}),
             html.Br(),
+            # all
             dbc.Row(
                 dcc.Graph(
                     figure=create_chromosome_navlink(cfg),
@@ -88,6 +90,18 @@ def home_page(cfg: dict[str, Any]):
                     config={"displayModeBar": False},
                 )
             ),
+            html.Br(),
+            html.Hr(),
+            html.Br(),
+            # compare
+            html.H1("Or load your own data", style={"text-align": "center"}),
+            html.Br(),
+            html.Div(
+                dbc.Button("Start", color="primary", href="compare"),
+                className="d-grid gap-2 col-6 mx-auto",
+            ),
+            html.Br(),
+            html.Hr(),
             html.Br(),
             dbc.Row(
                 [

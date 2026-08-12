@@ -21,7 +21,7 @@ def update_itv_selected_cen_from_ui(
     rng_itv_selected_cen: list[int],
     itv_selected_cen: tuple[str, int, int],
     regions: str,
-) -> dash._callback.NoUpdate | tuple[str, int, int] | tuple[Any, ...]:
+) -> dash.NoUpdate | tuple[str, int, int] | tuple[Any, ...]:
     logger.debug(f"Update context from selection UI: {ctx.triggered}")
     try:
         rng_st, rng_end = rng_itv_selected_cen

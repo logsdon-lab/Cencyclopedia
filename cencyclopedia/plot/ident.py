@@ -4,7 +4,6 @@ import numpy as np
 import plotly.graph_objs as go
 
 from loguru import logger
-from typing import Iterable
 
 from cencyclopedia.io.constants import IDENT_BREAKPOINTS, IDENT_COLORS
 
@@ -24,9 +23,9 @@ def assign_color_ident(ident: float, colorscale: list[list[float | str]]):
 
 
 def format_colorscale(
-    breakpoints: Iterable[float],
-    colors: Iterable[str],
-) -> list[list[float | str]]:
+    breakpoints: list[float],
+    colors: list[str],
+) -> list[tuple[float, str]]:
     assert len(breakpoints) == len(colors)
     brkpts = list(zip(breakpoints, colors))
     final_brkpts = []
@@ -36,12 +35,12 @@ def format_colorscale(
             prev = 0.0
         else:
             prev, _ = brkpts[i - 1]
-        final_brkpts.append([prev / 100.0, color])
-        final_brkpts.append([brk / 100.0, color])
+        final_brkpts.append(tuple([prev / 100.0, color]))
+        final_brkpts.append(tuple([brk / 100.0, color]))
 
     # Add final
     _, final_color = brkpts[-1]
-    final_brkpts.append([1.0, final_color])
+    final_brkpts.append(tuple([1.0, final_color]))
     return final_brkpts
 
 
@@ -93,7 +92,7 @@ def add_heatmap_track(
 
     # prepare colorscale
     if not colorscale:
-        colorscale = format_colorscale(IDENT_BREAKPOINTS, IDENT_COLORS)
+        colorscale = format_colorscale(list(IDENT_BREAKPOINTS), list(IDENT_COLORS))
 
     logger.debug(f"Using colorscale: {colorscale}")
 
@@ -140,7 +139,7 @@ def add_heatmap_track(
     v = v[mask]
 
     if len(xp) == 0:
-        return None, None, None
+        return
 
     # compute resolution
     resolution = int(np.median(np.diff(np.sort(bin_centers))))

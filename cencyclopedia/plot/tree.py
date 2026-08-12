@@ -2,7 +2,7 @@ import polars as pl
 import numpy as np
 import plotly.graph_objs as go
 
-from PIL import Image
+from PIL.Image import Image
 from typing import Any
 from collections import deque
 from itertools import islice

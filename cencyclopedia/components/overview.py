@@ -150,5 +150,5 @@ def overview_page(regions: str, cfg: dict[str, Any], default_chrom_name: str = "
     )
     return split_layout(
         content=layout_overview,
-        chrom_names=CHROMS.keys(),
+        chrom_names=list(CHROMS.keys()),
     )
