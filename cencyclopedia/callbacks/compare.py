@@ -149,6 +149,7 @@ def get_new_tab_and_cfg_data(
     Input("btn-update-opts-compare-fig", "n_clicks"),
     State("input-height-compare-fig", "value"),
     State("input-vertical-spacing-compare-fig", "value"),
+    prevent_initial_call=True,
 )
 def update_selected_cen_layout_params(
     n_clicks: int | None,
@@ -175,6 +176,7 @@ def update_selected_cen_layout_params(
     Output("input-vertical-spacing-compare-fig", "value"),
     Input("fig-height", "data"),
     Input("fig-vertical-spacing", "data"),
+    prevent_initial_call=True,
 )
 def update_selected_cen_layout_values(
     new_height: str,

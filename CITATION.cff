@@ -1,0 +1,571 @@
+cff-version: 1.2.0
+message: If you use this work, please cite it using these metadata.
+type: software
+title: A global view of human centromere variation and evolution
+authors:
+  - family-names: Gao
+    given-names: Shenghan
+  - family-names: Oshima
+    given-names: Keisuke K.
+  - family-names: Chuang
+    given-names: Shu-Cheng
+  - family-names: Loftus
+    given-names: Mark
+  - family-names: Potapova
+    given-names: Tamara A.
+  - family-names: Montanari
+    given-names: Annalaura
+  - family-names: Gordon
+    given-names: David S.
+  - family-names: Yang
+    given-names: Zikun
+  - family-names: Ashraf
+    given-names: Hufsah
+  - family-names: Audano
+    given-names: Peter A.
+  - family-names: Ayllon
+    given-names: Marcelo
+  - family-names: Azov
+    given-names: Andrey
+  - family-names: Balachandran
+    given-names: Parithi
+  - family-names: Basile
+    given-names: Anna O.
+  - family-names: Beck
+    given-names: Christine R.
+  - family-names: Bonder
+    given-names: Marc Jan
+  - family-names: Brooks
+    given-names: Lucy
+  - family-names: Byrska-Bishop
+    given-names: Marta
+  - family-names: Chaisson
+    given-names: Mark J. P.
+  - family-names: Chong
+    given-names: Zechen
+  - family-names: Corvelo
+    given-names: André
+  - family-names: Crabtree
+    given-names: Jonathan
+  - family-names: Devine
+    given-names: Scott E.
+  - family-names: Ebert
+    given-names: Peter
+  - family-names: Ebler
+    given-names: Jana
+  - family-names: Eichler
+    given-names: Evan E.
+  - family-names: Fairbrother-Browne
+    given-names: Aine
+  - family-names: Fan
+    given-names: Chia-Hsuan
+  - family-names: Freeberg
+    given-names: Mallory
+  - family-names: Gerstein
+    given-names: Mark B.
+  - family-names: Gu
+    given-names: Bida
+  - family-names: Hallast
+    given-names: Pille
+  - family-names: Hasenfeld
+    given-names: Patrick
+  - family-names: Henglin
+    given-names: Mir
+  - family-names: Hoekzema
+    given-names: Kendra
+  - family-names: Hu
+    given-names: Kaili
+  - family-names: Hunt
+    given-names: Sarah
+  - family-names: Jensen
+    given-names: Matthew
+  - family-names: Jiang
+    given-names: Yunzhe
+  - family-names: Kim
+    given-names: Kwondo
+  - family-names: Korbel
+    given-names: Jan O.
+  - family-names: Kwon
+    given-names: Youngjun
+  - family-names: Lansdorp
+    given-names: Peter M.
+  - family-names: Lee
+    given-names: Charles
+  - family-names: Leung
+    given-names: Tiffany
+  - family-names: Li
+    given-names: Jiaqi
+  - family-names: Li
+    given-names: Chong
+  - family-names: Lin
+    given-names: Jiadong
+  - family-names: Loftus
+    given-names: Mark
+  - family-names: Marschall
+    given-names: Tobias
+  - family-names: Martino
+    given-names: Gianni V.
+  - family-names: Mills
+    given-names: Ryan E.
+  - family-names: Mostovoy
+    given-names: Yulia
+  - family-names: Munson
+    given-names: Katherine M.
+  - family-names: Narzisi
+    given-names: Giuseppe
+  - family-names: Ni
+    given-names: Lingbin
+  - family-names: Paisie
+    given-names: Carolyn
+  - family-names: Pani
+    given-names: Samarendra
+  - family-names: Peng
+    given-names: Zishan
+  - family-names: Porubsky
+    given-names: David
+  - family-names: Prodanov
+    given-names: Timofey
+  - family-names: Rabbani
+    given-names: Keon
+  - family-names: Rausch
+    given-names: Tobias
+  - family-names: Shi
+    given-names: Xinghua
+  - family-names: Song
+    given-names: Yuwei
+  - family-names: Sun
+    given-names: Kaitlyn
+  - family-names: Surapaneni
+    given-names: Likhitha
+  - family-names: Talkowski
+    given-names: Michael E.
+  - family-names: Tsapalou
+    given-names: Vasiliki
+  - family-names: Veidenberg
+    given-names: Andres
+  - family-names: Yilmaz
+    given-names: Feyza
+  - family-names: Yoo
+    given-names: DongAhn
+  - family-names: Zhao
+    given-names: Xuefang
+  - family-names: Zhou
+    given-names: Weichen
+  - family-names: Zhu
+    given-names: Qihui
+  - family-names: Zody
+    given-names: Michael C.
+  - family-names: Albracht
+    given-names: Derek
+  - family-names: Alexandrov
+    given-names: Ivan A.
+  - family-names: Allen
+    given-names: Jamie
+  - family-names: Alsheikh-Ali
+    given-names: Alawi A.
+  - family-names: Altemose
+    given-names: Nicolas
+  - family-names: Andrews
+    given-names: Casey
+  - family-names: Antipov
+    given-names: Dmitry
+  - family-names: Antonacci-Fulton
+    given-names: Lucinda
+  - family-names: Asri
+    given-names: Mobin
+  - family-names: Balacco
+    given-names: Jennifer R.
+  - family-names: Barthel
+    given-names: Floris P.
+  - family-names: Belter
+    given-names: Edward A.
+  - family-names: Bender
+    given-names: Halle D.
+  - family-names: Blair
+    given-names: Andrew P.
+  - family-names: Bolognini
+    given-names: Davide
+  - family-names: Bonini
+    given-names: Katherine E.
+  - family-names: Boucher
+    given-names: Christina
+  - family-names: Bourque
+    given-names: Guillaume
+  - family-names: Buonaiuto
+    given-names: Silvia
+  - family-names: Cao
+    given-names: Shuo
+  - family-names: Carroll
+    given-names: Andrew
+  - family-names: Mc Cartney
+    given-names: Ann M.
+  - family-names: Cechova
+    given-names: Monika
+  - family-names: Chang
+    given-names: Pi-Chuan
+  - family-names: Chang
+    given-names: Xian
+  - family-names: Cheema
+    given-names: Jitender
+  - family-names: Cheng
+    given-names: Haoyu
+  - family-names: Ciofi
+    given-names: Claudio
+  - family-names: Clawson
+    given-names: Hiram
+  - family-names: Cody
+    given-names: Sarah
+  - family-names: Colonna
+    given-names: Vincenza
+  - family-names: Conwell
+    given-names: Holland C.
+  - family-names: Cook-Deegan
+    given-names: Robert
+  - family-names: Diekhans
+    given-names: Mark
+  - family-names: Diroma
+    given-names: Maria Angela
+  - family-names: Doerr
+    given-names: Daniel
+  - family-names: Dong
+    given-names: Zheng
+  - family-names: Dubocanin
+    given-names: Danilo
+  - family-names: Durbin
+    given-names: Richard
+  - family-names: Eizenga
+    given-names: Jordan M.
+  - family-names: Eskandar
+    given-names: Parsa
+  - family-names: Ferro
+    given-names: Eddie
+  - family-names: Fiston-Lavier
+    given-names: Anna-Sophie
+  - family-names: Ford
+    given-names: Sarah M.
+  - family-names: Ford
+    given-names: Willard W.
+  - family-names: Formenti
+    given-names: Giulio
+  - family-names: Frankish
+    given-names: Adam
+  - family-names: Freeberg
+    given-names: Mallory A.
+  - family-names: Fu
+    given-names: Qichen
+  - family-names: Fullerton
+    given-names: Stephanie M.
+  - family-names: Fulton
+    given-names: Robert S.
+  - family-names: Gao
+    given-names: Yan
+  - family-names: Garcia
+    given-names: Gage H.
+  - family-names: Garcia
+    given-names: Obed A.
+  - family-names: Gardner
+    given-names: Joshua M. V.
+  - family-names: Garg
+    given-names: Shilpa
+  - family-names: Garrison
+    given-names: Erik
+  - family-names: Garrison
+    given-names: Nanibaa’ A.
+  - family-names: Garza
+    given-names: John E.
+  - family-names: Geleta
+    given-names: Margarita
+  - family-names: Ghorbani
+    given-names: Mohammadmersad
+  - family-names: Graves-Lindsay
+    given-names: Tina A.
+  - family-names: Green
+    given-names: Richard E.
+  - family-names: Groza
+    given-names: Cristian
+  - family-names: Guarracino
+    given-names: Andrea
+  - family-names: Gymrek
+    given-names: Melissa
+  - family-names: Haeussler
+    given-names: Maximilian
+  - family-names: Haggerty
+    given-names: Leanne
+  - family-names: Hall
+    given-names: Ira M.
+  - family-names: Hansen
+    given-names: Nancy F.
+  - family-names: Hao
+    given-names: Yue
+  - family-names: Hashmi
+    given-names: Mohammad Amiruddin
+  - family-names: Haussler
+    given-names: David
+  - family-names: Hebbar
+    given-names: Prajna
+  - family-names: Heringer
+    given-names: Peter
+  - family-names: Hickey
+    given-names: Glenn
+  - family-names: Hillaker
+    given-names: Todd L.
+  - family-names: Hossain
+    given-names: S. Nakib
+  - family-names: Huang
+    given-names: Neng
+  - family-names: Hunt
+    given-names: Sarah E.
+  - family-names: Hunt
+    given-names: Toby
+  - family-names: Ioannidis
+    given-names: Alexander G.
+  - family-names: Jafarzadeh
+    given-names: Nafiseh
+  - family-names: Jain
+    given-names: Nivesh
+  - family-names: Jarvis
+    given-names: Erich D.
+  - family-names: Jehangir
+    given-names: Maryam
+  - family-names: Jiang
+    given-names: Juan
+  - family-names: Kenny
+    given-names: Eimear E.
+  - family-names: Kim
+    given-names: Juhyun
+  - family-names: Koo
+    given-names: Bonhwang
+  - family-names: Koren
+    given-names: Sergey
+  - family-names: Kremitzki
+    given-names: Milinn
+  - family-names: Langley
+    given-names: Charles H.
+  - family-names: Langmead
+    given-names: Ben
+  - family-names: Lawson
+    given-names: Heather A.
+  - family-names: Li
+    given-names: Daofeng
+  - family-names: Li
+    given-names: Heng
+  - family-names: Liao
+    given-names: Wen-Wei
+  - family-names: Liu
+    given-names: Tianjie
+  - family-names: Lorig-Roach
+    given-names: Ryan
+  - family-names: LoTempio
+    given-names: Jonathan
+  - family-names: Loucks
+    given-names: Hailey
+  - family-names: Loveland
+    given-names: Jane E.
+  - family-names: Lu
+    given-names: Jianguo
+  - family-names: Lu
+    given-names: Shuangjia
+  - family-names: Lucas
+    given-names: Julian K.
+  - family-names: Ma
+    given-names: Walfred
+  - family-names: Macias-Velasco
+    given-names: Juan F.
+  - family-names: Makova
+    given-names: Kateryna D.
+  - family-names: Marin
+    given-names: Maximillian G.
+  - family-names: Markovic
+    given-names: Christopher
+  - family-names: Marsico
+    given-names: Franco L.
+  - family-names: Martin
+    given-names: Fergal J.
+  - family-names: Mastoras
+    given-names: Mira
+  - family-names: Mayoud
+    given-names: Capucine
+  - family-names: McNulty
+    given-names: Brandy
+  - family-names: Medico
+    given-names: Jack A.
+  - family-names: Menendez
+    given-names: Julian M.
+  - family-names: Miga
+    given-names: Karen H.
+  - family-names: Minkina
+    given-names: Anna
+  - family-names: Mitchell
+    given-names: Matthew W.
+  - family-names: Mohanty
+    given-names: Saswat K.
+  - family-names: Mokrab
+    given-names: Younes
+  - family-names: Monlong
+    given-names: Jean
+  - family-names: Moosa
+    given-names: Shabir
+  - family-names: Moreno-Ochando
+    given-names: Avelina
+  - family-names: Morishita
+    given-names: Shinichi
+  - family-names: Mudge
+    given-names: Jonathan M.
+  - family-names: Mwaniki
+    given-names: Njagi
+  - family-names: Nassir
+    given-names: Nasna
+  - family-names: Natali
+    given-names: Chiara
+  - family-names: Negi
+    given-names: Shloka
+  - family-names: Novak
+    given-names: Adam M.
+  - family-names: Okamoto
+    given-names: Faith
+  - family-names: Ossorio
+    given-names: Pilar N.
+  - family-names: Owa
+    given-names: Chie
+  - family-names: Paez
+    given-names: Sadye
+  - family-names: Paten
+    given-names: Benedict
+  - family-names: Peano
+    given-names: Clelia
+  - family-names: Phillippy
+    given-names: Adam M.
+  - family-names: Pickett
+    given-names: Brandon D.
+  - family-names: Pignata
+    given-names: Laura
+  - family-names: Pisanti
+    given-names: Nadia
+  - family-names: Porubsky
+    given-names: David
+  - family-names: Prins
+    given-names: Pjotr
+  - family-names: Radhakrishnan
+    given-names: Anandi
+  - family-names: Ranallo-Benavidez
+    given-names: T. Rhyker
+  - family-names: Raney
+    given-names: Brian J.
+  - family-names: Rautiainen
+    given-names: Mikko
+  - family-names: Raveane
+    given-names: Alessandro
+  - family-names: Ren
+    given-names: Luyao
+  - family-names: Rhie
+    given-names: Arang
+  - family-names: Ryabov
+    given-names: Fedor
+  - family-names: Sacco
+    given-names: Samuel
+  - family-names: Salehi
+    given-names: Farnaz
+  - family-names: Schatz
+    given-names: Michael C.
+  - family-names: Scheinfeldt
+    given-names: Laura B.
+  - family-names: Sehgal
+    given-names: Aarushi
+  - family-names: Seligmann
+    given-names: William E.
+  - family-names: Shabani
+    given-names: Mahsa
+  - family-names: Shafin
+    given-names: Kishwar
+  - family-names: Shahatit
+    given-names: Shadi
+  - family-names: Shemirani
+    given-names: Ruhollah
+  - family-names: Shivakumar
+    given-names: Vikram S.
+  - family-names: Sinha
+    given-names: Swati
+  - family-names: Sirén
+    given-names: Jouni
+  - family-names: Smeds
+    given-names: Linnéa
+  - family-names: Solar
+    given-names: Steven J.
+  - family-names: Sollitto
+    given-names: Marco
+  - family-names: Soranzo
+    given-names: Nicole
+  - family-names: Stergachis
+    given-names: Andrew B.
+  - family-names: Suner
+    given-names: Marie-Marthe
+  - family-names: Suzuki
+    given-names: Yoshihiko
+  - family-names: Söylev
+    given-names: Arda
+  - family-names: Tayoun
+    given-names: Ahmad Abou
+  - family-names: Tierney
+    given-names: Jack A. S.
+  - family-names: Tomlinson
+    given-names: Chad
+  - family-names: Tricomi
+    given-names: Francesca Floriana
+  - family-names: Uddin
+    given-names: Mohammed
+  - family-names: Ungaro
+    given-names: Matteo Tommaso
+  - family-names: Varki
+    given-names: Rahul
+  - family-names: Villani
+    given-names: Flavia
+  - family-names: Violich
+    given-names: Ivo
+  - family-names: Vollger
+    given-names: Mitchell R.
+  - family-names: Walenz
+    given-names: Brian P.
+  - family-names: Wang
+    given-names: Charles
+  - family-names: Wang
+    given-names: Lisa E.
+  - family-names: Wang
+    given-names: Ting
+  - family-names: Wenger
+    given-names: Aaron M.
+  - family-names: Whelan
+    given-names: Conor V.
+  - family-names: Xin
+    given-names: Zilan
+  - family-names: Xu
+    given-names: Zheng
+  - family-names: Ye
+    given-names: Kai
+  - family-names: Zhang
+    given-names: Wenjin
+  - family-names: Zhou
+    given-names: Ying
+  - family-names: Zhuo
+    given-names: Xiaoyu
+  - family-names: Zunino
+    given-names: Giulia
+  - family-names: Mao
+    given-names: Yafei
+  - family-names: Hsieh
+    given-names: PingHsun
+  - family-names: Gerton
+    given-names: Jennifer L.
+  - family-names: Konkel
+    given-names: Miriam K.
+  - family-names: Ventura
+    given-names: Mario
+  - family-names: Logsdon
+    given-names: Glennis A.
+  - family-names: Consortium
+    given-names: Human Genome Structural Variation
+  - family-names: Consortium
+    given-names: Human Pangenome Reference
+date-released: '2026'
+doi: 10.1038/s41586-026-10841-9
+url: https://doi.org/10.1038/s41586-026-10841-9
+abstract: "Centromeres are essential chromosomal regions that ensure accurate chromosome segregation during cell division, yet their highly repetitive sequence has historically hindered their complete assembly and characterization1. Consequently, the full spectrum of centromere diversity across individuals, populations and evolutionary contexts remains largely unexplored. Here we address this gap in knowledge by assembling and characterizing 2,110 centromeres from diverse individuals representing 5 continental and\_28 population groups. Using bioinformatic tools tailored for centromeres, we identify variation, including 226 centromere haplotypes and 1,870 α-satellite higher-order repeat variants. While most centromeres have a single kinetochore site, we find that\_around 6% have di-kinetochores, and less than 1% have tri-kinetochores, which we confirm using long-read chromatin profiling and multigenerational inheritance. We also show that kinetochore position is closely associated with the\_underlying sequence and structure of the centromere. To understand the nature of evolutionary change, we compared these centromeres to 5,747 centromeres assembled by the Human Pangenome Reference Consortium. We show that centromeres have a 20-fold variation in mutation rate, and a subset of centromeres has evidence of archaic hominin introgression. We validate these mutation rates in a 4-generation, 28-member family and show that the kinetochore site is the most rapidly mutating region in the centromere. We propose a model that reveals an ‘arms race’ between centromeric sequence and proteins, with frequent mutations within the kinetochore\_site that lead to changes in genetic and epigenetic landscapes and, ultimately, rapid evolution of these critically important regions."

@@ -7,14 +7,30 @@ Interactive centromere catalog.
       <figure>
         <img src="docs/overview.png">
         <br>
-        <figcaption>Centromere haplotypes</figcaption>
+        <figcaption>HGSVC centromere haplotypes</figcaption>
       </figure>
     </td>
     <td>
       <figure>
         <img src="docs/ui.png">
         <br>
-        <figcaption>Phylogenetic tree</figcaption>
+        <figcaption>HGSVC phylogenetic tree</figcaption>
+      </figure>
+    </td>
+  </tr>
+  <tr>
+     <td>
+      <figure>
+        <img src="docs/custom_hgsvc_preset.png">
+        <br>
+        <figcaption>Load preset data</figcaption>
+      </figure>
+    </td>
+       <td>
+      <figure>
+        <img src="docs/custom_data_upload.png">
+        <br>
+        <figcaption>Upload and visualize custom data</figcaption>
       </figure>
     </td>
   </tr>
@@ -74,3 +90,9 @@ docker run -p 8050:8050 --rm cencyclopedia:latest
 ```
 
 Then, open [`127.0.0.1:8050`](http://127.0.0.1:8050) in browser.
+
+## TODO
+* [ ] More scalable data storage solution probably with AWS support.
+
+## Cite
+Gao, S., Oshima, K.K., Chuang, SC. et al. A global view of human centromere variation and evolution. Nature (2026). https://doi.org/10.1038/s41586-026-10841-9
