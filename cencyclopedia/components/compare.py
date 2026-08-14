@@ -15,6 +15,7 @@ from cencyclopedia.components.help import (
 ALLOWED_FILETYPES = (
     "bb",
     "bw",
+    "bed",
     "bed.gz",
 )
 COMPARE_PAGE_STYLE = {
@@ -149,7 +150,7 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
                 id="upload-data",
                 max_files=1,
                 text_disabled="Upload a BED file to enable",
-                text="Upload a BED (bed.gz), bigwig (.bw) or bigBed (.bb) file",
+                text="Upload a BED (bed or bed.gz), bigwig (.bw) or bigBed (.bb) file",
                 filetypes=ALLOWED_FILETYPES,
                 max_file_size=100,
                 default_style={
