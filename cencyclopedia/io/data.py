@@ -5,13 +5,28 @@ import pybigtools
 import polars as pl
 
 from loguru import logger
-from typing import Any, Iterator, Mapping
+from typing import Any, Iterator, Mapping, TypedDict
 
 from cencyclopedia.io.config import Config, Position, DataType
 from cencyclopedia.plot.common import TrackMode
 
 
 FILE_HANDLE = pybigtools.BBIReader | pysam.TabixFile | pathlib.Path | str | None
+
+
+class AllowedDataTypes(TypedDict):
+    bigBed: set[str]
+    bigWig: set[str]
+    BED: set[str]
+    bedGraph: set[str]
+
+
+ALLOWED_FILETYPES: AllowedDataTypes = {
+    "bigBed": set([".bb", ".bigbed"]),
+    "bigWig": set([".bw", ".bigwig"]),
+    "BED": set([".bed", ".bed.gz"]),
+    "bedGraph": set([".bg.gz", ".bedgraph.gz"]),
+}
 
 
 class Data:
@@ -81,6 +96,7 @@ class Data:
         end: int | None = None,
         *,
         to_relative: bool = True,
+        to_raw_df: bool = False,
     ) -> pl.DataFrame | None:
         """
         # Arguments
@@ -91,7 +107,7 @@ class Data:
         """
         dtype = self.cfg[label]["type"]
         schema = dtype.get_schema()
-        read_fns = dtype.get_read_fns(
+        read_fns = dtype.get_io_fns(
             options=self.cfg[label]["options"], chrom=chrom, st=st, end=end
         )
         # Spacer or invalid datatype
@@ -142,11 +158,16 @@ class Data:
                     .iter_rows()
                 )
 
-            df = pl.DataFrame(
-                data=[read_fns.read_fn(rec) for rec in qry],
-                orient="row",
-                schema=schema,
-            )
+            if to_raw_df:
+                return pl.DataFrame(
+                    data=[read_fns.original_data_fn(rec) for rec in qry], orient="row"
+                )
+            else:
+                df = pl.DataFrame(
+                    data=[read_fns.read_fn(rec) for rec in qry],
+                    orient="row",
+                    schema=schema,
+                )
             if read_fns.finalizer_fn:
                 df = read_fns.finalizer_fn(df)
         except Exception as err:

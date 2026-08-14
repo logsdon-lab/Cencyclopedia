@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 from copy import deepcopy
 from dash import dcc, html
 
+from cencyclopedia.io.data import ALLOWED_FILETYPES
 from cencyclopedia.components.err_msg import modal_error_message
 from cencyclopedia.components.help import (
     popover,
@@ -12,12 +13,6 @@ from cencyclopedia.components.help import (
 )
 
 
-ALLOWED_FILETYPES = (
-    "bb",
-    "bw",
-    "bed",
-    "bed.gz",
-)
 COMPARE_PAGE_STYLE = {
     "padding": "2rem 4rem",
     "overflow": "scroll",
@@ -104,6 +99,22 @@ def layout_regions() -> html.Div:
 
 
 def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
+    extensions = [
+        ext.strip(".")
+        for exts in ALLOWED_FILETYPES.values()
+        for ext in exts  # pyright: ignore
+    ]
+    filetypes = ""
+    filetypes_str_list = ""
+
+    for i, (name, exts) in enumerate(ALLOWED_FILETYPES.items()):
+        if i + 1 != len(ALLOWED_FILETYPES):
+            filetypes_str_list += f"{name} {tuple(exts)}, "  # pyright: ignore
+            filetypes += f"{name}, "
+        else:
+            filetypes_str_list += f"or {name} {tuple(exts)}"  # pyright: ignore
+            filetypes += f"or {name}"
+
     return html.Div(
         [
             row_title_with_help("Files", button_id="btn-help-files"),
@@ -111,11 +122,12 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
                 header="Help",
                 target="btn-help-files",
                 body=dcc.Markdown(
-                    """
+                    f"""
                     ### Files
                     Files can only be uploaded after a BED file is uploaded.
                     * All files are stored server-side and are deleted on session exit.
                     * The maximum file size is 100 Mb
+                    * The following extensions are supported: **{filetypes_str_list}**
 
                     Once uploaded, additionally tabs can be added (**"Add"**) or removed (**"Remove"**).
                     * If a preset is used, only tabs can be removed.
@@ -150,8 +162,8 @@ def layout_upload(labels: list[str], active_tab: str | None = None) -> html.Div:
                 id="upload-data",
                 max_files=1,
                 text_disabled="Upload a BED file to enable",
-                text="Upload a BED (bed or bed.gz), bigwig (.bw) or bigBed (.bb) file",
-                filetypes=ALLOWED_FILETYPES,
+                text=f"Upload a {filetypes} file",
+                filetypes=extensions,
                 max_file_size=100,
                 default_style={
                     "minHeight": "20",
