@@ -3,8 +3,8 @@ import dash_bootstrap_components as dbc
 
 from copy import deepcopy
 from dash import dcc, html
-from typing import TypedDict
 
+from cencyclopedia.io.data import ALLOWED_FILETYPES
 from cencyclopedia.components.err_msg import modal_error_message
 from cencyclopedia.components.help import (
     popover,
@@ -13,19 +13,6 @@ from cencyclopedia.components.help import (
 )
 
 
-class AllowedDataTypes(TypedDict):
-    bigBed: set[str]
-    bigWig: set[str]
-    BED: set[str]
-    bedGraph: set[str]
-
-
-ALLOWED_FILETYPES: AllowedDataTypes = {
-    "bigBed": set([".bb", ".bigbed"]),
-    "bigWig": set([".bw", ".bigwig"]),
-    "BED": set([".bed", ".bed.gz"]),
-    "bedGraph": set([".bg.gz", ".bedgraph.gz"]),
-}
 COMPARE_PAGE_STYLE = {
     "padding": "2rem 4rem",
     "overflow": "scroll",

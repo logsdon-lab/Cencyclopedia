@@ -5,13 +5,28 @@ import pybigtools
 import polars as pl
 
 from loguru import logger
-from typing import Any, Iterator, Mapping
+from typing import Any, Iterator, Mapping, TypedDict
 
 from cencyclopedia.io.config import Config, Position, DataType
 from cencyclopedia.plot.common import TrackMode
 
 
 FILE_HANDLE = pybigtools.BBIReader | pysam.TabixFile | pathlib.Path | str | None
+
+
+class AllowedDataTypes(TypedDict):
+    bigBed: set[str]
+    bigWig: set[str]
+    BED: set[str]
+    bedGraph: set[str]
+
+
+ALLOWED_FILETYPES: AllowedDataTypes = {
+    "bigBed": set([".bb", ".bigbed"]),
+    "bigWig": set([".bw", ".bigwig"]),
+    "BED": set([".bed", ".bed.gz"]),
+    "bedGraph": set([".bg.gz", ".bedgraph.gz"]),
+}
 
 
 class Data:
