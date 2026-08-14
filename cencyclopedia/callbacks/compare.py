@@ -27,7 +27,7 @@ from dash import (
     NoUpdate,
 )
 
-from cencyclopedia.components.compare import get_tab_n, tab_name
+from cencyclopedia.components.compare import ALLOWED_FILETYPES, get_tab_n, tab_name
 from cencyclopedia.components.dataview import dataview_tab
 from cencyclopedia.components.err_msg import modal_body_content
 from cencyclopedia.io.data import Data, DataType
@@ -562,11 +562,14 @@ def add_uploaded_data_to_cfg(
 
         opts = DEFAULT_BED_OPTIONS
         opts["type"] = DataType.BED9
+    elif ext == ".bed":
+        opts = DEFAULT_BED_OPTIONS
+        opts["type"] = DataType.BED9
     else:
         err_msg = modal_body_content(
             f"Invalid data type for {fname}: {ext}",
             ctx="input file reading",
-            likely_issue="Please ensure the input file is a valid datatype (`.bw`, `.bb`, or `.bed.gz`).",
+            likely_issue=f"Please ensure the input file is a valid datatype ({ALLOWED_FILETYPES} ).",
         )
         return no_change_plus_error_msg(err_msg)
 

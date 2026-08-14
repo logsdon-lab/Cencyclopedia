@@ -11,7 +11,7 @@ from cencyclopedia.io.config import Config, Position, DataType
 from cencyclopedia.plot.common import TrackMode
 
 
-FILE_HANDLE = pybigtools.BBIReader | pysam.TabixFile | pathlib.Path | None
+FILE_HANDLE = pybigtools.BBIReader | pysam.TabixFile | pathlib.Path | str | None
 
 
 class Data:
@@ -35,13 +35,16 @@ class Data:
 
             is_bigfile = typ == DataType.BIGWIG or typ == DataType.BIGBED
             path = trk_info.get("path")
+            is_bgzipped = path.endswith(".gz")
             if not path:
                 self.fhs[label] = None
             elif os.path.isfile(path):
                 if is_bigfile:
                     self.fhs[label] = pybigtools.open(trk_info["path"])
-                else:
+                elif is_bgzipped:
                     self.fhs[label] = pysam.TabixFile(trk_info["path"])
+                else:
+                    self.fhs[label] = trk_info["path"]
             elif os.path.isdir(path):
                 self.fhs[label] = pathlib.Path(path)
             else:
@@ -100,6 +103,8 @@ class Data:
             fh = fh
         elif isinstance(fh, pybigtools.BBIReader):
             fh = fh
+        elif isinstance(fh, str):
+            fh = fh
         elif isinstance(fh, pathlib.Path):
             try:
                 ext = dtype.get_extension()
@@ -121,8 +126,21 @@ class Data:
             logger.debug(f"Query {label} for {chrom}:{st}-{end}")
             if isinstance(fh, pysam.TabixFile):
                 qry = fh.fetch(chrom, st, end, parser=pysam.asTuple())
-            else:
+            elif isinstance(fh, pybigtools.BBIReader):
                 qry = fh.records(chrom, st, end)
+            else:
+                # Is a BED file. Slower query but should be small enough to be fine.
+                qry = (
+                    pl.read_csv(
+                        fh,
+                        separator="\t",
+                        has_header=False,
+                        comment_prefix="#",
+                        new_columns=["chrom", "chrom_st", "chrom_end"],
+                    )
+                    .filter(pl.col("chrom_st").ge(st) & pl.col("chrom_end").lt(end))
+                    .iter_rows()
+                )
 
             df = pl.DataFrame(
                 data=[read_fns.read_fn(rec) for rec in qry],
