@@ -8,6 +8,7 @@ from dash.exceptions import PreventUpdate
 from dash import Input, Output, callback, dash_table, State, html, ctx
 
 from cencyclopedia.io.data import Data
+from cencyclopedia.io.writer import write_bgzip_file
 from cencyclopedia.plot.common import (
     BedTrackSettings,
     DEFAULT_SETTINGS,
@@ -175,7 +176,11 @@ def download_data(
     if not first_col.startswith("#"):
         df = df.rename({first_col: f"#{first_col}"})
 
-    outfname = f"{chrom}_{st}_{end}_{active_tab.replace(' ', '_')}.bed.gz"
-    return send_bytes(
-        lambda x: df.write_csv(x, separator="\t", compression="gzip"), outfname
-    )
+    dtype = data_fhs.datatype(active_tab)
+    if dtype and dtype.is_bedgraph_like():
+        ext = ".bg.gz"
+    else:
+        ext = ".bed.gz"
+
+    outfname = f"{chrom}_{st}_{end}_{active_tab.replace(' ', '_')}{ext}"
+    return send_bytes(lambda bytes_io: write_bgzip_file(df, bytes_io), outfname)

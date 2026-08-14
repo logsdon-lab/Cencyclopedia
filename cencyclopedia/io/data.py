@@ -81,6 +81,7 @@ class Data:
         end: int | None = None,
         *,
         to_relative: bool = True,
+        to_raw_df: bool = False,
     ) -> pl.DataFrame | None:
         """
         # Arguments
@@ -91,7 +92,7 @@ class Data:
         """
         dtype = self.cfg[label]["type"]
         schema = dtype.get_schema()
-        read_fns = dtype.get_read_fns(
+        read_fns = dtype.get_io_fns(
             options=self.cfg[label]["options"], chrom=chrom, st=st, end=end
         )
         # Spacer or invalid datatype
@@ -142,11 +143,16 @@ class Data:
                     .iter_rows()
                 )
 
-            df = pl.DataFrame(
-                data=[read_fns.read_fn(rec) for rec in qry],
-                orient="row",
-                schema=schema,
-            )
+            if to_raw_df:
+                return pl.DataFrame(
+                    data=[read_fns.original_data_fn(rec) for rec in qry], orient="row"
+                )
+            else:
+                df = pl.DataFrame(
+                    data=[read_fns.read_fn(rec) for rec in qry],
+                    orient="row",
+                    schema=schema,
+                )
             if read_fns.finalizer_fn:
                 df = read_fns.finalizer_fn(df)
         except Exception as err:

@@ -32,6 +32,7 @@ from cencyclopedia.components.dataview import dataview_tab
 from cencyclopedia.components.err_msg import modal_body_content
 from cencyclopedia.io.data import Data, DataType
 from cencyclopedia.io.config import DEFAULT_BED_OPTIONS, DEFAULT_BEDGRAPH_OPTIONS
+from cencyclopedia.io.writer import write_bgzip_file
 from cencyclopedia.plot.cen import draw_cenplot
 from cencyclopedia.plot.common import (
     BedTrackSettings,
@@ -82,6 +83,8 @@ def get_df_from_selected_rows(
     active_tab: str,
     data_regions: list[dict[str, Any]],
     regions_rows: list[int],
+    *,
+    to_raw_df: bool = False,
 ) -> tuple[pl.DataFrame | None, dcc.Markdown | None]:
     dfs: list[pl.DataFrame] = []
     for row in regions_rows:
@@ -97,7 +100,12 @@ def get_df_from_selected_rows(
             return None, err_msg
 
         df = data_fhs.query(
-            label=active_tab, chrom=rgn_info["Chrom"], st=st, end=end, to_relative=False
+            label=active_tab,
+            chrom=rgn_info["Chrom"],
+            st=st,
+            end=end,
+            to_relative=False,
+            to_raw_df=to_raw_df,
         )
         if not isinstance(df, pl.DataFrame):
             logger.debug(f"No data found for {active_tab} and {rgn_info}")
@@ -526,11 +534,13 @@ def add_uploaded_data_to_cfg(
     except TypeError:
         raise PreventUpdate
 
-    _, ext = os.path.splitext(fname)
+    fname_part, first_ext = os.path.splitext(fname)
+    _, second_ext = os.path.splitext(fname_part)
+    ext = f"{second_ext}{first_ext}"
     fpath = os.path.join(cfg["general"]["compare"]["tmp_dir"], upload_id, fname)
 
     # Check if bigwig or bigbed
-    if ext == ".bb" or ext == ".bw":
+    if ext in ALLOWED_FILETYPES["bigBed"] or ext in ALLOWED_FILETYPES["bigWig"]:
         try:
             # Check valid bigwig/bigbed
             b = pybigtools.open(fpath)
@@ -548,28 +558,31 @@ def add_uploaded_data_to_cfg(
         else:
             opts = DEFAULT_BEDGRAPH_OPTIONS
             opts["type"] = DataType.BIGWIG
-    elif ext == ".bed.gz":
-        try:
-            # Check valid bgzipped file
-            pysam.tabix_index(fpath)
-        except Exception as err:
-            err_msg = modal_body_content(
-                f"Cannot index tabix bgzipped file: {err}",
-                ctx="tabix file indexing",
-                likely_issue="Please ensure the input file is a valid bgzipped file. Check with `tabix -p bed ${file}`.",
-            )
-            return no_change_plus_error_msg(err_msg)
+    elif ext in ALLOWED_FILETYPES["BED"] or ext in ALLOWED_FILETYPES["bedGraph"]:
+        # Check bgzip
+        if ext.endswith(".gz"):
+            try:
+                # Check valid bgzipped file
+                pysam.tabix_index(fpath, preset="bed")
+            except Exception as err:
+                err_msg = modal_body_content(
+                    f"Cannot index tabix bgzipped file: {err}",
+                    ctx="tabix file indexing",
+                    likely_issue="Please ensure the input file is a valid bgzipped file. Check with `tabix -p bed ${file}`.",
+                )
+                return no_change_plus_error_msg(err_msg)
 
-        opts = DEFAULT_BED_OPTIONS
-        opts["type"] = DataType.BED9
-    elif ext == ".bed":
-        opts = DEFAULT_BED_OPTIONS
-        opts["type"] = DataType.BED9
+        if ext in ALLOWED_FILETYPES["BED"]:
+            opts = DEFAULT_BED_OPTIONS
+            opts["type"] = DataType.BED9
+        else:
+            opts = DEFAULT_BEDGRAPH_OPTIONS
+            opts["type"] = DataType.BEDGRAPH
     else:
         err_msg = modal_body_content(
             f"Invalid data type for {fname}: {ext}",
             ctx="input file reading",
-            likely_issue=f"Please ensure the input file is a valid datatype ({ALLOWED_FILETYPES} ).",
+            likely_issue=f"Please ensure the input file is a valid datatype ({ALLOWED_FILETYPES}).",
         )
         return no_change_plus_error_msg(err_msg)
 
@@ -850,8 +863,9 @@ def download_compare_data(
     logger.debug(f"Download triggered: {ctx.triggered}")
 
     data_fhs = Data(cfg["data"])
+    # Get original data.
     res_df, err = get_df_from_selected_rows(
-        data_fhs, active_tab, data_regions, regions_rows
+        data_fhs, active_tab, data_regions, regions_rows, to_raw_df=True
     )
     if err:
         return no_update, err, True
@@ -870,11 +884,15 @@ def download_compare_data(
     if not first_col.startswith("#"):
         df_all = df_all.rename({first_col: f"#{first_col}"})
 
-    outfname = f"{active_tab.replace(' ', '_')}.bed.gz"
+    dtype = data_fhs.datatype(active_tab)
+    if dtype and dtype.is_bedgraph_like():
+        ext = ".bg.gz"
+    else:
+        ext = ".bed.gz"
+
+    outfname = f"{active_tab.replace(' ', '_')}{ext}"
     return (
-        send_bytes(
-            lambda x: df_all.write_csv(x, separator="\t", compression="gzip"), outfname
-        ),
+        send_bytes(lambda bytes_io: write_bgzip_file(df_all, bytes_io), outfname),
         no_update,
         no_update,
     )

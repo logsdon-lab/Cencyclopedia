@@ -30,6 +30,7 @@ class DataOpFunctions:
     read_fn: Callable[[Any], Any]
     to_relative_fn: Callable[[pl.DataFrame], pl.DataFrame]
     finalizer_fn: Callable[[pl.DataFrame], pl.DataFrame] | None
+    original_data_fn: Callable[[Any], Any] = lambda rec: list(rec)
 
 
 class DataType(StrEnum):
@@ -45,13 +46,17 @@ class DataType(StrEnum):
     def is_expandable(self) -> bool:
         return self.value in EXPANDABLE_DATA_TYPES
 
+    def is_bedgraph_like(self) -> bool:
+        return self == DataType.BEDGRAPH or self == DataType.BIGWIG
+
     def get_extension(self) -> str | None:
         if self == DataType.NULL:
             return None
+        elif self == DataType.BEDGRAPH:
+            return ".bg.gz"
         elif (
             self == DataType.BED9
             or self == DataType.BED_LOCALSELFIDENT
-            or self == DataType.BEDGRAPH
             or self == DataType.BEDSTRAND
         ):
             return ".bed.gz"
@@ -82,7 +87,7 @@ class DataType(StrEnum):
         else:
             raise ValueError(f"Invalid name. {self}")
 
-    def get_read_fns(
+    def get_io_fns(
         self, options: dict[str, Any], chrom: str, st: int | None, end: int | None
     ) -> DataOpFunctions | None:
         # Convert to relative coordinates
@@ -95,12 +100,15 @@ class DataType(StrEnum):
                 read_fn=lambda rec: read_bigbed_row(rec, chrom),
                 to_relative_fn=to_relative_fn,
                 finalizer_fn=None,
+                # bigtools doesn't return chrom
+                original_data_fn=lambda rec: (chrom, *list(rec)),
             )
         elif self == DataType.BIGWIG:
             return DataOpFunctions(
                 read_fn=lambda rec: read_bigwig_row(rec, chrom),
                 to_relative_fn=to_relative_fn,
                 finalizer_fn=None,
+                original_data_fn=lambda rec: (chrom, *list(rec)),
             )
         elif self == DataType.BED9:
             return DataOpFunctions(
