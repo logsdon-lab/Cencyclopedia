@@ -25,7 +25,7 @@ ALLOWED_FILETYPES: AllowedDataTypes = {
     "bigBed": set([".bb", ".bigbed"]),
     "bigWig": set([".bw", ".bigwig"]),
     "BED": set([".bed", ".bed.gz"]),
-    "bedGraph": set([".bg.gz", ".bedgraph.gz"]),
+    "bedGraph": set([".bg", ".bedgraph", ".bg.gz", ".bedgraph.gz"]),
 }
 
 
@@ -154,7 +154,11 @@ class Data:
                         comment_prefix="#",
                         new_columns=["chrom", "chrom_st", "chrom_end"],
                     )
-                    .filter(pl.col("chrom_st").ge(st) & pl.col("chrom_end").lt(end))
+                    .filter(
+                        pl.col("chrom").eq(chrom)
+                        & pl.col("chrom_st").ge(st)
+                        & pl.col("chrom_end").lt(end)
+                    )
                     .iter_rows()
                 )
 

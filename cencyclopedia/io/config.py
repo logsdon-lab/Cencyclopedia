@@ -174,7 +174,7 @@ DEFAULT_BED_OPTIONS: Config = {
     "path": "",
     "prop": 0.05,
     "options": {
-        "rle": True,
+        "rle": False,
         "xaxis_kwargs": {"ticks": "", "showline": False},
         "yaxis_kwargs": {
             "showticklabels": False,
